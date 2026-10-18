@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Project conventions — Practical guides and Go examples for Labena.">
+<title>Project conventions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/conventions.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a class="selected" aria-current="page" href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav></details>
+<article><h1 id="project-conventions">Project conventions</h1>
+<p>This is the canonical architecture guide for contributors. Use these defaults for
+new code and refactoring. The other guides explain usage; they should not introduce
+competing patterns. This is a modular application template built with explicit Go
+composition, not a runtime dependency container.</p>
+<h2 id="read-this-alongside-the-guides">Read this alongside the guides<a class="heading-link" href="#read-this-alongside-the-guides" aria-label="Link to Read this alongside the guides">#</a></h2>
+<p>This page is the architecture contract. Use <a href="modules.html">your first module</a> for
+an introduction, <a href="module-registration.html">module registration</a> for assembly,
+and <a href="dependency-injection.html">dependency injection</a> for ownership examples.
+The rules below describe the current design, not a migration roadmap. Historical
+reviews and plans do not override current APIs or this contract.</p>
+<h2 id="1-package-responsibilities">1. Package responsibilities<a class="heading-link" href="#1-package-responsibilities" aria-label="Link to 1. Package responsibilities">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Owns</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application composition</td>
+<td>Resource ownership, business graph and process selection</td>
+<td><code>internal/app</code></td>
+</tr>
+<tr>
+<td>Environment configuration</td>
+<td>Loading, defaults and translation to owner settings</td>
+<td><code>internal/app/config</code></td>
+</tr>
+<tr>
+<td>Business module</td>
+<td>Business rules, use cases, persistence and transports</td>
+<td><code>internal/modules/identity</code></td>
+</tr>
+<tr>
+<td>Shared business definitions</td>
+<td>Entities, enums, published events and common contracts</td>
+<td><code>internal/modules/shared</code></td>
+</tr>
+<tr>
+<td>Platform capability</td>
+<td>Shared application behavior with its own public types</td>
+<td><code>internal/platform/notification</code>, <code>media</code>, <code>mail</code></td>
+</tr>
+<tr>
+<td>Reusable package</td>
+<td>Technical behavior independent of this application</td>
+<td><code>pkg/database</code>, <code>storage</code>, <code>mailview</code>, <code>push</code>, <code>hasher</code></td>
+</tr>
+</tbody>
+</table>
+<p>Handlers call business services. Services call their repositories and shared
+capabilities. Platform capabilities compose reusable packages. App constructs and
+connects them. <code>pkg</code> must never import <code>internal</code>.</p>
+<p><code>internal/modules</code> groups business code; it is not a Go package or a registration
+catalog. Its <code>shared</code> directory contains definitions, not a registrable module:
+it has no <code>Module</code>, <code>New</code> or <code>Register</code>. Platform packages never import
+<code>internal/modules</code>, including shared business definitions. Shared definitions
+must not import business modules, platform packages or app. App configuration
+lives in <code>internal/app/config</code>; owners receive translated settings, never the
+environment configuration package.</p>
+<p>Platform capability cores do not import app or <code>dependencies.Resources</code>. Their
+integration packages connect them to application transports and registries. Keep
+this separation to avoid import cycles and permit independent use.</p>
+<p>The authenticated <code>Principal</code> belongs to <code>internal/platform/auth</code>, independently
+of tokens, transports and business entities. Identity owns sign-in, verification
+and session persistence. Its HTTP delivery also owns user-specific media,
+notification and push-subscription endpoints, translating the principal into
+business owner/recipient references. Platform media integration retains generic
+public/signed content serving; other platform integration handles CLI, tasks and
+migrations without business identity assumptions.</p>
+<p>Use a direct service call for a required business operation. Use an event for a
+reaction with an explicitly accepted delivery guarantee. Do not introduce an event,
+job, repository or interface just to fill out a directory structure.</p>
+<h2 id="2-one-business-module-shape">2. One business-module shape<a class="heading-link" href="#2-one-business-module-shape" aria-label="Link to 2. One business-module shape">#</a></h2>
+<pre><code class="language-text">internal/modules/&lt;module&gt;/
+  register.go            Construction and registration
+  service/
+    service.go           Public service interfaces
+    &lt;subject&gt;.go         Private implementation and constructor
+    &lt;use_case&gt;.go        Substantial method on the same receiver, when useful
+  repository/
+    repository.go        Public persistence interfaces
+    &lt;subject&gt;.go         Private implementation, constructor and queries
+  delivery/
+    http/                Routes, requests, responses and handlers
+    cli/                 Commands
+    events/              Event handlers
+    jobs/                Job handlers
+  jobs/                  Task payloads, names and constructors
+  notifications/         Named notification content and channel choices
+  mailviews/             Email content using the shared renderer
+  integrations/          External provider integration
+  domain/                Shared module policies and operation errors, if needed
+  migrations/            Module-owned SQL
+
+tests/&lt;module&gt;/           Business integration and public-behavior tests
+</code></pre>
+<p>Create only the directories required by actual behavior. A transport-only module
+can start with a single <code>Register</code> function in <code>register.go</code>. A larger use case
+can occupy another file without creating another service. Keep nested module
+folders; do not flatten them or introduce a service per table or endpoint.</p>
+<h2 id="3-type-ownership">3. Type ownership<a class="heading-link" href="#3-type-ownership" aria-label="Link to 3. Type ownership">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business entity and its invariants</td>
+<td><code>internal/modules/shared/entities</code></td>
+</tr>
+<tr>
+<td>Shared business enum</td>
+<td><code>internal/modules/shared/enums</code></td>
+</tr>
+<tr>
+<td>Polymorphic business type name</td>
+<td><code>internal/modules/shared/entities/entity_types.go</code></td>
+</tr>
+<tr>
+<td>Operation input or result</td>
+<td>Owning module&#39;s <code>service</code> package</td>
+</tr>
+<tr>
+<td>SQL projection or repository result contract</td>
+<td>Owning module&#39;s <code>repository</code> package; export only what its service must consume</td>
+</tr>
+<tr>
+<td>HTTP request or response</td>
+<td>Owning module&#39;s <code>delivery/http</code> package</td>
+</tr>
+<tr>
+<td>Authenticated caller identity</td>
+<td><code>internal/platform/auth.Principal</code></td>
+</tr>
+<tr>
+<td>Published business event</td>
+<td><code>internal/modules/shared/events</code>; publishing module owns meaning and version</td>
+</tr>
+<tr>
+<td>Common event occurrence metadata</td>
+<td><code>internal/modules/shared/events</code></td>
+</tr>
+<tr>
+<td>Domain error</td>
+<td>Owning module&#39;s <code>domain</code> package or the entity that enforces the invariant</td>
+</tr>
+<tr>
+<td>Capability record, input, status or error</td>
+<td>Owning platform package</td>
+</tr>
+</tbody>
+</table>
+<p>Shared business entities are an intentional convention of this monolith. Their
+owning module still controls writes and business operations. A shared type is not
+permission to bypass its owner. Cross-module SQL reads must be deliberate and
+remain in repositories.</p>
+<p>Published event contracts share <code>internal/modules/shared/events</code> so consumers can import
+their definitions without depending on a producer&#39;s implementation. Keep this
+package limited to payloads, topic constants, occurrence metadata and constructors.
+Use IDs and event-specific values instead of embedding entities; do not import
+services, repositories, platform capabilities, application config or transports.
+The publishing module controls schema compatibility and the topic version.
+Handlers remain in each consuming module&#39;s <code>delivery/events</code> package.</p>
+<p>Domain errors stay with the behavior that defines them. Reuse <code>pkg/apperror</code> for
+classification and safe error codes; do not create a global <code>shared/errors</code> catalog.
+Across a future service boundary, publish stable schemas and codes rather than
+sharing implementation errors or assuming Go error identity survives transport.</p>
+<p>Entities may carry Bun mappings when the shapes agree. Do not add a parallel
+<code>models</code> package and conversion layer by default. Use a separate private query
+shape only when persistence actually differs. Viewer-dependent values such as
+unread counts are operation results, not intrinsic entity state.</p>
+<p>HTTP inputs own Huma schema/validation tags. Typed handlers register once through
+<code>huma.Register</code> for routing and OpenAPI. The platform runs Huma on <code>http.ServeMux</code>;
+modules receive native Huma groups. Authentication
+and authorization read the principal from <code>context.Context</code>.
+Services validate business rules for
+all callers, including jobs and CLI. Responses explicitly select public fields;
+do not expose an entity merely because it has JSON tags.</p>
+<p>HTTP resolves <code>api.ClientIP</code> once using explicit trusted proxy CIDRs; modules
+never reinterpret forwarding headers. Empty trust uses the immediate connection.
+<code>api.PeerIP</code> always retains that transport peer. Client addresses can select rate
+budgets but never establish a principal or grant authorization. Administrative
+HTTP endpoints reuse <code>platform/adminhttp</code> and stay outside business CORS policy.</p>
+<p>Within a business module&#39;s <code>delivery/http</code>, keep handlers in <code>*_handler.go</code>,
+request shapes and input mappings in <code>requests.go</code>, response shapes and projections
+in <code>responses.go</code>, and typed operation registration in <code>routes.go</code>.</p>
+<p>Media&#39;s <code>Asset</code> and Notification&#39;s <code>Record</code> stay with their capabilities. Shared
+entities is not a destination for every struct. Keep recipient, owner and audience
+semantics explicit; a <code>(type, id)</code> reference does not authorize access. Use the
+shared entity-type constants at business call sites, not module-local literals.</p>
+<p>Media owners and notification recipients share one reference
+syntax: type names match <code>[a-z][a-z0-9_.-]{0,63}</code>; IDs are nonempty UTF-8 strings of
+at most 200 bytes, without surrounding whitespace or control characters. The
+implementation lives in <code>platform/internal/reference</code>, not a new public base type.
+Capability-specific errors and authorization remain with each owner.</p>
+<h2 id="4-contracts-and-names">4. Contracts and names<a class="heading-link" href="#4-contracts-and-names" aria-label="Link to 4. Contracts and names">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business service interface</td>
+<td><code>&lt;Subject&gt;Service</code></td>
+<td><code>UserService</code></td>
+</tr>
+<tr>
+<td>Private service implementation</td>
+<td><code>&lt;subject&gt;Service</code></td>
+<td><code>userService</code></td>
+</tr>
+<tr>
+<td>Constructor beside implementation</td>
+<td><code>New&lt;Subject&gt;Service</code></td>
+<td><code>NewUserService</code></td>
+</tr>
+<tr>
+<td>Repository interface</td>
+<td><code>&lt;Subject&gt;Repository</code></td>
+<td><code>UserRepository</code></td>
+</tr>
+<tr>
+<td>Private repository implementation</td>
+<td><code>&lt;subject&gt;Repository</code></td>
+<td><code>userRepository</code></td>
+</tr>
+<tr>
+<td>Constructor beside implementation</td>
+<td><code>New&lt;Subject&gt;Repository</code></td>
+<td><code>NewUserRepository</code></td>
+</tr>
+<tr>
+<td>Operation input</td>
+<td><code>&lt;Operation&gt;Input</code></td>
+<td><code>SendMessageInput</code></td>
+</tr>
+<tr>
+<td>HTTP shapes</td>
+<td><code>&lt;Operation&gt;Request</code>, <code>&lt;Subject&gt;Response</code></td>
+<td><code>SendMessageRequest</code></td>
+</tr>
+<tr>
+<td>Failure</td>
+<td><code>Err&lt;Meaning&gt;</code></td>
+<td><code>ErrNotFound</code></td>
+</tr>
+</tbody>
+</table>
+<p>Name values for what they contain: account identifiers use <code>UserID</code>, event timestamps
+use <code>OccurredAt</code>, and a notifier dependency is <code>Notifier</code>. Named storage connections
+are <code>Disks</code>, with <code>DefaultDisk</code> selecting one. Use <code>SignIn</code> consistently for the
+operation; <code>SocialSignInInput</code> contains provider sign-in context.</p>
+<p>Use <code>Get</code> for one persisted record and <code>List</code> for collections, including paginated
+ones. Keep <code>pagination.Pagination</code> for paging parameters and <code>pagination.Page[T]</code>
+for results. Use <code>Valid() bool</code> for membership/validity checks, <code>Validate() error</code>
+for diagnostic validation, and <code>MarkReady</code>/<code>MarkDeleted</code> for persisted state changes.
+Name same-typed interface parameters so their order and purpose are clear in editor
+hints. Transport implementation types stay private when registration functions are
+the public API. Request <code>Input(...)</code> methods keep mapping beside their request types;
+handlers supply trusted context and perform authorization.</p>
+<p>Public business contracts live in <code>service/service.go</code> and
+<code>repository/repository.go</code>, not separate <code>contracts</code> packages or shared contract
+catalogs. Multiple consumers import the owner&#39;s contract. Keep each contract
+cohesive; do not create an interface per consumer or mirror every private helper.</p>
+<p>Platform capabilities may expose meaningful concrete types such as <code>Notifier</code>,
+and <code>Library</code>. Reuse existing package contracts such as <code>mail.Sender</code>, <code>mail.Mailer</code>
+and <code>messaging.Publisher</code>; do not redeclare them in each module. These two shapes
+are intentional: business APIs and reusable capability APIs have different owners.</p>
+<p>Use descriptive operation verbs. Within an authentication service,
+<code>RequestSignInCode</code> is clearer than <code>Send</code>. Avoid <code>Impl</code>, <code>Manager</code>, generic <code>Service</code>
+and generic <code>Repository</code> when a business subject supplies a useful name. Keep
+established third-party names instead of wrapping them solely to rename them.</p>
+<p><code>Config</code> describes settings; <code>Options</code> holds optional constructor controls and
+collaborators. Required small dependency sets are explicit constructor arguments.
+Configuration translation helpers name the returned owner settings, such as
+<code>ServerConfig</code>, <code>ConnectionConfig</code> and <code>SMTPConfig</code>; native <code>Options</code> types retain
+their names. Media settings use <code>media.Config</code> and <code>media.DiskConfig</code>.
+A larger cohesive options struct is acceptable; do not introduce another resource
+bundle for every module.</p>
+<p>Use <code>New&lt;Subject&gt;</code> for named event, task and notification constructors, such as
+<code>events.NewUserRegistered</code>, <code>jobs.NewWelcome</code> and <code>notifications.NewWelcome</code>.
+<code>mailviews.NewWelcome</code> constructs its email content. Construction alone performs
+no publication or delivery; callers use <code>Publish</code>, <code>Enqueue</code> or <code>Send</code> explicitly.
+Infallible constructors return the value directly. Renaming a constructor does
+not change its serialized fields, notification type or stable occurrence key.</p>
+<h2 id="5-construction-registration-and-lifetime">5. Construction, registration and lifetime<a class="heading-link" href="#5-construction-registration-and-lifetime" aria-label="Link to 5. Construction, registration and lifetime">#</a></h2>
+<ul>
+<li><code>New…</code> validates and assembles without network I/O or background work.</li>
+<li><code>Open…</code> acquires owned resources, including background exporters, and makes cleanup explicit.</li>
+<li><code>Register…</code> may construct local collaborators and installs definitions before execution; it performs no I/O or business work.</li>
+<li><code>Run(ctx)</code> owns execution until completion or cancellation.</li>
+<li><code>Close…</code> releases owned resources after their users finish; retain native terms such as tracing’s <code>Shutdown</code>.</li>
+</ul>
+<p>Module assembly borrows <code>dependencies.Resources</code> and passes specific dependencies
+to services. Business services do not retain the complete bundle. App fills it
+before module construction; modules never mutate it or close its clients.
+Business-to-business dependencies are explicit arguments, not entries in Resources.</p>
+<p>Each business module exposes a package-level <code>Register</code> function in <code>register.go</code>.
+It constructs module-local collaborators and installs selected transports once.
+There is no Module struct or duplicate module configuration schema. App owns the
+environment configuration and passes specific settings and business services as
+explicit arguments. Collaborators needed before registration, such as Identity&#39;s
+AuthService, are constructed in app using their existing owner constructors.
+Services keep validating their policies and dependencies. App registers each
+module once; registration does not start work or acquire resources.
+Invalid runtime configuration and missing capability dependencies fail at assembly,
+without a late nil dereference. Native transport helpers retain explicit programmer
+preconditions; panics are reserved for misuse such as invalid static defaults. Disabled capabilities have documented nil/no-op behavior.</p>
+<p><code>tracing.Open</code> owns a batch worker and requires <code>Shutdown</code>. <code>messaging.RegisterRunner</code>
+installs router lifecycle hooks before handlers; its returned runner starts work only
+in <code>Run</code>. The app&#39;s bounded <code>messaging.LocalBus</code> rejects overloaded publication and
+settles failed deliveries after one retry cycle; it remains best-effort. <code>cli.ScheduledCommands</code> has a usable zero value, implements the native Asynq
+handler, and is installed explicitly with <code>mux.Handle(cli.CommandTask, commands)</code>.
+There is no second scheduling registry or wrapper constructor to learn.</p>
+<p>Application-specific configuration can translate pure owner policies, such as
+<code>cfg.Auth.SessionPolicy()</code>. The owner defines validation; configuration
+and service constructors reuse that validation. Owners never import application config.</p>
+<p><code>Targets</code> contains borrowed Huma APIs and native command/job/event registries. Nil targets omit unused
+transports. Validate required collaborators before mutation, register sequentially,
+and discard partial application construction on error. No discovery, reflection,
+service locator, module startup hooks or lazy application callbacks are needed.</p>
+<p>The intended registration location is <code>register.go</code> for HTTP, CLI, jobs, events,
+migrations. Scheduling is the intentional exception: app/schedules.go centrally
+declares recurring timing, feature conditions and enqueue options using existing
+<code>asynqx.TaskSchedule</code> and <code>asynqx.CommandSchedule</code> definitions. Modules retain task
+handlers and command factories. App validates and installs schedules after module
+registration, and owns scheduler execution and operational configuration.</p>
+<p>App owns resource acquisition, process readiness, ordered drain and reverse-order
+cleanup. Each executable loads configuration and supplies explicit <code>app.Processes</code>
+flags. HTTP and Workers automatically include local event consumers; Workers also
+includes notification dispatch. Scheduler is a separate selection. No process
+selection comes from environment variables. The app exposes only Serve and Execute;
+Execute uses the supplied selection only for its serve command. Zero processes is
+valid for ordinary commands and rejected when serving. <code>internal/app/modules.go</code>
+contains only explicit business registration calls. <code>auth.go</code> constructs Identity&#39;s
+AuthService and binds notification delivery&#39;s active-session check. Identity&#39;s
+HTTP delivery calls that AuthService directly for session-aware push registration.
+<code>open.go</code> owns cross-cutting
+security wiring and failure cleanup; <code>infrastructure.go</code> opens clients, constructs
+capabilities and registers their transports. One private <code>application</code> holds
+configuration, Resources, Targets, native runner handles and the selected process
+list. Registries live in Targets; console execution uses Targets.RootCommand. App
+helpers operate on this state, with no separate platform, console or process-plan
+state objects. Only app accesses the application; modules borrow Resources and
+Targets and receive explicit business collaborators. Business modules
+and platform packages never import <code>internal/app</code> or its configuration package. CLI help intentionally constructs the configured application too. Missing
+required resources fail construction or serving validation; intentionally disabled
+features have documented unavailable behavior. Preserve supported offline assembly
+without treating it as permission to serve with missing required dependencies.</p>
+<h2 id="6-transactions-errors-and-delivery">6. Transactions, errors and delivery<a class="heading-link" href="#6-transactions-errors-and-delivery" aria-label="Link to 6. Transactions, errors and delivery">#</a></h2>
+<p>Normal business transactions belong to service operations. Repositories resolve
+the executor from context and join the same database transaction. DB and
+Transactions must use the same pool. External network or blob operations do not
+become atomic by receiving a transaction-bearing context. Framework publication,
+app queueing, mail and external notification/media effects reject that context
+using <code>database.RequireNoTransaction</code>. Native clients bypass this policy. The
+guard does not provide a generic outbox; post-commit publication can still fail.</p>
+<p>Identity&#39;s security operations are explicit exceptions: failed-proof counters and
+refresh-reuse revocation may need to commit even when authentication is denied.
+Preserve their repository-owned transaction rules. Do not mechanically wrap them
+in an outer transaction.</p>
+<p>Identity creates accounts through authenticated OTP or provider proofs, in the
+same transaction as the session. <code>SignInResult</code> distinguishes a new account from a
+returning one and includes the user. Registration events publish after commit;
+publication failure never turns a committed signup into a failed response.
+HTTP owns peer extraction and formatting; the service owns the sequence.</p>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Direct service call</td>
+<td>Required operation; caller receives its outcome</td>
+</tr>
+<tr>
+<td>Local Watermill event</td>
+<td>Process-local, best-effort reaction</td>
+</tr>
+<tr>
+<td>Asynq enqueue</td>
+<td>Background work after queue acceptance; not atomic with business SQL</td>
+</tr>
+<tr>
+<td>Notification <code>Enqueue</code></td>
+<td>SQL delivery intent that can commit with the business change</td>
+</tr>
+<tr>
+<td>Notification <code>Send</code></td>
+<td>Immediate attempt; caller handles uncertainty</td>
+</tr>
+</tbody>
+</table>
+<p>Use stable occurrence keys where retries must converge. Persisted intent is not
+proof of delivery, provider acceptance is not user receipt, and socket delivery is
+not a read acknowledgment. Do not hide these distinctions behind a universal
+<code>Dispatch</code> abstraction. Module notifications own content; platform delivery owns
+channel retries and receipts.</p>
+<p>Use <code>apperror</code> for intentional safe application failures. Wrap operational errors
+with context and <code>%w</code>; preserve <code>errors.Is/As</code>. Typed HTTP handlers return
+<code>response.Error(ctx, err)</code> to translate service failures into RFC 9457 problem details.
+Register operations directly with <code>huma.Register</code>. Huma middleware uses
+<code>response.WriteError</code>; native Huma status errors can be returned directly.
+Application JSON responses use <code>response.JSON[T]</code> and its status constructors.
+The typed result lives in <code>data</code>, alongside optional operation-specific <code>meta</code>.
+Errors retain flat Huma problem details, an <code>errors</code> list and optional <code>meta</code>.
+Use <code>apperror.InvalidFields</code> for multiple
+application validation messages. Bodyless responses use <code>response.Empty</code>;
+custom outputs and streams retain native Huma types. Declare success statuses on
+the operation too, so OpenAPI matches runtime behavior. Server-generated request
+IDs and API versions are returned only in <code>X-Request-ID</code> and <code>X-API-Version</code>
+headers, including for errors, empty responses and streams. Request IDs remain
+available in request context and logs; clients capture the header for diagnostics.
+Infrastructure handlers retain standard HTTP semantics.
+The optional local log viewer is a platform HTTP capability mounted by app. It
+borrows configured local log channels through the logging handler decorator,
+keeps bounded process-local copies and reads only configured log files. It owns
+no listener or background worker, and uses separate Basic Auth credentials.
+Services do not write HTTP responses or expose provider secrets.
+Routine logs and spans use bounded error categories and safe public codes, never
+arbitrary driver/provider error text or payloads. Attempt spans describe attempts;
+the outer delivery boundary logs the final retry-cycle failure once.</p>
+<p>A committed business operation followed by an optional failure needs an explicit
+result; it must not look like the whole operation rolled back.</p>
+<h2 id="verification-and-change-discipline">Verification and change discipline<a class="heading-link" href="#verification-and-change-discipline" aria-label="Link to Verification and change discipline">#</a></h2>
+<p>The <a href="support.html">support policy</a> defines template adoption, compatibility and
+release-note requirements. Document changes that adopters must port into their
+customized applications, including security corrections and retained-state
+migrations; use the <a href="upgrading.html">update guide</a> for the consumer workflow.</p>
+<p>Keep service/repository packages and app free of test files. Put business
+integration and public-behavior tests in <code>tests/&lt;module&gt;</code>; reusable package and
+platform tests may stay beside their owners. Moving tests must preserve coverage.</p>
+<p>Protect behavior, transaction boundaries and authorization. Architecture checks
+should enforce dependency direction and ownership, not arbitrary file counts.
+Examples must compile against shipped APIs; proposed APIs must be labeled.</p>
+<p>For a normal feature: define the shared entity, implement repository behavior,
+implement the service operation, add the transport and register locally. Add a new
+abstraction only when it removes repeated knowledge or supports an actual variation.
+Prefer one coherent convention over another convenience wrapper.</p>
+<h2 id="automated-checks">Automated checks<a class="heading-link" href="#automated-checks" aria-label="Link to Automated checks">#</a></h2>
+<p><code>go test ./tests/architecture</code> scans production imports in <code>internal</code>, <code>pkg</code> and <code>examples</code>,
+including build-tagged files. It checks that:</p>
+<ul>
+<li><code>pkg</code> does not import application internals.</li>
+<li>Business modules and platform packages do not import app or environment config.</li>
+<li>Platform packages do not import any business modules, including shared definitions.</li>
+<li>Shared definitions do not import platform or business implementations.</li>
+<li>Business services/repositories do not import app assembly, Resources/Targets,
+HTTP adapters, delivery packages, Huma, Gin or Cobra.</li>
+<li>Repositories do not import business services.</li>
+<li>Mail, Media, Notification and Messaging cores do not import business modules,
+app or Resources/Targets; application wiring belongs in their integrations.</li>
+<li>Production packages do not import Gin, Gin middleware or the Huma Gin adapter.</li>
+<li>Independent mail/storage examples may load <code>app/config</code>, but do not import app assembly.</li>
+<li>App and business service/repository packages contain no test files.</li>
+</ul>
+<p>The first-module tests compile the Catalog starter, exercise its route without
+infrastructure and ensure the copyable guide matches the compiled source. Existing
+CI runs both checks through <code>go test -race ./...</code>. Names, file counts and every
+possible cross-module relationship are deliberately left to review; an import
+check cannot prove business correctness or safe authorization.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="structure.html"><small>← Previous</small>Directory structure</a>
+<a href="entry-points.html"><small>Next →</small>Entry points</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav><a class="source-link" href="markdown/conventions.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

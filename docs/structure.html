@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Directory structure — Practical guides and Go examples for Labena.">
+<title>Directory structure — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/structure.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a class="selected" aria-current="page" href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-a-capability">Find a capability</a></li><li class="toc-level-2"><a href="#package-index">Package index</a></li><li class="toc-level-2"><a href="#follow-startup">Follow startup</a></li><li class="toc-level-2"><a href="#grow-a-module-only-when-needed">Grow a module only when needed</a></li><li class="toc-level-2"><a href="#preserve-ownership-across-shared-definitions">Preserve ownership across shared definitions</a></li><li class="toc-level-2"><a href="#locate-a-change">Locate a change</a></li></ol></nav></details>
+<article><h1 id="directory-structure">Directory structure</h1>
+<p>Business modules own operations and data access. App assembly connects their
+explicit dependencies; reusable packages own technical behavior. The
+<a href="conventions.html">project conventions</a> define the current defaults and ownership rules.</p>
+<h2 id="find-a-capability">Find a capability<a class="heading-link" href="#find-a-capability" aria-label="Link to Find a capability">#</a></h2>
+<pre><code class="language-text">cmd/
+  app/                    HTTP, workers and local subscribers
+  worker/                 Workers and local subscribers
+  scheduler/              Recurring enqueue only
+  cli/                    Console entry point
+internal/
+  app/                    Composition, process selection and lifecycle ownership
+    config/               Typed environment settings and owner translations
+  modules/
+    identity/             Accounts and authentication
+    shared/               Definitions shared across business modules
+      entities/           Owned business entities, including accepted Bun mappings
+      enums/              Business values grouped by concept
+      events/             Published business event contracts and occurrence metadata
+      domain/             Common entity identity and value objects
+      migrations/         Global and published infrastructure SQL
+  platform/
+    auth/                 Authenticated caller identity, independent of business entities
+    notification/         JSON notifications, email and durable per-channel delivery
+    media/                Public/private assets and storage recovery
+    lifecycle/            Process readiness, ordered drain and resource cleanup
+    dependencies/         Shared resources and borrowed registration targets
+    api/                  HTTP decoding, responses, middleware and health routes
+    mail/                 Message types, SMTP, tracing and optional queued sending
+    messaging/            Watermill GoChannel integration
+    cli/                  Console and scheduled-command integration
+    seeders/              Explicit seed operations
+pkg/
+  asynqx/                 Native Asynq integration and middleware
+  database/               Connections, transactions and telemetry
+    migrate/              Reusable Goose registration and execution
+  cache/                  Cache contracts, drivers and telemetry
+  logging/                Structured logging and context correlation
+tests/                    App, cross-module and queue integration suites
+examples/                 Standalone capability examples
+deployments/              Local and deployment configuration
+docs/                     Guide sources and static site
+</code></pre>
+<p>This is a map of the main responsibilities, not an exhaustive package listing.
+<code>modules</code> groups business code without discovery or a registration catalog.
+<code>modules/shared</code> holds definitions and is not registered as a module. Platform
+packages never import business modules, including their shared definitions.
+Shared definitions import neither those modules, platform packages nor app.
+Notifications implements database, email and push delivery; Media implements uploads, public/private
+access, internal/direct URLs and deletion recovery. SMS and media conversions remain extensions.</p>
+<h2 id="package-index">Package index<a class="heading-link" href="#package-index" aria-label="Link to Package index">#</a></h2>
+<p>Use the existing capability directly when it fits. App and module assembly pass
+borrowed resources; independent callers construct only the collaborators they need
+and own any resources they open. <code>internal</code> packages are usable within a copied
+application template, not as public libraries imported by an unrelated Go module.</p>
+<table>
+<thead>
+<tr>
+<th>Application or platform package</th>
+<th>Responsibility and guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal/app</code>, <code>platform/lifecycle</code></td>
+<td><a href="application-lifecycle.html">Construction, process ownership and shutdown</a></td>
+</tr>
+<tr>
+<td><code>internal/app/config</code></td>
+<td><a href="configuration-reference.html">Typed configuration and defaults</a></td>
+</tr>
+<tr>
+<td><code>dependencies</code></td>
+<td><a href="dependency-injection.html">Borrowed Resources and registration Targets</a></td>
+</tr>
+<tr>
+<td><code>api</code></td>
+<td><a href="routing.html">Routing</a>, <a href="requests.html">validation</a>, <a href="middleware.html">middleware</a> and <a href="responses.html">responses</a></td>
+</tr>
+<tr>
+<td><code>auth</code></td>
+<td>Transport-independent authenticated user/session principal</td>
+</tr>
+<tr>
+<td><code>cli</code></td>
+<td><a href="console.html">Cobra commands</a> and <a href="scheduling.html">scheduled commands</a></td>
+</tr>
+<tr>
+<td><code>mail</code>, <code>mail/integration</code></td>
+<td><a href="mail.html">SMTP and optional queued mail</a>; integration installs the existing worker handler</td>
+</tr>
+<tr>
+<td><code>media</code>, <code>media/integration</code>, <code>media/migrations</code></td>
+<td><a href="media.html">Media assets</a>, transport registration and owned SQL</td>
+</tr>
+<tr>
+<td><code>notification</code>, <code>notification/integration</code>, <code>notification/migrations</code></td>
+<td><a href="notifications.html">Channel intent and delivery</a>, transports and owned SQL</td>
+</tr>
+<tr>
+<td><code>messaging</code>, <code>messaging/middleware</code></td>
+<td><a href="events.html">Local typed events</a>, native Watermill execution and instrumentation</td>
+</tr>
+<tr>
+<td><code>seeders</code></td>
+<td><a href="seeders.html">Explicit named seed operations</a></td>
+</tr>
+<tr>
+<td><code>testdb</code></td>
+<td><a href="testing-database.html">Disposable integration schemas</a>; test-only, never a production dependency</td>
+</tr>
+<tr>
+<td><code>internal/reference</code></td>
+<td>Private syntax checks shared by Media and Notifications; not authorization or a model superclass</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Reusable package</th>
+<th>Responsibility and usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apperror</code></td>
+<td><a href="responses.html">Safe application errors</a> and inspectable causes</td>
+</tr>
+<tr>
+<td><code>asynqx</code>, <code>asynqx/middleware</code></td>
+<td><a href="queue-jobs.html">Native tasks</a>, routing, worker/scheduler lifetime and instrumentation</td>
+</tr>
+<tr>
+<td><code>cache</code> and its memory/database/redis drivers</td>
+<td><a href="cache.html">Bounded cache operations</a>; backend semantics remain explicit</td>
+</tr>
+<tr>
+<td><code>database</code>, <code>database/migrate</code></td>
+<td><a href="database.html">Connections</a>, <a href="database-transactions.html">transactions</a> and <a href="migrations.html">Goose migrations</a></td>
+</tr>
+<tr>
+<td><code>hasher</code></td>
+<td>Standalone string hashing; see pkg/hasher/README.md; Identity does not use passwords</td>
+</tr>
+<tr>
+<td><code>httpserver</code></td>
+<td><a href="application-lifecycle.html">HTTP lifetime and upgraded-connection drain</a></td>
+</tr>
+<tr>
+<td><code>httpclient</code></td>
+<td><a href="http-client.html">Tagged outbound requests, body encodings, middleware and provider integrations</a></td>
+</tr>
+<tr>
+<td><code>logging</code></td>
+<td><a href="logging.html">Named log outputs and context correlation</a></td>
+</tr>
+<tr>
+<td><code>mapper</code></td>
+<td>Typed collection transformations; inspect with <code>go doc ./pkg/mapper</code></td>
+</tr>
+<tr>
+<td><code>mailview</code></td>
+<td><a href="mail.html">Embedded HTML/text rendering</a> without a mail transport</td>
+</tr>
+<tr>
+<td><code>metrics</code>, <code>tracing</code></td>
+<td><a href="observability.html">Optional OpenTelemetry providers</a> with explicit ownership</td>
+</tr>
+<tr>
+<td><code>otp</code>, <code>token</code></td>
+<td>Cryptographic code/token primitives; <a href="identity.html">Identity</a> owns account policy and session records</td>
+</tr>
+<tr>
+<td><code>pagination</code></td>
+<td><a href="responses.html">Bounded page inputs and responses</a></td>
+</tr>
+<tr>
+<td><code>push</code></td>
+<td><a href="push.html">Independent Expo sending and receipt lookup</a></td>
+</tr>
+<tr>
+<td><code>ratelimit</code></td>
+<td>Shared Redis admission; <a href="identity.html#shared-rate-limiting">Identity&#39;s usage</a></td>
+</tr>
+<tr>
+<td><code>redis</code></td>
+<td>Explicit Redis connection setup; see pkg/redis/README.md; queue/cache/limiter ownership remains separate</td>
+</tr>
+<tr>
+<td><code>storage</code></td>
+<td><a href="filesystems.html">Native Go CDK buckets</a>; Media adds metadata and recovery</td>
+</tr>
+</tbody>
+</table>
+<p>For package-level APIs, run <code>go doc ./internal/platform/notification</code> or
+<code>go doc ./pkg/storage</code> from the repository root. These commands inspect source
+without constructing the application. Package READMEs contain additional native
+usage; they are not all published as separate website pages.</p>
+<h2 id="follow-startup">Follow startup<a class="heading-link" href="#follow-startup" aria-label="Link to Follow startup">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Read</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cmd/app/main.go</code></td>
+<td>Process entry point and selected services</td>
+</tr>
+<tr>
+<td><code>internal/app/app.go</code></td>
+<td>Public entry points and private application state</td>
+</tr>
+<tr>
+<td><code>internal/app/infrastructure.go</code></td>
+<td>Acquire resources and register their cleanup</td>
+</tr>
+<tr>
+<td><code>internal/app/auth.go</code></td>
+<td>Construct authentication and bind notification delivery&#39;s active-session check</td>
+</tr>
+<tr>
+<td><code>internal/app/modules.go</code></td>
+<td>Call business registration functions</td>
+</tr>
+<tr>
+<td><code>internal/app/open.go</code></td>
+<td>Initialize the application, bind security operations and clean up failures</td>
+</tr>
+<tr>
+<td><code>internal/app/processes.go</code></td>
+<td>Select execution, readiness dependencies and shutdown phases</td>
+</tr>
+<tr>
+<td><code>internal/app/schedules.go</code></td>
+<td>Declare recurring timing and conditions</td>
+</tr>
+<tr>
+<td><code>internal/app/console.go</code></td>
+<td>Execute commands, migrations and table publication</td>
+</tr>
+<tr>
+<td><code>internal/platform/media/library.go</code></td>
+<td>Construct and use the media Library</td>
+</tr>
+<tr>
+<td><code>internal/platform/media/integration/register.go</code></td>
+<td>Register a constructed Library with selected transports</td>
+</tr>
+<tr>
+<td><code>internal/modules/identity/delivery/http/routes.go</code></td>
+<td>Register account, user media, notification and session-bound subscription endpoints</td>
+</tr>
+<tr>
+<td><code>internal/platform/lifecycle/lifecycle.go</code></td>
+<td>Supervise readiness, staged drain and resource cleanup</td>
+</tr>
+</tbody>
+</table>
+<p>Configuration loads before serving. Registration does not perform I/O or start
+workers. Open functions acquire connections; New functions assemble borrowed
+dependencies. App owns cleanup. Use the documented constructor and registration contracts for each capability.
+All CLI commands, including help, construct the application before execution.
+See <a href="application-lifecycle.html">lifecycle</a> and <a href="module-registration.html">registration</a>.</p>
+<h2 id="grow-a-module-only-when-needed">Grow a module only when needed<a class="heading-link" href="#grow-a-module-only-when-needed" aria-label="Link to Grow a module only when needed">#</a></h2>
+<p>The <a href="modules.html">first module tutorial</a> starts with one file. A module with
+persistence and several transports can grow into:</p>
+<pre><code class="language-text">internal/modules/&lt;module&gt;/
+  register.go             Internal construction and all registrations
+  domain/                 Policies and operation errors
+  service/
+    service.go            Public business-service interfaces
+    user.go, auth.go       Private implementations and constructors
+    verification.go       Related methods on the same service receiver
+    session.go            Substantial authentication use cases
+  repository/
+    repository.go         Focused persistence interfaces
+    user.go, ...          Private repositories, constructors and queries
+    transaction.go        Shared transaction helpers
+  migrations/             Embedded module-owned SQL
+  jobs/                   Native Asynq task types, payloads and constructors
+  notifications/          Business notification content and channel choices
+  mailviews/              Email content using the shared branded layout
+  integrations/           External provider contracts and implementations
+  delivery/
+    http/                 Requests, responses, routes and handlers
+    cli/                  Commands
+    events/               Event handlers
+    jobs/                 Queue handlers
+</code></pre>
+<p>Create only the directories your behavior needs. A matching interface for every
+struct, a module registry, and a generic repository are not required. Service and
+repository directories contain production code only; Identity&#39;s public-behavior
+and persistence tests live under <code>tests/identity</code>.</p>
+<h2 id="preserve-ownership-across-shared-definitions">Preserve ownership across shared definitions<a class="heading-link" href="#preserve-ownership-across-shared-definitions" aria-label="Link to Preserve ownership across shared definitions">#</a></h2>
+<p>Business entities and enums belong in shared; each business module retains ownership
+of its operations and writes. Identity follows this convention. Platform capabilities own
+their records, inputs, statuses, errors and storage contracts inside their packages.
+Mail, Media and Notifications register generic transports through integration packages;
+only persisted capabilities own migrations. These cores import neither app nor Resources.
+Identity owns user-specific media and notification HTTP operations. The generic
+public/signed media content route remains in platform; no platform package imports
+shared business definitions.</p>
+<p>Entities may carry Bun mappings where the shapes agree. Do not duplicate an entity
+merely to populate a models directory. Published business event contracts and
+occurrence metadata live in <code>internal/modules/shared/events</code>. Producers own the meaning
+and version; consumers own handlers in <code>delivery/events</code>. Domain errors remain
+beside their owning module, entity or platform capability, using <code>pkg/apperror</code>
+for common classification and safe codes.</p>
+<p>Each definition has an owner. That module controls writes, queries, mapping and
+invariants. Shared packages contain neither module services nor configuration or
+infrastructure setup. Cross-module SQL reads remain deliberate repository-level
+coupling, not permission to bypass another module&#39;s operations.</p>
+<p><code>pkg</code> must not import <code>internal</code>. Put reusable technical behavior there; put
+application assembly in <code>internal/app</code> and shared technical capabilities in
+<code>internal/platform</code>.</p>
+<h2 id="locate-a-change">Locate a change<a class="heading-link" href="#locate-a-change" aria-label="Link to Locate a change">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP input/output</td>
+<td>Module <code>delivery/http</code></td>
+</tr>
+<tr>
+<td>Business operation or its inputs</td>
+<td>Module <code>service</code></td>
+</tr>
+<tr>
+<td>Query or persistence mapping</td>
+<td>Owner&#39;s repository</td>
+</tr>
+<tr>
+<td>Capability entity, input, error or status</td>
+<td>Owning platform package</td>
+</tr>
+<tr>
+<td>Business event definition</td>
+<td><code>internal/modules/shared/events</code></td>
+</tr>
+<tr>
+<td>Job constructor / handler</td>
+<td>Module <code>jobs</code> / <code>delivery/jobs</code></td>
+</tr>
+<tr>
+<td>Notification content / mail view</td>
+<td>Module <code>notifications</code> / <code>mailviews</code></td>
+</tr>
+<tr>
+<td>Event handler</td>
+<td>Module <code>delivery/events</code></td>
+</tr>
+<tr>
+<td>Recurring timing</td>
+<td><code>internal/app/schedules.go</code></td>
+</tr>
+<tr>
+<td>Queue routing and priorities</td>
+<td><code>internal/app/config/queues.go</code></td>
+</tr>
+<tr>
+<td>Infrastructure acquisition</td>
+<td>App assembly using <code>pkg</code> constructors</td>
+</tr>
+<tr>
+<td>Environment setting</td>
+<td><code>internal/app/config</code></td>
+</tr>
+<tr>
+<td>Module SQL</td>
+<td><code>internal/modules/&lt;module&gt;/migrations</code></td>
+</tr>
+</tbody>
+</table>
+<p>Register module migration sources through targets.Migrations in register.go. Module and shared SQL
+use one Goose history with globally unique timestamp versions. Preserve applied migrations and add new versions for schema changes. Normal
+application startup never runs DDL. See <a href="migrations.html">migrations</a> for ordering
+and rollout, and <a href="shared-types.html">shared types</a> for definition ownership.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="troubleshooting.html"><small>← Previous</small>Troubleshooting</a>
+<a href="conventions.html"><small>Next →</small>Project conventions</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-a-capability">Find a capability</a></li><li class="toc-level-2"><a href="#package-index">Package index</a></li><li class="toc-level-2"><a href="#follow-startup">Follow startup</a></li><li class="toc-level-2"><a href="#grow-a-module-only-when-needed">Grow a module only when needed</a></li><li class="toc-level-2"><a href="#preserve-ownership-across-shared-definitions">Preserve ownership across shared definitions</a></li><li class="toc-level-2"><a href="#locate-a-change">Locate a change</a></li></ol></nav><a class="source-link" href="markdown/structure.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

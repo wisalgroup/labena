@@ -1,0 +1,51 @@
+{{define "email"}}<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<title>{{.Email.Subject}}</title>
+<style>
+  body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  table { border-collapse:collapse; }
+  img { border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a[x-apple-data-detectors] { color:inherit !important; text-decoration:none !important; }
+  @media screen and (max-width:600px) {
+    .outer { padding:24px 12px !important; }
+    .content { padding:32px 24px !important; }
+    .heading { font-size:28px !important; line-height:36px !important; }
+    .code { font-size:32px !important; letter-spacing:6px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;width:100%;background-color:#f3f4f6;color:#182230;font-family:Arial,Helvetica,sans-serif;">
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;" aria-hidden="true">{{.Email.Preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;background-color:#f3f4f6;">
+<tr><td class="outer" align="center" style="padding:48px 20px;">
+{{msoStart}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+<tr><td style="padding:0 8px 24px;">{{template "brand" .}}</td></tr>
+<tr><td style="background-color:#ffffff;border:1px solid #e0e4e9;border-radius:16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td height="5" style="height:5px;font-size:1px;line-height:5px;background-color:{{.Brand.AccentColor}};border-radius:16px 16px 0 0;">&nbsp;</td></tr>
+<tr><td class="content" style="padding:44px 40px 40px;">
+{{if .Email.Eyebrow}}<p style="margin:0 0 16px;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:2px;color:#596579;">{{.Email.Eyebrow}}</p>{{end}}
+<h1 class="heading" style="margin:0 0 20px;font-size:34px;line-height:42px;letter-spacing:-1px;font-weight:bold;color:#182230;">{{.Email.Title}}</h1>
+{{range .Email.Paragraphs}}<p style="margin:0 0 16px;font-size:16px;line-height:26px;color:#475467;">{{.}}</p>{{end}}
+{{if .Email.Code}}{{template "code" .}}{{end}}
+{{if .Email.Action}}{{template "action" .}}{{end}}
+{{if .Email.Note}}<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding-top:24px;border-top:1px solid #e8ebef;">
+<p style="margin:0;font-size:13px;line-height:21px;color:#667085;">{{.Email.Note}}</p>
+</td></tr></table>{{end}}
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:24px 16px 0;">{{template "footer" .}}</td></tr>
+</table>
+{{msoEnd}}
+</td></tr>
+</table>
+</body>
+</html>{{end}}

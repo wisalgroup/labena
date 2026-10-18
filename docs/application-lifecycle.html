@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Application lifecycle — Practical guides and Go examples for Labena.">
+<title>Application lifecycle — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/application-lifecycle.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a class="selected" aria-current="page" href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#supply-settings-and-select-processes">Supply settings and select processes</a></li><li class="toc-level-2"><a href="#what-construction-does">What construction does</a></li><li class="toc-level-2"><a href="#startup-and-readiness">Startup and readiness</a></li><li class="toc-level-2"><a href="#shutdown-order">Shutdown order</a></li><li class="toc-level-2"><a href="#set-time-budgets">Set time budgets</a></li><li class="toc-level-2"><a href="#bootstrap-phases-and-extension-points">Bootstrap phases and extension points</a></li><li class="toc-level-3"><a href="#command-startup-boundaries">Command startup boundaries</a></li><li class="toc-level-2"><a href="#diagnose-a-lifecycle-failure">Diagnose a lifecycle failure</a></li></ol></nav></details>
+<article><h1 id="application-lifecycle">Application lifecycle</h1>
+<p>Use <code>app.Serve</code> for long-running services and <code>app.Execute</code> for console commands.
+Both construct the application once and own its resources until execution finishes.</p>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: One owner from construction to cleanup
+    accDescr: App validates configuration, acquires resources and registers modules before execution. Serve drains its runners; Execute finishes one command. Resources close after their users finish.
+    Config[Load and validate settings] --&gt; Resources[Open infrastructure]
+    Resources --&gt; Modules[Construct services and register modules]
+    Modules --&gt; Serve[Serve: start selected runners]
+    Modules --&gt; Execute[Execute: run one command]
+    Serve --&gt; Drain[Stop admission and drain work]
+    Drain --&gt; Close[Close resources in reverse order]
+    Execute --&gt; Close
+</code></pre>
+<h2 id="supply-settings-and-select-processes">Supply settings and select processes<a class="heading-link" href="#supply-settings-and-select-processes" aria-label="Link to Supply settings and select processes">#</a></h2>
+<p>Serve owns the complete invocation. The entry point supplies typed configuration,
+signals and exit handling:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> startup
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/</span><span class="go-import-name">app</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/app/</span><span class="go-import-name">config</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">Run</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">cfg</span> <span class="go-type">config</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">return</span> <span class="go-package">app</span><span class="go-punctuation">.</span><span class="go-function">Serve</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">cfg</span><span class="go-punctuation">,</span> <span class="go-type">app</span><span class="go-punctuation">.</span><span class="go-type">Processes</span><span class="go-bracket-2">{</span>
+		HTTP<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span> Workers<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Use <code>config.Load()</code> for environment settings or <code>config.Defaults()</code> as a baseline
+for programmatic settings. Treat settings collections as immutable during Serve.
+<code>app.Execute(ctx, cfg, processes, args)</code> owns a console invocation. Its caller
+loads settings just as for Serve; processes applies only to the serve command.
+The application instance is private; callers never coordinate Run and Close.</p>
+<h2 id="what-construction-does">What construction does<a class="heading-link" href="#what-construction-does" aria-label="Link to What construction does">#</a></h2>
+<p>App validates configuration, opens configured resources,
+then constructs authentication and registers module handlers, commands and SQL before
+installing the centrally declared schedules. Module Register
+functions construct their local repositories and services without I/O. The
+finished console tree and SQL history are validated before execution.</p>
+<p>Resource acquisition can contact configured infrastructure. Construction starts
+no listeners, task consumers or recurring jobs and applies no DDL. Opened clients
+may own background work, such as the tracing exporter&#39;s batch worker; app registers
+their cleanup as soon as acquisition succeeds. Failed construction closes everything
+acquired so far. Modules never acquire or close shared resources.</p>
+<h2 id="startup-and-readiness">Startup and readiness<a class="heading-link" href="#startup-and-readiness" aria-label="Link to Startup and readiness">#</a></h2>
+<p>Serving validates installed-module dependencies and the selected processes and prepares registered event subscriptions before admitting producers. It starts selected services concurrently and waits for their readiness signals when available.</p>
+<pre><code class="language-sh">curl -i http://localhost:8080/healthz
+curl -i http://localhost:8080/readyz
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/healthz</code></td>
+<td>The HTTP listener can respond</td>
+</tr>
+<tr>
+<td><code>/readyz</code></td>
+<td>Selected services have passed startup readiness and shutdown has not begun</td>
+</tr>
+</tbody>
+</table>
+<p>These endpoints are defined in <code>internal/platform/api/health.go</code> and registered on
+the application server. The app owns their readiness and stopping signals.</p>
+<p>Readiness returns 503 during startup and shutdown, and 200 after startup succeeds. By default it is not continuous database or broker monitoring. With
+<code>HTTP_READINESS_DEPENDENCIES=true</code>, each ready probe checks the configured database,
+queue Redis and rate-limit Redis within <code>HTTP_READINESS_TIMEOUT</code> (default <code>1s</code>).
+Checks run sequentially under one deadline and at most one probe runs at a time;
+concurrent probes return 503. A failed check returns 503 <code>unavailable</code>, and the next
+successful probe restores 200. Cache, mail and telemetry are excluded. Ping checks
+establish connectivity, not schema compatibility or permission for every operation. Every app runner supplies a readiness signal.</p>
+<p>An unexpected service exit, including a nil return before cancellation, fails the run and initiates shutdown of its siblings. A panic in a runner is reported as an error.</p>
+<h2 id="shutdown-order">Shutdown order<a class="heading-link" href="#shutdown-order" aria-label="Link to Shutdown order">#</a></h2>
+<p>On cancellation or service failure, the app marks readiness unavailable and drains these groups in order:</p>
+<section class="walkthrough" aria-label="Step-by-step explanation"><h3>Follow an orderly shutdown</h3><p>The next group stays available until the previous group finishes. Step through
+the sequence to see which dependencies still have users.</p>
+<ol>
+<li>
+<p><strong>Stop admission.</strong> Mark readiness unavailable. Stop HTTP, the scheduler and
+the notification dispatcher, and finish their admitted work.</p>
+<p>Queue workers and local event subscribers are still available.</p>
+</li>
+<li>
+<p><strong>Drain workers.</strong> Stop taking new tasks and finish or cancel active handlers.</p>
+<p>Keep local subscribers and shared clients alive while handlers use them.
+Pending Redis tasks remain for a later worker.</p>
+</li>
+<li>
+<p><strong>Drain subscribers.</strong> Once the producers have stopped, finish admitted event
+handlers and join their work.</p>
+<p>The app does not close clients underneath a running handler.</p>
+</li>
+<li>
+<p><strong>Stop metrics.</strong> Keep scraping available through the business-service drain,
+then stop the metrics listener.</p>
+<p>Shutdown groups share one drain budget.</p>
+</li>
+<li>
+<p><strong>Release resources.</strong> Close owned resources in reverse construction order.</p>
+<p>Cleanup has its own budget. If drain times out with handlers still running,
+resources they use stay open and the executable reports failure.</p>
+</li>
+</ol>
+</section>
+<p>Every service in a group receives cancellation before the app waits for that group to finish. The next group remains available until the previous group finishes.</p>
+<p>This drains active work, not the entire backlog. Durable pending messages remain for a later worker. Separate processes require deployment-level coordination; one app can only order its own services.</p>
+<p>Normal cancellation returns nil after a successful drain. Other failures remain errors.</p>
+<h2 id="set-time-budgets">Set time budgets<a class="heading-link" href="#set-time-budgets" aria-label="Link to Set time budgets">#</a></h2>
+<pre><code class="language-dotenv">APP_STARTUP_TIMEOUT=30s
+APP_SHUTDOWN_TIMEOUT=45s
+APP_CLEANUP_TIMEOUT=10s
+</code></pre>
+<p>Construction and runner startup each use the startup setting. Shutdown has one budget shared across its ordered groups. Resource cleanup has a separate budget. Driver and HTTP-specific timeouts still apply; allow enough deployment termination time for both drain and cleanup.</p>
+<p>Cancellation is cooperative. Handlers, runners, and cleanup functions must observe their contexts and return. A timeout does not forcibly stop a goroutine.</p>
+<p>If drain times out, app cancels all remaining runners and returns
+<code>app.ErrShutdownTimeout</code>. Resources still used by handlers stay open; the supplied
+executables report failure and exit. A timeout cannot forcibly stop a goroutine.
+Cleanup errors are preserved alongside startup or runtime failures.</p>
+<p>Modules borrow dependencies. HTTP shutdown also closes upgraded connections,
+including WebSockets. Keep session work inside its handler so shutdown can join it;
+protocol close messages remain the module&#39;s responsibility.</p>
+<h2 id="bootstrap-phases-and-extension-points">Bootstrap phases and extension points<a class="heading-link" href="#bootstrap-phases-and-extension-points" aria-label="Link to Bootstrap phases and extension points">#</a></h2>
+<p>The startup diagram above maps to a few explicit files. There is no hidden
+container or discovery phase between construction and execution.</p>
+<p>One private <code>application</code> holds configuration, resources, targets, native runners
+and the selected process list. <code>open.go</code> shows initialization and failure cleanup;
+<code>infrastructure.go</code> acquires resources and immediately records cleanup with the
+application&#39;s lifecycle owner. <code>auth.go</code> constructs authentication before protected targets. <code>modules.go</code>
+lists registration calls. Each module constructs its local services from borrowed
+<code>dependencies.Resources</code> and receives preconstructed business collaborators as
+explicit arguments. It registers through <code>dependencies.Targets</code>. App owns resources;
+modules borrow them.
+No runtime container lookup or automatic discovery is involved.</p>
+<table>
+<thead>
+<tr>
+<th>To add or change</th>
+<th>Go to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Infrastructure settings and defaults</td>
+<td><code>config/&lt;capability&gt;.go</code></td>
+</tr>
+<tr>
+<td>Infrastructure construction, global middleware and cleanup</td>
+<td><code>app/infrastructure.go</code>, in acquisition order under <code>openInfrastructure</code></td>
+</tr>
+<tr>
+<td>Business dependencies and module registration</td>
+<td><code>app/modules.go</code> and the module&#39;s <code>Register</code> function</td>
+</tr>
+<tr>
+<td>HTTP, task, event or command handlers</td>
+<td>The owning module&#39;s delivery packages</td>
+</tr>
+<tr>
+<td>Recurring tasks or commands</td>
+<td><code>internal/app/schedules.go</code></td>
+</tr>
+<tr>
+<td>Process services, readiness prerequisites and shutdown phases</td>
+<td><code>app/processes.go</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>configureProcesses</code> fills the application&#39;s process list without starting work.
+The application&#39;s <code>run</code> method validates serving requirements and passes that list
+to its lifecycle owner. HTTP and scheduled admission stop before
+workers, subscribers and metrics; borrowed resources close only after their users
+finish. Single CLI commands share the same app ownership boundary but do not start
+service runners. Native clients and middleware remain available at these explicit
+integration points.</p>
+<h3 id="command-startup-boundaries">Command startup boundaries<a class="heading-link" href="#command-startup-boundaries" aria-label="Link to Command startup boundaries">#</a></h3>
+<p>Every CLI command, including help and completion, constructs the application first.
+All configuration and registered migration sources must be valid. Resources checked
+during acquisition must be reachable; lazy clients may report connectivity errors
+only on first use. Queue Redis is lazy, SMTP connects when sending, and opening a
+remote storage client does not prove its bucket is reachable. There are no separate
+offline command declarations or application invocation callbacks. Handlers borrow
+already constructed services.
+App closes resources when execution returns, including errors and panics.
+Migrations execute only on explicit selection and use their own dedicated database
+session for the Goose lock/refresh contract. Queue administration shares app&#39;s
+queue Redis pool.</p>
+<p><code>cmd/app</code> and <code>cli serve</code> explicitly select HTTP and workers. HTTP and workers
+include local event consumers automatically. <code>cmd/worker</code> selects workers and
+<code>cmd/scheduler</code> selects scheduling. Run one scheduler per schedule set.
+Production deployments must set <code>APP_ENV=production</code>.</p>
+<p>The messaging runner explicitly closes Watermill and joins admitted calls, including
+after a native shutdown timeout or partial subscription failure. An empty subscription
+set starts no native delivery loop. Serve and <code>cli serve</code> enforce the same installed-module
+DB requirement; route-only construction without a DB is not a serving application.</p>
+<h2 id="diagnose-a-lifecycle-failure">Diagnose a lifecycle failure<a class="heading-link" href="#diagnose-a-lifecycle-failure" aria-label="Link to Diagnose a lifecycle failure">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Observation</th>
+<th>Meaning and next step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Construction fails</td>
+<td>No application runners started; check the named dependency or invalid registration</td>
+</tr>
+<tr>
+<td>HTTP is not admitting traffic</td>
+<td>It waits for selected worker/subscriber startup; check their readiness</td>
+</tr>
+<tr>
+<td><code>/readyz</code> becomes 503</td>
+<td>Startup/shutdown state or an enabled dependency probe failed</td>
+</tr>
+<tr>
+<td>One runner exits unexpectedly</td>
+<td>App treats it as failure and drains its siblings</td>
+</tr>
+<tr>
+<td>Shutdown returns <code>ErrShutdownTimeout</code></td>
+<td>A consumer exceeded the shared drain budget; inspect blocked work and context handling</td>
+</tr>
+<tr>
+<td>Cleanup also fails</td>
+<td>The returned error preserves cleanup alongside the original failure</td>
+</tr>
+</tbody>
+</table>
+<p>Use <a href="observability.html">observability</a> for correlated logs and traces, and
+<a href="deployment.html">deployment</a> to align termination grace periods with these budgets.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="dependency-injection.html"><small>← Previous</small>Dependency injection</a>
+<a href="shared-types.html"><small>Next →</small>Shared types</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#supply-settings-and-select-processes">Supply settings and select processes</a></li><li class="toc-level-2"><a href="#what-construction-does">What construction does</a></li><li class="toc-level-2"><a href="#startup-and-readiness">Startup and readiness</a></li><li class="toc-level-2"><a href="#shutdown-order">Shutdown order</a></li><li class="toc-level-2"><a href="#set-time-budgets">Set time budgets</a></li><li class="toc-level-2"><a href="#bootstrap-phases-and-extension-points">Bootstrap phases and extension points</a></li><li class="toc-level-3"><a href="#command-startup-boundaries">Command startup boundaries</a></li><li class="toc-level-2"><a href="#diagnose-a-lifecycle-failure">Diagnose a lifecycle failure</a></li></ol></nav><a class="source-link" href="markdown/application-lifecycle.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

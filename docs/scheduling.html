@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Recurring schedules — Practical guides and Go examples for Labena.">
+<title>Recurring schedules — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/scheduling.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a class="selected" aria-current="page" href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Background work</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#enable-the-scheduler">Enable the scheduler</a></li><li class="toc-level-2"><a href="#edit-the-central-definitions">Edit the central definitions</a></li><li class="toc-level-2"><a href="#schedule-commands">Schedule commands</a></li><li class="toc-level-2"><a href="#timing-and-routing">Timing and routing</a></li><li class="toc-level-2"><a href="#remove-a-native-entry">Remove a native entry</a></li><li class="toc-level-2"><a href="#verify-recurring-work">Verify recurring work</a></li></ol></nav></details>
+<article><h1 id="scheduling">Scheduling</h1>
+<p>A recurring schedule decides when to enqueue work. A worker decides when that
+queued task executes. Recurring timing is centralized in
+<code>internal/app/schedules.go</code>: one place to review cadence, feature conditions
+and enqueue options across the application. Modules own task handlers and fresh
+command factories. This is the scheduling exception to module-local registration.</p>
+<h2 id="enable-the-scheduler">Enable the scheduler<a class="heading-link" href="#enable-the-scheduler" aria-label="Link to Enable the scheduler">#</a></h2>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/scheduler
+</code></pre>
+<p>Its main selects <code>app.Processes{Scheduler: true}</code>. App and worker mains do not
+select a scheduler. Ordinary CLI commands and help construct registrations without
+running schedules. Workers can execute the enqueued tasks in other processes.</p>
+<p>Scheduler startup checks Redis before signaling readiness. A failed startup returns
+an error; later enqueue failures are logged and missed ticks are not replayed.
+Run exactly one scheduler owner per schedule set. Other replicas may process tasks
+but must not independently publish the same schedules. Native Asynq scheduling is
+not a distributed leader-election mechanism.</p>
+<h2 id="edit-the-central-definitions">Edit the central definitions<a class="heading-link" href="#edit-the-central-definitions" aria-label="Link to Edit the central definitions">#</a></h2>
+<p>App&#39;s <code>registerSchedules</code> declares task and command lists, then calls
+<code>asynqx.RegisterSchedules</code> once after module registration. With filesystems
+configured, Media recovery runs every five minutes.
+When push is enabled, <code>notifications.prune_subscriptions.v1</code> runs hourly with a
+one-minute attempt timeout and one-hour enqueue uniqueness. Each execution
+disables at most 1000 registrations inactive for 90 days, using a fresh cutoff.
+The worker dispatcher handles delivery and receipts; it performs no retention
+cleanup on startup or on a hidden timer. Identity cleanup commands run every five minutes:</p>
+<table>
+<thead>
+<tr>
+<th>Task or command</th>
+<th>Schedule</th>
+<th>Required configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Media recovery</td>
+<td>Every five minutes</td>
+<td>At least one opened disk</td>
+</tr>
+<tr>
+<td>Push subscription pruning</td>
+<td>Every hour</td>
+<td>Push enabled</td>
+</tr>
+<tr>
+<td>Identity verification cleanup</td>
+<td>Every five minutes</td>
+<td>Authentication enabled</td>
+</tr>
+<tr>
+<td>Identity session cleanup</td>
+<td>Every five minutes</td>
+<td>Authentication enabled</td>
+</tr>
+</tbody>
+</table>
+<p>These are the current definitions in <code>app/schedules.go</code>; there is no schedule discovery.</p>
+<p>These conditions register definitions; the scheduler must also be running to
+publish them. Workers-only deployments still deliver notifications, but need a
+scheduler owner or explicit <code>notifications prune-subscriptions</code> invocations for
+retention. Large retention backlogs need repeated bounded runs.</p>
+<p>For an existing deployment, install handler-capable workers before enabling the
+new schedule. On rollback, stop scheduling first and drain pending pruning tasks
+before removing their handler. Enqueue uniqueness is not leader election or
+exactly-once execution. Modules never start a scheduler or declare recurring timing.
+Standalone consumers can supply their own task and command lists to <code>asynqx.RegisterSchedules</code>
+with their own native scheduler, routing and command registry.</p>
+<p>To add a recurring task, append it to the central <code>tasks</code> list:</p>
+<pre><code class="language-go" data-highlighted="yes">tasks <span class="go-operator">=</span> <span class="go-function">append</span><span class="go-bracket-0">(</span>tasks<span class="go-punctuation">,</span> <span class="go-type">asynqx</span><span class="go-punctuation">.</span><span class="go-type">TaskSchedule</span><span class="go-bracket-1">{</span>
+    Spec<span class="go-punctuation">:</span> <span class="go-string">&#34;*/5 * * * *&#34;</span><span class="go-punctuation">,</span>
+    Task<span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">(</span><span class="go-operator">*</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">Task</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> <span class="go-package">asynqx</span><span class="go-punctuation">.</span><span class="go-function">NewTask</span><span class="go-bracket-3">(</span><span class="go-package">media</span><span class="go-punctuation">.</span>RecoverTask<span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    Options<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">Option</span><span class="go-bracket-2">{</span>
+        <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Unique</span><span class="go-bracket-3">(</span><span class="go-number">5</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-3">)</span><span class="go-punctuation">,</span>
+        <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Timeout</span><span class="go-bracket-3">(</span><span class="go-number">2</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-3">)</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This is the existing Media recovery definition: edit it in place, do not append
+a second copy. It imports <code>time</code>, Asynq, <code>pkg/asynqx</code> and <code>internal/platform/media</code>.
+A new capability supplies its own stable task type and registered handler.</p>
+<p>The factory has signature <code>func() (*asynq.Task, error)</code> and builds a task without
+external effects. Factories run during registration, not on each tick. Compute
+values such as “90 days ago” inside the handler so they stay fresh across ticks.</p>
+<p>The registrar validates definitions, resolves routing and builds tasks before
+registering entries. Failure during native registration removes entries added by
+that call and preserves rollback errors. Discard failed startup state.</p>
+<h2 id="schedule-commands">Schedule commands<a class="heading-link" href="#schedule-commands" aria-label="Link to Schedule commands">#</a></h2>
+<p>Command handling is always installed during app assembly. Running the scheduler
+is a separate process selection. Command support registers the native task type <code>app.command</code>. Modules explicitly
+allowlist standalone command factories; Identity uses this for verification and
+session pruning. A factory must return a fresh Cobra command with no parent and
+no shared flag state. Do not reuse a command already attached to the console tree.</p>
+<p><code>ScheduledCommands</code> has a usable zero value. App assembly explicitly installs it
+as a native Asynq handler; constructing the allowlist does not mutate a router.
+Standalone assembly uses the same two statements:</p>
+<pre><code class="language-go" data-highlighted="yes">commands <span class="go-operator">:=</span> <span class="go-operator">&amp;</span><span class="go-type">cli</span><span class="go-punctuation">.</span><span class="go-type">ScheduledCommands</span><span class="go-bracket-0">{</span><span class="go-bracket-0">}</span>
+<span class="go-package">mux</span><span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-package">cli</span><span class="go-punctuation">.</span>CommandTask<span class="go-punctuation">,</span> commands<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This function-body fragment imports <code>github.com/wisalgroup/labena/internal/platform/cli</code>; <code>mux</code> is an
+existing <code>*asynq.ServeMux</code>. Register factories before workers start and then leave
+the registry unchanged. The task type remains <code>app.command</code>, so queued invocations
+keep their existing format. You can register factories and create tasks without
+a mux in a producer-only process.</p>
+<p>Register the command factory in its module, then declare its timing centrally.
+Identity&#39;s existing registration follows this pattern in <code>register.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>ScheduledCommands<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span>
+    PruneSessionsCommand<span class="go-punctuation">,</span>
+    <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span> <span class="go-operator">*</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span> <span class="go-bracket-1">{</span> <span class="go-keyword">return</span> <span class="go-package">modulecli</span><span class="go-punctuation">.</span><span class="go-function">NewPruneSessions</span><span class="go-bracket-2">(</span>authentication<span class="go-bracket-2">)</span> <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This fragment runs only after checking authentication and a non-nil
+<code>targets.ScheduledCommands</code>. <code>modulecli</code> imports the module&#39;s <code>delivery/cli</code>
+package. The factory builds a fresh command for each worker execution.</p>
+<p>For example, inside the appropriate configuration guard in app/schedules.go:</p>
+<pre><code class="language-go" data-highlighted="yes">commands <span class="go-operator">=</span> <span class="go-function">append</span><span class="go-bracket-0">(</span>commands<span class="go-punctuation">,</span> <span class="go-type">asynqx</span><span class="go-punctuation">.</span><span class="go-type">CommandSchedule</span><span class="go-bracket-1">{</span>
+    Spec<span class="go-punctuation">:</span> <span class="go-string">&#34;*/5 * * * *&#34;</span><span class="go-punctuation">,</span> Command<span class="go-punctuation">:</span> <span class="go-package">identity</span><span class="go-punctuation">.</span>PruneVerificationCommand<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Arguments are tokenized values passed to Cobra, never shell commands. Output is
+bounded to 64 KiB and written through Asynq&#39;s result writer when available; configure
+native result retention if operators need to inspect completed results later.</p>
+<p>Every app worker has command handling installed. Module feature conditions still
+control which factories exist. Worker replicas need no scheduler selection.
+Removing a command handler while its tasks remain queued leaves them unhandled.</p>
+<h2 id="timing-and-routing">Timing and routing<a class="heading-link" href="#timing-and-routing" aria-label="Link to Timing and routing">#</a></h2>
+<p>Expressions use UTC in this app. <code>@daily</code> is midnight UTC. A tick makes a task
+eligible; it does not promise exact execution time. Runs can overlap, and missed
+ticks are not replayed after downtime.</p>
+<p>Entry-level <code>asynq.Queue</code> options override configured task routes, then the default
+queue applies. All scheduled commands share task type <code>app.command</code>; use entry
+options when different commands need different queues. The native scheduler
+bypasses client middleware; worker instrumentation still traces execution.</p>
+<h2 id="remove-a-native-entry">Remove a native entry<a class="heading-link" href="#remove-a-native-entry" aria-label="Link to Remove a native entry">#</a></h2>
+<p>For an explicit runtime extension, the app-owned native scheduler supports IDs:</p>
+<pre><code class="language-go" data-highlighted="yes">id<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">scheduler</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span><span class="go-string">&#34;@every 30m&#34;</span><span class="go-punctuation">,</span> task<span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Queue</span><span class="go-bracket-1">(</span><span class="go-string">&#34;high&#34;</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// At a later removal decision:</span>
+<span class="go-keyword">return</span> <span class="go-package">scheduler</span><span class="go-punctuation">.</span><span class="go-function">Unregister</span><span class="go-bracket-0">(</span>id<span class="go-bracket-0">)</span>
+</code></pre>
+<p>These are native APIs; direct calls bypass the list registrar&#39;s validation and
+routing. An entry ID identifies a schedule, not a task occurrence. Two schedules
+for the same task have separate IDs. Removal stops future ticks but does not cancel
+already-enqueued tasks. The app has no dynamic schedule-management endpoint or
+persistent schedule-definition store: its configured lists rebuild at startup.</p>
+<h2 id="verify-recurring-work">Verify recurring work<a class="heading-link" href="#verify-recurring-work" aria-label="Link to Verify recurring work">#</a></h2>
+<ol>
+<li>Confirm the schedule and its feature condition in <code>app/schedules.go</code>.</li>
+<li>Start one scheduler owner and at least one worker with the same Redis database.</li>
+<li>Inspect <code>go run ./cmd/cli queue list</code> and the <a href="queues.html#asynqmon-dashboard">dashboard</a>.</li>
+<li>Observe a tick and the handler&#39;s business result; a registered definition alone proves neither.</li>
+<li>Stop the scheduler and confirm that future ticks stop while already queued work can finish.</li>
+</ol>
+<pre><code class="language-sh">go test ./pkg/asynqx/... ./internal/platform/cli/...
+</code></pre>
+<p>Those tests cover schedule validation, rollback and fresh command execution. They
+do not wait for real recurring production jobs. For a long interval, test the
+underlying handler directly or use an explicit operator command before deployment.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No recurring tasks</td>
+<td>Scheduler process, enablement, configuration guard and shared Redis URL</td>
+</tr>
+<tr>
+<td>Duplicate occurrences</td>
+<td>Multiple scheduler owners, overlapping execution or an uncertain enqueue</td>
+</tr>
+<tr>
+<td>A scheduled command fails as unknown</td>
+<td>Requested factory registered on every consuming worker</td>
+</tr>
+<tr>
+<td>Old cutoff date used repeatedly</td>
+<td>Values captured in the startup factory instead of computed in the handler</td>
+</tr>
+<tr>
+<td>Removed schedule still runs</td>
+<td>Already queued tasks; removal only affects future ticks</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="queues.html#readiness-and-shutdown">worker shutdown</a>, <a href="queues.html#set-retries-per-task">task retries</a>
+and <a href="console.html">console conventions</a>. Publication success is separate from execution success.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="events.html"><small>← Previous</small>Events and subscriptions</a>
+<a href="mail.html"><small>Next →</small>Mail and mail views</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#enable-the-scheduler">Enable the scheduler</a></li><li class="toc-level-2"><a href="#edit-the-central-definitions">Edit the central definitions</a></li><li class="toc-level-2"><a href="#schedule-commands">Schedule commands</a></li><li class="toc-level-2"><a href="#timing-and-routing">Timing and routing</a></li><li class="toc-level-2"><a href="#remove-a-native-entry">Remove a native entry</a></li><li class="toc-level-2"><a href="#verify-recurring-work">Verify recurring work</a></li></ol></nav><a class="source-link" href="markdown/scheduling.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

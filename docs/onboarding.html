@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Account onboarding reactions — Practical guides and Go examples for Labena.">
+<title>Account onboarding reactions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/onboarding.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a class="selected" aria-current="page" href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Workflows</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#react-to-the-event">React to the event</a></li><li class="toc-level-2"><a href="#define-the-content-once">Define the content once</a></li><li class="toc-level-2"><a href="#observe-the-shipped-flow">Observe the shipped flow</a></li><li class="toc-level-2"><a href="#verify-the-complete-path">Verify the complete path</a></li></ol></nav></details>
+<article><h1 id="account-onboarding-reactions">Account onboarding reactions</h1>
+<p>Identity&#39;s welcome flow demonstrates an event, a job, notification content and a
+mail view working together. It runs after account creation and is optional:
+registration succeeds even if this reaction does not complete.</p>
+<pre><code class="language-text">account committed
+  → UserRegistered event (process-local)
+  → welcome task accepted by Redis
+  → worker reloads the account
+  → notification channel intents persisted in PostgreSQL
+  → dispatcher and workers deliver each channel
+</code></pre>
+<p>Keep required work in the <a href="transactional-notifications.html">business transaction</a>.
+The first event hop is local and can be lost on process failure before Redis accepts
+the task. Separate event-subscriber processes cannot receive another process&#39;s
+GoChannel events. The combined app hosts HTTP and these local subscribers together.</p>
+<h2 id="react-to-the-event">React to the event<a class="heading-link" href="#react-to-the-event" aria-label="Link to React to the event">#</a></h2>
+<p>An event names a fact; a task requests work. Identity owns both contracts. The
+event definition lives in <code>internal/modules/shared/events</code>; the task stays in
+<code>internal/modules/identity/jobs</code>. Identity&#39;s <code>register.go</code> registers their handlers alongside
+HTTP, commands and migrations. No handler is registered in a service or discovered
+at runtime.</p>
+<p>This is <code>internal/modules/identity/delivery/events/user_registered.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package events reacts to Identity events using borrowed delivery clients.</span>
+<span class="go-keyword">package</span> events
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/ThreeDotsLabs/watermill/</span><span class="go-import-name">message</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">domain</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">jobs</span><span class="go-string">&#34;</span>
+	<span class="go-package">sharedevents</span> <span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/shared/</span><span class="go-import-name">events</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">asynqx</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// UserRegistered queues onboarding work after account creation. GoChannel is local</span>
+<span class="go-comment">// and best-effort; Redis acceptance cannot recover an event lost before this handler.</span>
+<span class="go-keyword">type</span> <span class="go-type">UserRegistered</span> <span class="go-keyword">struct</span><span class="go-bracket-0">{</span> Queue <span class="go-type">asynqx</span><span class="go-punctuation">.</span><span class="go-type">Client</span> <span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>h <span class="go-type">UserRegistered</span><span class="go-bracket-0">)</span> <span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-parameter">msg</span> <span class="go-operator">*</span><span class="go-type">message</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">var</span> event <span class="go-type">sharedevents</span><span class="go-punctuation">.</span><span class="go-type">UserRegistered</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Unmarshal</span><span class="go-bracket-1">(</span><span class="go-parameter">msg</span><span class="go-punctuation">.</span>Payload<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>event<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span><span class="go-string">&#34;identity: invalid user registration event&#34;</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> h<span class="go-punctuation">.</span>Queue <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">domain</span><span class="go-punctuation">.</span>ErrQueueRequired
+	<span class="go-bracket-1">}</span>
+	task<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">jobs</span><span class="go-punctuation">.</span><span class="go-function">NewWelcome</span><span class="go-bracket-1">(</span>event<span class="go-punctuation">.</span>UserID<span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-1">}</span>
+	_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> h<span class="go-punctuation">.</span>Queue<span class="go-punctuation">.</span><span class="go-function">EnqueueContext</span><span class="go-bracket-1">(</span><span class="go-parameter">msg</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> task<span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The handler borrows the existing queue client. It decodes the event, creates the
+native Asynq task and acknowledges success only after enqueue succeeds. See
+<a href="queues.html#define-a-task">task definitions and handlers</a> for the compiled task definition and full job handler.</p>
+<p>The welcome job reloads the account, skips deleted or inactive accounts, and
+selects eligible channels. Email is omitted when no mailer is provided or the address
+is unverified. Completing the job means channel intents were saved; it does not
+mean the email was received.</p>
+<h2 id="define-the-content-once">Define the content once<a class="heading-link" href="#define-the-content-once" aria-label="Link to Define the content once">#</a></h2>
+<p>This is <code>internal/modules/identity/notifications/welcome.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package notifications defines Identity&#39;s named notifications and channel content.</span>
+<span class="go-keyword">package</span> notifications
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">mailviews</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">notification</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// NewWelcome describes one occurrence per account. Its stable key lets duplicate</span>
+<span class="go-comment">// events, jobs and operator replays converge on the same per-channel intents.</span>
+<span class="go-comment">// The caller selects eligible channels before enqueueing (for example, omitting</span>
+<span class="go-comment">// email when the address is unverified or no mailer is provided).</span>
+<span class="go-keyword">func</span> <span class="go-function">NewWelcome</span><span class="go-bracket-0">(</span><span class="go-parameter">name</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span> <span class="go-bracket-0">{</span>
+	email <span class="go-operator">:=</span> <span class="go-package">mailviews</span><span class="go-punctuation">.</span><span class="go-function">NewWelcome</span><span class="go-bracket-1">(</span><span class="go-parameter">name</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>
+		Key<span class="go-punctuation">:</span>      <span class="go-string">&#34;welcome&#34;</span><span class="go-punctuation">,</span>
+		Type<span class="go-punctuation">:</span>     <span class="go-string">&#34;identity.welcome&#34;</span><span class="go-punctuation">,</span>
+		Database<span class="go-punctuation">:</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">RawMessage</span><span class="go-bracket-2">(</span><span class="go-string">`{&#34;title&#34;:&#34;Welcome!&#34;,&#34;body&#34;:&#34;Your account is ready.&#34;}`</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+		Email<span class="go-punctuation">:</span>    <span class="go-operator">&amp;</span>email<span class="go-punctuation">,</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>mailviews.NewWelcome</code> returns ordinary <code>mailview.Email</code> content for the shared layout.
+There is no base notification class, per-message registration or duplicated
+transport contract. Rendering happens before queued delivery so retries preserve
+what was accepted. <a href="mail.html">Mail</a> shows that same renderer without notification
+persistence; choose either entry point according to the operation&#39;s needs.</p>
+<p>The stable <code>welcome</code> key identifies one welcome occurrence per recipient. Duplicate
+events and operator replays converge on the existing channel intents. A database
+notification is stored once. External SMTP delivery can still duplicate after an
+uncertain provider result or crash; a persisted key cannot make SMTP exactly once.</p>
+<h2 id="observe-the-shipped-flow">Observe the shipped flow<a class="heading-link" href="#observe-the-shipped-flow" aria-label="Link to Observe the shipped flow">#</a></h2>
+<p>Follow <a href="index.html">installation</a> to run the combined application, then create a
+user through OTP or social login. The minimal quickstart disables authentication; configure authentication and SMTP before testing signup. Workers and the notification
+dispatcher process the committed welcome intents.</p>
+<p>Use the existing operator commands with the same profile:</p>
+<pre><code class="language-sh">go run ./cmd/cli notifications deliveries --status sent
+go run ./cmd/cli identity welcome &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p>The second command enqueues a deliberate welcome replay; it does not bypass the
+normal worker checks. Inspect <a href="queues.html#inspect-and-recover">queue failures and recovery</a> when work
+is pending or failed. Use a sandbox SMTP provider when testing email;
+OTP mail remains synchronous and is never placed in this welcome job.</p>
+<h2 id="verify-the-complete-path">Verify the complete path<a class="heading-link" href="#verify-the-complete-path" aria-label="Link to Verify the complete path">#</a></h2>
+<p><code>TestModulesPostgresRedisWorkflow</code> runs real HTTP OTP signup, the local event
+router, a Redis worker and PostgreSQL notification writes. It also checks replay,
+recipient access and logout behavior, with captured email instead of an external
+provider. Run the required <a href="testing-database.html">integration gate</a>; skipped
+backend tests do not establish that this workflow works.</p>
+<p>Use <a href="identity.html">Identity</a> for the detailed account, session and verification
+contracts. Keep schedules centralized in <code>internal/app/schedules.go</code> when
+you add a recurring operation.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="transactional-notifications.html"><small>← Previous</small>SQL and notification intent</a>
+<a href="logging.html"><small>Next →</small>Logging</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#react-to-the-event">React to the event</a></li><li class="toc-level-2"><a href="#define-the-content-once">Define the content once</a></li><li class="toc-level-2"><a href="#observe-the-shipped-flow">Observe the shipped flow</a></li><li class="toc-level-2"><a href="#verify-the-complete-path">Verify the complete path</a></li></ol></nav><a class="source-link" href="markdown/onboarding.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

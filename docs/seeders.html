@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Seeders — Practical guides and Go examples for Labena.">
+<title>Seeders — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/seeders.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a class="selected" aria-current="page" href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Database and state</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav></details>
+<article><h1 id="seeders">Seeders</h1>
+<p>Seeders create or update deliberate initial data through named service operations.
+Run them explicitly from the CLI after applying migrations. They do not run during
+startup, have no automatic history, and must be safe to rerun.</p>
+<h2 id="run-a-seeder">Run a seeder<a class="heading-link" href="#run-a-seeder" aria-label="Link to Run a seeder">#</a></h2>
+<p>List the registered operations:</p>
+<pre><code class="language-sh">go run ./cmd/cli seed
+</code></pre>
+<p>The shipped modules currently register no seeders. The Catalog operation below is
+an example you add before invoking it:</p>
+<pre><code class="language-sh">go run ./cmd/cli seed catalog.defaults
+go run ./cmd/cli seed catalog.defaults --timeout=10m
+</code></pre>
+<p>The default total deadline is five minutes. Seeders receive the command context
+and its logger. CLI construction opens configured dependencies; executing a seeder
+does not start HTTP, queue workers, or event processing.</p>
+<h2 id="register-a-service-operation">Register a service operation<a class="heading-link" href="#register-a-service-operation" aria-label="Link to Register a service operation">#</a></h2>
+<p>Extend the <a href="database-queries.html">Catalog products tutorial</a> with a
+<code>SeedDefaults(ctx context.Context) error</code> method on its <code>ProductService</code> interface
+in <code>internal/modules/catalog/service/service.go</code>. Construct that service with its existing
+repository, then register the bound method in <code>internal/modules/catalog/register.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Inside Register; products is the constructed ProductService.</span>
+<span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-string">&#34;catalog.defaults&#34;</span><span class="go-punctuation">,</span> <span class="go-package">products</span><span class="go-punctuation">.</span>SeedDefaults<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>targets</code> is <code>dependencies.Targets</code>. It carries a registry, not a database. The
+service already has the repository it needs; do not reach into app resources when
+the command runs. Registration installs the function without executing it.</p>
+<p>Use module-qualified names. Valid names match <code>[a-z][a-z0-9_.-]{0,127}</code> and must be
+unique. A nil function or duplicate name is rejected during registration.</p>
+<h2 id="insert-defaults-safely">Insert defaults safely<a class="heading-link" href="#insert-defaults-safely" aria-label="Link to Insert defaults safely">#</a></h2>
+<p>Keep the SQL in the repository. Add <code>EnsureDefaults(ctx context.Context) error</code> to
+Catalog&#39;s <code>ProductRepository</code> and this method to
+<code>internal/modules/catalog/repository/product.go</code> from the query tutorial:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-bracket-0">(</span>r <span class="go-operator">*</span><span class="go-type">productRepository</span><span class="go-bracket-0">)</span> <span class="go-function">EnsureDefaults</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+    executor<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Executor</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> r<span class="go-punctuation">.</span>db<span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+    _<span class="go-punctuation">,</span> err <span class="go-operator">=</span> executor<span class="go-punctuation">.</span><span class="go-function">NewRaw</span><span class="go-bracket-1">(</span>
+        <span class="go-string">&#34;INSERT INTO products (id, name) VALUES (?, ?) ON CONFLICT (id) DO NOTHING&#34;</span><span class="go-punctuation">,</span>
+        <span class="go-string">&#34;starter&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;Starter product&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">Exec</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The file already imports <code>context</code> and <code>github.com/wisalgroup/labena/pkg/database</code>. This PostgreSQL
+statement preserves an existing product. Its primary key makes concurrent runs
+converge on one row. Apply the tutorial&#39;s products migration first.</p>
+<p>The service operation delegates to its repository:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// In internal/modules/catalog/service/product.go; s.products is ProductRepository.</span>
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>s <span class="go-operator">*</span><span class="go-type">productService</span><span class="go-bracket-0">)</span> <span class="go-function">SeedDefaults</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> s<span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">EnsureDefaults</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+    <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-string">&#34;catalog defaults ensured&#34;</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>context</code> and <code>github.com/wisalgroup/labena/pkg/logging</code> in that service file. This method
+illustrates an addition to the proposed service, not an existing shipped type.
+Do not log the seeded payload if it contains sensitive data.</p>
+<p>For an independently ported MySQL application, use the corresponding statement:</p>
+<pre><code class="language-sql">INSERT INTO products (id, name) VALUES (?, ?)
+ON DUPLICATE KEY UPDATE id = id
+</code></pre>
+<p>The installed modules and tutorial use PostgreSQL. Choose the SQL for your actual
+engine; changing the connection driver does not port the schema.</p>
+<h3 id="choose-a-rerun-policy">Choose a rerun policy<a class="heading-link" href="#choose-a-rerun-policy" aria-label="Link to Choose a rerun policy">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Desired behavior</th>
+<th>Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insert missing defaults only</td>
+<td>Stable key plus conflict no-op</td>
+</tr>
+<tr>
+<td>Update selected system-owned values</td>
+<td>Explicit upsert of those columns</td>
+</tr>
+<tr>
+<td>Preserve user-edited values</td>
+<td>Never overwrite them through a broad upsert</td>
+</tr>
+<tr>
+<td>Detect unexpected existing state</td>
+<td>Read/validate and return a clear failure</td>
+</tr>
+</tbody>
+</table>
+<p>Do not assume “seed” means destructive replacement. Document the policy in the
+operation and test a second invocation against existing data.</p>
+<h2 id="run-several-seeders">Run several seeders<a class="heading-link" href="#run-several-seeders" aria-label="Link to Run several seeders">#</a></h2>
+<p>Once both example operations are registered:</p>
+<pre><code class="language-sh">go run ./cmd/cli seed catalog.defaults catalog.prices
+</code></pre>
+<p>The CLI validates the whole selection first. Unknown or duplicate names fail
+before any selected operation runs. Valid selections execute sequentially in the
+requested order and stop on the first error or cancellation.</p>
+<p>Previously completed operations remain completed. There is no automatic all-seeders
+selection, retry, rollback, or once-only tracking. If order matters, make it
+explicit in the command or in one orchestrating operation.</p>
+<h2 id="own-transaction-boundaries">Own transaction boundaries<a class="heading-link" href="#own-transaction-boundaries" aria-label="Link to Own transaction boundaries">#</a></h2>
+<p>A seeder with several dependent writes should use its injected transaction manager:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">s</span><span class="go-punctuation">.</span>transactions<span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">EnsureDefaults</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-bracket-2">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-2">}</span>
+    <span class="go-keyword">return</span> <span class="go-package">s</span><span class="go-punctuation">.</span>prices<span class="go-punctuation">.</span><span class="go-function">EnsureDefaults</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-bracket-2">)</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment assumes two repository operations using <code>database.Executor</code> with
+the same pool and callback context. The registry does not create a transaction for
+you. Keep mail, raw queue submissions, and other external effects outside that
+scope. Notification intent can use its documented SQL transaction path.</p>
+<p>Stable keys and constraints make reruns predictable. Cancellation or a failed
+commit can leave an uncertain outcome; inspect durable state before retrying work
+with external effects. See <a href="database-transactions.html">transactions</a>.</p>
+<h2 id="verify-and-troubleshoot">Verify and troubleshoot<a class="heading-link" href="#verify-and-troubleshoot" aria-label="Link to Verify and troubleshoot">#</a></h2>
+<p>A useful seeder test applies migrations to a disposable database, runs the seeder
+twice, and asserts the intended final rows and preserved user data. Put business
+coverage in <code>tests/catalog</code>, not the service or repository package.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seeder does not appear in <code>seed</code></td>
+<td>Module registration and non-nil <code>Targets.Seeders</code></td>
+</tr>
+<tr>
+<td>Duplicate registration</td>
+<td>The name is global; qualify it with the module</td>
+</tr>
+<tr>
+<td>Missing table</td>
+<td>Apply migrations before running seeders</td>
+</tr>
+<tr>
+<td>Earlier seeder persisted after later failure</td>
+<td>Selection is sequential, not one automatic transaction</td>
+</tr>
+<tr>
+<td>Deadline expired</td>
+<td>Batch size, query context propagation, and the total command timeout</td>
+</tr>
+</tbody>
+</table>
+<p>Continue with <a href="console.html">console commands</a>, <a href="migrations.html">migrations</a>, and
+<a href="testing-database.html">database testing</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="migrations.html"><small>← Previous</small>Migrations</a>
+<a href="cache.html"><small>Next →</small>Cache</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav><a class="source-link" href="markdown/seeders.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

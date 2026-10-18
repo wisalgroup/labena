@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Tasks and events — Practical guides and Go examples for Labena.">
+<title>Tasks and events — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/testing-async.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a class="selected" aria-current="page" href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Testing</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#test-task-construction-and-handlers">Test task construction and handlers</a></li><li class="toc-level-2"><a href="#reject-malformed-tasks-without-infrastructure">Reject malformed tasks without infrastructure</a></li><li class="toc-level-2"><a href="#test-event-fanout">Test event fanout</a></li><li class="toc-level-2"><a href="#test-real-drivers">Test real drivers</a></li><li class="toc-level-2"><a href="#cover-the-delivery-contract">Cover the delivery contract</a></li><li class="toc-level-2"><a href="#verify-the-notification-ledger-separately">Verify the notification ledger separately</a></li><li class="toc-level-2"><a href="#verify-local-event-limits-and-exhaustion">Verify local event limits and exhaustion</a></li></ol></nav></details>
+<article><h1 id="testing-tasks-and-events">Testing tasks and events</h1>
+<p>Separate the decision to publish from actual delivery. Native task and handler
+unit tests run locally; retries, scheduling and Redis state need a real backend.
+Local event tests establish only process-local fanout. There is no durable local
+event dead-letter or replay store.</p>
+<h2 id="test-task-construction-and-handlers">Test task construction and handlers<a class="heading-link" href="#test-task-construction-and-handlers" aria-label="Link to Test task construction and handlers">#</a></h2>
+<p>Construct a task directly and inspect its native type and payload. Call its handler
+with a bounded context and check business invocation or <code>asynq.SkipRetry</code> for invalid
+input. Do not expect worker metadata or a ResultWriter on a newly constructed task.</p>
+<pre><code class="language-sh">go test -race ./internal/modules/identity/delivery/events ./internal/modules/identity/delivery/jobs
+go test ./internal/modules/identity/mailviews ./internal/modules/identity/notifications
+</code></pre>
+<p>Identity&#39;s job tests check current-account lookup, inactive-account skipping,
+verified-address channel selection and retryable persistence failures. The event
+handler tests reject malformed JSON or missing IDs and check enqueue failures. Mailview tests render
+through the default layout and check escaping and plain text.</p>
+<p><code>tests/modules/workflow_test.go</code> uses real PostgreSQL and Redis to follow signup
+through the event, welcome job, delivery ledger and channel worker. It captures
+mail instead of contacting SMTP and checks both JSON database notifications and rendered email delivery.
+Set <code>DATABASE_TEST_POSTGRES</code>, <code>QUEUE_TEST_REDIS</code> and <code>RATE_LIMIT_TEST_REDIS</code> to
+run that suite without skips. Test retries through a real worker instead of
+emulating Asynq internals.</p>
+<h2 id="reject-malformed-tasks-without-infrastructure">Reject malformed tasks without infrastructure<a class="heading-link" href="#reject-malformed-tasks-without-infrastructure" aria-label="Link to Reject malformed tasks without infrastructure">#</a></h2>
+<p>This complete test can live in <code>tests/identity/task_example_test.go</code>. The malformed
+payload must be rejected before the handler accesses its dependencies:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> identity_test
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">testing</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/hibiken/</span><span class="go-import-name">asynq</span><span class="go-string">&#34;</span>
+
+	<span class="go-package">jobhandlers</span> <span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/delivery/</span><span class="go-import-name">jobs</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">jobs</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">TestMalformedWelcomeTask</span><span class="go-bracket-0">(</span><span class="go-parameter">t</span> <span class="go-operator">*</span><span class="go-type">testing</span><span class="go-punctuation">.</span><span class="go-type">T</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	handler <span class="go-operator">:=</span> <span class="go-type">jobhandlers</span><span class="go-punctuation">.</span><span class="go-type">Welcome</span><span class="go-bracket-1">{</span><span class="go-bracket-1">}</span>
+	task <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">NewTask</span><span class="go-bracket-1">(</span><span class="go-package">jobs</span><span class="go-punctuation">.</span>WelcomeType<span class="go-punctuation">,</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">byte</span><span class="go-bracket-2">(</span><span class="go-string">`{&#34;user_id&#34;:&#34;invalid&#34;}`</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> handler<span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-1">(</span><span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> task<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> <span class="go-operator">!</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Is</span><span class="go-bracket-1">(</span>err<span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span>SkipRetry<span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-2">(</span><span class="go-string">&#34;expected a terminal payload error, got %v&#34;</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>That test establishes validation and retry classification. It does not prove task
+persistence, worker acknowledgement, or provider delivery. Use real dependencies
+for those guarantees.</p>
+<h2 id="test-event-fanout">Test event fanout<a class="heading-link" href="#test-event-fanout" aria-label="Link to Test event fanout">#</a></h2>
+<p>This complete test can live in <code>internal/platform/messaging/docs_example_test.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> messaging_test
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">testing</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">time</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/ThreeDotsLabs/</span><span class="go-import-name">watermill</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/ThreeDotsLabs/watermill/</span><span class="go-import-name">message</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/ThreeDotsLabs/watermill/pubsub/</span><span class="go-import-name">gochannel</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">TestIndependentSubscribers</span><span class="go-bracket-0">(</span><span class="go-parameter">t</span> <span class="go-operator">*</span><span class="go-type">testing</span><span class="go-punctuation">.</span><span class="go-type">T</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	ctx<span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithTimeout</span><span class="go-bracket-1">(</span><span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-number">2</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	bus <span class="go-operator">:=</span> <span class="go-package">gochannel</span><span class="go-punctuation">.</span><span class="go-function">NewGoChannel</span><span class="go-bracket-1">(</span><span class="go-type">gochannel</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-2">{</span>OutputChannelBuffer<span class="go-punctuation">:</span> <span class="go-number">1</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span> <span class="go-type">watermill</span><span class="go-punctuation">.</span><span class="go-type">NopLogger</span><span class="go-bracket-2">{</span><span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> bus<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	first<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> bus<span class="go-punctuation">.</span><span class="go-function">Subscribe</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;example.created&#34;</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	second<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> bus<span class="go-punctuation">.</span><span class="go-function">Subscribe</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;example.created&#34;</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	sent <span class="go-operator">:=</span> <span class="go-package">message</span><span class="go-punctuation">.</span><span class="go-function">NewMessage</span><span class="go-bracket-1">(</span><span class="go-string">&#34;event-1&#34;</span><span class="go-punctuation">,</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">byte</span><span class="go-bracket-2">(</span><span class="go-string">`{&#34;id&#34;:&#34;1&#34;}`</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> bus<span class="go-punctuation">.</span><span class="go-function">Publish</span><span class="go-bracket-1">(</span><span class="go-string">&#34;example.created&#34;</span><span class="go-punctuation">,</span> sent<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+
+	<span class="go-keyword">for</span> _<span class="go-punctuation">,</span> subscription <span class="go-operator">:=</span> <span class="go-keyword">range</span> <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-operator">&lt;-</span><span class="go-keyword">chan</span> <span class="go-operator">*</span><span class="go-type">message</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>first<span class="go-punctuation">,</span> second<span class="go-bracket-1">}</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">select</span> <span class="go-bracket-2">{</span>
+		<span class="go-keyword">case</span> received<span class="go-punctuation">,</span> ok <span class="go-operator">:=</span> <span class="go-operator">&lt;-</span>subscription<span class="go-punctuation">:</span>
+			<span class="go-keyword">if</span> <span class="go-operator">!</span>ok <span class="go-operator">||</span> received<span class="go-punctuation">.</span>UUID <span class="go-operator">!=</span> sent<span class="go-punctuation">.</span>UUID <span class="go-bracket-3">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-4">(</span><span class="go-string">&#34;missing expected delivery&#34;</span><span class="go-bracket-4">)</span>
+			<span class="go-bracket-3">}</span>
+			received<span class="go-punctuation">.</span><span class="go-function">Ack</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span>
+		<span class="go-keyword">case</span> <span class="go-operator">&lt;-</span>ctx<span class="go-punctuation">.</span><span class="go-function">Done</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span><span class="go-punctuation">:</span>
+			<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-3">(</span>ctx<span class="go-punctuation">.</span><span class="go-function">Err</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span><span class="go-bracket-3">)</span>
+		<span class="go-bracket-2">}</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This uses raw subscriptions, so the test acknowledges deliveries. Normal app handlers
+return an error or nil and let the router acknowledge. Subscribe before publishing;
+a bounded channel wait verifies progress without arbitrary sleeps.</p>
+<h2 id="test-real-drivers">Test real drivers<a class="heading-link" href="#test-real-drivers" aria-label="Link to Test real drivers">#</a></h2>
+<p>Start disposable Redis on a dedicated test port in another terminal:</p>
+<pre><code class="language-sh">docker run --rm --name go-modular-queue-test -p 16379:6379 redis:7-alpine
+</code></pre>
+<p>Run the existing suites:</p>
+<pre><code class="language-sh">QUEUE_TEST_REDIS=redis://127.0.0.1:16379/1   go test -race -count=1 -v ./tests/app ./tests/queue ./pkg/asynqx/... ./internal/platform/cli
+</code></pre>
+<p>Stop that container with Ctrl+C afterward. Use a disposable Redis instance, not
+production credentials. These suites use isolated task/queue identities and clean
+their work; missing <code>QUEUE_TEST_REDIS</code> causes explicit skips.</p>
+<h2 id="cover-the-delivery-contract">Cover the delivery contract<a class="heading-link" href="#cover-the-delivery-contract" aria-label="Link to Cover the delivery contract">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enqueue and execute</td>
+<td>Intended handler receives the native task</td>
+</tr>
+<tr>
+<td>Transient failure</td>
+<td>Retry policy and eventual result</td>
+</tr>
+<tr>
+<td>Invalid payload</td>
+<td>No business effect; terminal task state</td>
+</tr>
+<tr>
+<td>Result retention</td>
+<td>Stored bytes and task state match</td>
+</tr>
+<tr>
+<td>Cancellation</td>
+<td>Handler observes cancellation; work actually exits</td>
+</tr>
+<tr>
+<td>Shutdown</td>
+<td>Worker joins before borrowed clients close</td>
+</tr>
+<tr>
+<td>Scheduling</td>
+<td>Registration, queue routing and due publication</td>
+</tr>
+<tr>
+<td>Trace propagation</td>
+<td>Producer link without losing consumer cancellation</td>
+</tr>
+</tbody>
+</table>
+<p>A local fake cannot establish Redis recovery or crash durability. Likewise, one
+successful scheduled run does not establish multi-scheduler coordination. The app
+requires one scheduler per schedule set.</p>
+<p>Run <a href="testing-database.html">database tests</a> separately for SQL consistency and cache
+storage. Neither backend test makes SQL and Redis publication atomic.</p>
+<h2 id="verify-the-notification-ledger-separately">Verify the notification ledger separately<a class="heading-link" href="#verify-the-notification-ledger-separately" aria-label="Link to Verify the notification ledger separately">#</a></h2>
+<p>An Asynq task can finish after persisting notification intent while channel delivery
+is still pending. Assert the layer you intend to verify:</p>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Welcome handler</td>
+<td>Expected channel intents and stable occurrence key</td>
+</tr>
+<tr>
+<td>Transactional notification</td>
+<td>Business change and intents commit or roll back together</td>
+</tr>
+<tr>
+<td>Dispatcher</td>
+<td>Due committed intent is submitted with its delivery ID</td>
+</tr>
+<tr>
+<td>Channel worker</td>
+<td>Leases, retries, and terminal/receipt state follow the provider outcome</td>
+</tr>
+<tr>
+<td>SMTP/Expo integration</td>
+<td>Captured request/content under a fake; live provider behavior requires separate evidence</td>
+</tr>
+</tbody>
+</table>
+<p>Tests should cover duplicate task execution and an omitted versus stable
+notification key. Use fixture mail/push senders so ordinary automated tests do not
+contact real recipients. A provider&#39;s accepted response is not proof of inbox or
+device display.</p>
+<h2 id="verify-local-event-limits-and-exhaustion">Verify local event limits and exhaustion<a class="heading-link" href="#verify-local-event-limits-and-exhaustion" aria-label="Link to Verify local event limits and exhaustion">#</a></h2>
+<p>The app uses <code>messaging.LocalBus</code> with its <code>DeliveryMiddleware</code> outside retry
+middleware. Test capacity rejection, bounded handler concurrency, cancellation and
+one terminal failure after the configured retry cycle. Failed cycles are logged
+and settled; admission capacity must become available again. A native GoChannel
+fixture without this adapter can still redeliver Nacked messages, so it does not
+verify the app&#39;s exhaustion policy.</p>
+<p>For reactions requiring restart recovery, use and test a deliberate durable-intent
+workflow. Local publication remains best-effort. See <a href="events.html">events</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="testing-database.html"><small>← Previous</small>Databases and transactions</a>
+<a href="configuration-reference.html"><small>Next →</small>Configuration reference</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#test-task-construction-and-handlers">Test task construction and handlers</a></li><li class="toc-level-2"><a href="#reject-malformed-tasks-without-infrastructure">Reject malformed tasks without infrastructure</a></li><li class="toc-level-2"><a href="#test-event-fanout">Test event fanout</a></li><li class="toc-level-2"><a href="#test-real-drivers">Test real drivers</a></li><li class="toc-level-2"><a href="#cover-the-delivery-contract">Cover the delivery contract</a></li><li class="toc-level-2"><a href="#verify-the-notification-ledger-separately">Verify the notification ledger separately</a></li><li class="toc-level-2"><a href="#verify-local-event-limits-and-exhaustion">Verify local event limits and exhaustion</a></li></ol></nav><a class="source-link" href="markdown/testing-async.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

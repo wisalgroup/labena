@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Release readiness — Practical guides and Go examples for Labena.">
+<title>Release readiness — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/release-readiness.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a class="selected" aria-current="page" href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Reference</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav></details>
+<article><h1 id="release-readiness">Release readiness</h1>
+<p>This repository is distributed as a modular Go application template. The
+<a href="support.html">support policy</a> defines latest-release maintenance, compatibility
+and verification scope. The <a href="upgrading.html">adoption guide</a> explains module renaming
+and updates for customized applications. The following gates distinguish verified
+behavior from remaining release work; a passing working-copy check is not a
+published release.</p>
+<h2 id="verification-matrix">Verification matrix<a class="heading-link" href="#verification-matrix" aria-label="Link to Verification matrix">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Required evidence / current gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go behavior and lifecycle</td>
+<td>Fast CI race tests and vet with the go.mod toolchain</td>
+</tr>
+<tr>
+<td>Commands and examples</td>
+<td>CI builds cmd and examples packages</td>
+</tr>
+<tr>
+<td>PostgreSQL module queries and migrations</td>
+<td>Required disposable PostgreSQL integration job</td>
+</tr>
+<tr>
+<td>Asynq, Redis cache and rate limits</td>
+<td>Required disposable Redis integration job</td>
+</tr>
+<tr>
+<td>GoChannel</td>
+<td>Local integration tests; explicitly ephemeral, not durable delivery</td>
+</tr>
+<tr>
+<td>HTTP contract and docs</td>
+<td>Live OpenAPI contract tests, compiled guide examples, and regenerated documentation site</td>
+</tr>
+<tr>
+<td>Reachable dependency vulnerabilities</td>
+<td>Pinned govulncheck tool; advisory database remains current</td>
+</tr>
+<tr>
+<td>Generic MySQL, Redis Cluster, cloud storage</td>
+<td>Not required core CI; validate separately before claiming support</td>
+</tr>
+<tr>
+<td>Live Google sign-in, SMTP providers</td>
+<td>Local/unit coverage does not establish live provider compatibility</td>
+</tr>
+</tbody>
+</table>
+<h2 id="build-a-local-release-bundle">Build a local release bundle<a class="heading-link" href="#build-a-local-release-bundle" aria-label="Link to Build a local release bundle">#</a></h2>
+<p>The same <code>deployments/Dockerfile</code> serves Tilt, Compose and release
+verification. Its Go builder is pinned by digest, refuses automatic toolchain
+downloads, verifies module checksums and builds with readonly dependencies.
+The non-root runtime contains the four application commands (app, cli, worker and scheduler), CA certificates and
+the project and Go licenses. Time-zone data is embedded; there is no shell or package manager.
+Keep <code>/tmp</code> writable and mount writable storage when using file logs or local media.
+Select configuration explicitly, including <code>APP_ENV_FILE=&#39;&#39;</code> in managed deployments.
+Use HTTP probes rather than shell probes; run <code>/app/cli</code> directly for operator commands.</p>
+<p>From a stable checkout, with Docker, Git, Go and <code>shasum</code> available:</p>
+<pre><code class="language-sh">./scripts/build-release.sh build/release-candidate linux/amd64
+# Use linux/arm64 for an ARM deployment. The output directory must be new.
+</code></pre>
+<p>The build command requires a clean checkout with a version tag pointing at HEAD
+(for example <code>v0.1.0</code>) and does not publish anything. It injects that version and
+commit into all four binaries. Local builds without those arguments report <code>dev</code>.
+It saves:</p>
+<ul>
+<li><code>app</code>, <code>cli</code>, <code>worker</code>, <code>scheduler</code> and <code>binaries.sha256</code>;</li>
+<li>image identity/configuration and each binary&#39;s embedded build/module information;</li>
+<li>source-file checksums, Git revision, <code>version.txt</code> and working-tree status;</li>
+<li>the full selected module graph, target-specific license report and copied notices.</li>
+</ul>
+<p>The pinned license tool runs on the host while inspecting the selected Linux target.
+Keep <code>notices</code> with any binary/image distribution; the application image itself only
+contains project and Go notices. Review the report and its warnings, including files
+the scanner cannot inspect. The module path is <code>github.com/wisalgroup/labena</code>;
+while the upstream repository is private, unauthenticated tools cannot resolve its
+source/license URL. Record the upstream repository/tag and retain the local project
+license in the release evidence. Independently publishing importable Go packages
+would require accessible source and a separate API support declaration.
+License generation does not establish provider compatibility
+or expand the support policy. Tools and evidence belong to this local bundle, not
+the app&#39;s runtime or go.mod.</p>
+<p>Use the immutable identity in <code>image.id</code> for subsequent tagging/export. Keep the bundle
+with the final published digest, test results and release notes. A local image ID is
+not a registry publication or signature. Repeat the build from the same source and
+toolchain, then compare <code>binaries.sha256</code>. Matching binaries do not imply byte-identical
+OCI archives; image metadata and exporter settings also affect archive identity.
+Before publication, require a clean tagged checkout. A dirty checkout&#39;s Git revision
+alone cannot identify what was tested; <code>source.sha256</code> records the actual build inputs.</p>
+<h2 id="how-to-read-the-recorded-evidence">How to read the recorded evidence<a class="heading-link" href="#how-to-read-the-recorded-evidence" aria-label="Link to How to read the recorded evidence">#</a></h2>
+<p>The dated sections below preserve historical verification. They describe the
+source and fixtures tested at that time, including behavior that may since have
+changed. They are not certification of the current working tree, current provider
+compatibility, or current vulnerability status.</p>
+<p>For a new release candidate, create a new evidence record rather than replacing
+old checksums or silently carrying forward earlier passes. Record the commit/tag,
+source checksums, toolchain, architecture, backend versions, commands, results,
+skips, and operational limitations. The <a href="testing.html">testing guide</a> gives the
+repeatable core gate; deployment-specific recovery and provider checks remain
+separate.</p>
+<h2 id="candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18<a class="heading-link" href="#candidate-hardening-verification-on-2026-10-18" aria-label="Link to Candidate hardening verification on 2026-10-18">#</a></h2>
+<p>The local v0.1.0 candidate was checked with Go 1.27.2 and disposable PostgreSQL 17
+and standalone Redis 7. The release bundle records its exact source revision,
+version and artifact identities; this source record does not announce publication.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full required integration gate</td>
+<td><code>scripts/verify-integration.sh</code> passed, including <code>go test -race -count=1 ./...</code></td>
+</tr>
+<tr>
+<td>Queue dashboard regression</td>
+<td>Authenticated cross-origin mutations return 403; same-origin mutations still work. A Chrome HTML-form reproduction also returned 403 without pausing the queue</td>
+</tr>
+<tr>
+<td>Subscription maintenance</td>
+<td>Concurrent refresh remains active; cleanup skips locked rows and preserves the 1,000-row batch limit and idempotency</td>
+</tr>
+<tr>
+<td>Trusted ingress</td>
+<td>Untrusted forwarding claims cannot alter budgets; valid trusted chains separate clients; malformed, duplicate and excessive trusted chains fail closed</td>
+</tr>
+<tr>
+<td>Static and build checks</td>
+<td><code>go vet ./...</code>, <code>go mod tidy -diff</code>, command/example builds and documentation tests passed</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>All 56 pages regenerated with local link validation</td>
+</tr>
+<tr>
+<td>Vulnerability scan</td>
+<td>No reachable vulnerabilities or affected imported packages; one module-only advisory concerns unused OpenPGP code</td>
+</tr>
+<tr>
+<td>Build metadata</td>
+<td>A Linux ARM64 image reported injected version/revision through the CLI; source runs report <code>dev</code></td>
+</tr>
+</tbody>
+</table>
+<p>No schema or task-payload migration is required for these hardening fixes. The
+adoption changes and rollout considerations are in the <a href="upgrading.html#version-01-hardening-changes">update guide</a>.
+<code>pkg/mapper</code>, the reserved phone-auth switch and the app&#39;s infrastructure file
+remain in place. Notification records and media tombstones retain their existing
+state until an explicit owner-defined retention migration.</p>
+<p>Live provider compatibility, production ingress configuration, sustained load,
+disaster recovery and the GitHub reporting channel still require deployment- or
+publication-specific evidence. This local gate does not establish those outcomes.</p>
+<h2 id="local-verification-on-2026-10-11">Local verification on 2026-10-11<a class="heading-link" href="#local-verification-on-2026-10-11" aria-label="Link to Local verification on 2026-10-11">#</a></h2>
+<p>This is development-template evidence, not a published release. Go 1.27.2 and
+<code>golang.org/x/net</code> v0.60.0 replace versions flagged by the reachable-vulnerability
+scan. See the <a href="https://go.dev/doc/devel/release#go1.27.0">Go patch notes</a> and
+<a href="https://pkg.go.dev/vuln/GO-2026-6617">networking advisory</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Exercise</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Required core integration</td>
+<td>Full suite passed with race detection against disposable PostgreSQL 17 and Redis 7; all four required test endpoints configured</td>
+</tr>
+<tr>
+<td>Static verification</td>
+<td>Vet and command/example builds passed on Go 1.27.2</td>
+</tr>
+<tr>
+<td>Release bundle</td>
+<td>Script completed for Linux ARM64; a second compilation with <code>go build -a</code> in the pinned builder produced identical app, cli and worker binaries</td>
+</tr>
+<tr>
+<td>Vulnerability scan</td>
+<td>No reachable vulnerabilities and no affected imported packages; four module-only findings remain in unused OpenPGP and Chi middleware packages</td>
+</tr>
+<tr>
+<td>Dependency inventory</td>
+<td>490 selected modules including this application; Linux ARM64 license report has 171 entries: 69 Apache-2.0, 48 MIT, 41 BSD-3-Clause, 12 BSD-2-Clause, one MPL-2.0 (MySQL driver)</td>
+</tr>
+<tr>
+<td>Fresh installation</td>
+<td>All seven migrations applied; HTTP registration returned 201; CLI account read and local media upload/list succeeded; welcome event → job → database notification completed</td>
+</tr>
+<tr>
+<td>Database outage</td>
+<td>Pausing the isolated PostgreSQL container produced readiness 503 in about one second, while liveness remained 200; unpausing restored readiness 200</td>
+</tr>
+<tr>
+<td>Redis outage</td>
+<td>The same readiness/liveness/recovery behavior was observed with the isolated Redis container paused</td>
+</tr>
+<tr>
+<td>Kubernetes termination</td>
+<td>Deleting the test pod invoked graceful shutdown and exited 0 in 0.414 seconds within a 70-second grace period; no active long-running request/job at deletion</td>
+</tr>
+<tr>
+<td>Database and media restore</td>
+<td>A PostgreSQL custom dump restored into a separate empty database; the account, notification and media record survived; copied local object bytes matched their SHA-256</td>
+</tr>
+<tr>
+<td>Queue restore and replay</td>
+<td>A quiesced Redis RDB containing one pending welcome job restored into a separate Redis container; workers drained it and the existing welcome notification remained a single record</td>
+</tr>
+</tbody>
+</table>
+<p>The deployment exercise used Linux ARM64, Docker Desktop 29.6.1 and Kubernetes
+1.36.1. The temporary namespace ran as UID/GID 10001 with a read-only root filesystem,
+no service-account token, dropped capabilities, writable temporary/local-storage
+volumes and separate startup, liveness and dependency-readiness probes. Authentication,
+mail, push, scheduling and external providers were disabled for that fixture. Existing
+integration checks cover authentication independently.</p>
+<p>The recorded ARM64 binary checksums are:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>app</td>
+<td><code>b896fb1876cb84894e17611476fdd6a95b9011e5b5c32f3e91cf1a4fa2fb8cf0</code></td>
+</tr>
+<tr>
+<td>cli</td>
+<td><code>4fa69dbcb90d1888c6eeebaaf3a090801eb19186fecf9f63a70dbff582276fea</code></td>
+</tr>
+<tr>
+<td>worker</td>
+<td><code>bc36fb23e1123768aaca30a6149dd01a3f9712c824e10493ddc4f2ab6498ceda</code></td>
+</tr>
+</tbody>
+</table>
+<p>These identify this working-copy verification only. Regenerate all evidence after
+changing the module path or any build input. The source scan and compiled Linux
+application scan both passed; that result is dated, not a permanent vulnerability
+guarantee. The shared image build is now a CI gate; local runtime evidence is ARM64,
+and other architectures still require their own runtime checks.</p>
+<p>The cluster&#39;s <code>kubectl exec</code> transport still fails with an HTTP/HTTPS mismatch.
+HTTP exercises used the Kubernetes API proxy; operator commands used Docker against
+only the test container. No cluster settings were changed. This does not certify
+<code>kubectl exec</code> or port forwarding as healthy.</p>
+<p>Restore used stopped producers/workers and a local object snapshot with no concurrent
+writers. Redis used RDB for this exercise; AOF, Redis Cluster, point-in-time database
+recovery and cloud object restore need separate rehearsals. The restore target used a
+separate database on the disposable PostgreSQL instance and a new Redis container.
+It was a Docker process, not a Kubernetes rollout. No production RTO/RPO, sustained-load
+drain, live provider delivery or historical-release upgrade guarantee was measured.</p>
+<p>Run <code>scripts/verify-integration.sh</code> with all four test connection settings from
+<code>.github/workflows/verify.yml</code>. Missing or empty settings fail before tests run.
+Credentials must point to disposable services. PostgreSQL and Redis are the required
+matrix; unrelated optional suites can still report skips. A successful fast job
+alone is not sufficient for release.</p>
+<h2 id="platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11<a class="heading-link" href="#platform-harmonization-verification--2026-10-11" aria-label="Link to Platform harmonization verification — 2026-10-11">#</a></h2>
+<p>After the release-bundle exercise above, the harmonization changes passed the full
+race-enabled PostgreSQL/Redis integration gate, vet, command/example builds,
+focused regression checks, the shared Linux AMD64 Docker image build and the
+documentation builder. A second site build produced identical output. The image
+was built locally; no registry publication or Linux AMD64 runtime/load check was
+performed in this pass. The 51 published URLs,
+API schema, migrations, dependency versions and configuration profiles are retained.
+The pinned vulnerability scan again found no reachable or imported-package findings;
+four module-only advisories remain. No external provider delivery was attempted.</p>
+<p>Regression coverage now includes safe HTTP diagnostics, transaction-effect guards,
+bounded SMTP attachment reads and cleanup, selected configuration validation,
+central subscription maintenance and retry-cycle diagnostics. Existing tests cover
+active HTTP, queue and subscriber drain; no new Kubernetes termination, sustained
+production load or disaster-recovery measurement was made for this patch.</p>
+<p>Existing installations must deploy pruning-capable workers before enabling the
+new hourly schedule; see <a href="scheduling.html">scheduling</a>. Mail&#39;s aggregate attachment
+limit defaults to 20 MiB; see <a href="mail.html#attach-files">mail</a> for ownership and retry
+semantics. Standalone named storage uses configuration selection plus storage.Open.
+The previous binary hashes and release bundle above identify the earlier source,
+not this patch. Regenerate the bundle before publication.</p>
+<h2 id="before-publication">Before publication<a class="heading-link" href="#before-publication" aria-label="Link to Before publication">#</a></h2>
+<ul>
+<li>Record the upstream repository URL and publish the selected template adoption
+model, module-renaming instructions and <a href="support.html">support policy</a>.</li>
+<li>Enable GitHub private vulnerability reporting, verify the reporting entry point
+and assign report monitoring to the repository owner or a delegated maintainer;
+update the pending setup status in <a href="security.html">SECURITY.md</a> only after verification.</li>
+<li>Publish release notes covering fixes, compatibility changes and concrete update
+steps according to the <a href="support.html#compatibility-and-release-notes">release-note contract</a>.</li>
+<li>Record a tagged source revision, toolchain, dependency inventory and final license
+review, including non-Go runtime inputs such as the CA certificate bundle.</li>
+<li>Retain release bundles, notices and checksums; verify each published architecture.</li>
+<li>Run fresh installation tests. For later releases, state and test the supported
+upgrade starting points, including retained schema and queued work. This evidence
+does not promise automatic merging of customized application source.</li>
+<li>Rehearse database/Redis backup and restore and document measured recovery outcomes.</li>
+<li>Exercise process termination and dependency outages in the actual deployment target.</li>
+<li>Measure performance before advertising throughput, latency or resource claims.</li>
+</ul>
+<p>The support policy applies to future published releases; no historical release
+upgrade evidence is implied by the dated checks above. Do not rewrite applied
+migrations in a deployed application; publish versioned upgrade notes for schema,
+configuration, task names, event contracts and public API changes. Adopters port
+fixes into their own source, following <a href="upgrading.html#apply-an-upstream-update">the update workflow</a>.</p>
+<p>CI validates code and configured test backends. It does not prove disaster recovery,
+cloud behavior, deployment security, exactly-once execution or lossless telemetry.
+Maintain this matrix when adding a driver or capability; an interface alone is not
+evidence that a replacement has the same guarantees.</p>
+<h2 id="assemble-the-next-release-evidence">Assemble the next release evidence<a class="heading-link" href="#assemble-the-next-release-evidence" aria-label="Link to Assemble the next release evidence">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Evidence</th>
+<th>Re-run or record for the candidate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source identity</td>
+<td>Upstream repository URL, clean tagged revision, <code>github.com/wisalgroup/labena</code> module path, exact build inputs</td>
+</tr>
+<tr>
+<td>Core behavior</td>
+<td>Race suite with all required PostgreSQL/Redis endpoints; inspect skips</td>
+</tr>
+<tr>
+<td>Build and static checks</td>
+<td>Vet, commands/examples, target image, documentation checks</td>
+</tr>
+<tr>
+<td>Public contract</td>
+<td>Live OpenAPI and schema/task/event/configuration compatibility notes</td>
+</tr>
+<tr>
+<td>Operational behavior</td>
+<td>Active-work drain, dependency outage, restart/recovery on the target</td>
+</tr>
+<tr>
+<td>Retained data</td>
+<td>Backup/restore rehearsal with measured loss/time and matched asset bytes</td>
+</tr>
+<tr>
+<td>Dependencies</td>
+<td>Current reachable-vulnerability and license review</td>
+</tr>
+<tr>
+<td>Distribution</td>
+<td>Checksums, notices, release notes, support/security contacts</td>
+</tr>
+</tbody>
+</table>
+<p>A failure or an unperformed check remains explicit in the release record. “The
+interface supports a driver” and “this deployment was verified with that driver”
+are different statements. Publish only the support scope backed by the candidate&#39;s
+evidence. Continue with <a href="deployment.html">deployment</a> and <a href="testing.html">testing</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="security.html"><small>← Previous</small>Security reporting</a>
+<a href="websockets.html"><small>Next →</small>WebSockets</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav><a class="source-link" href="markdown/release-readiness.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

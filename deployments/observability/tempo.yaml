@@ -1,0 +1,41 @@
+# Tempo 2.10 single-process development storage. No Kafka or object store required.
+server:
+  http_listen_port: 3200
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+ingester:
+  max_block_duration: 5m
+  max_block_bytes: 10485760
+# TraceQL metrics (including Grafana Trace Drilldown) require local blocks.
+metrics_generator:
+  storage:
+    path: /var/tempo/generator/wal
+  traces_storage:
+    path: /var/tempo/generator/traces
+  processor:
+    local_blocks:
+      filter_server_spans: false
+      flush_to_storage: true
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [local-blocks]
+compactor:
+  compaction:
+    block_retention: 24h
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+    pool:
+      max_workers: 10
+      queue_depth: 100
+usage_report:
+  reporting_enabled: false

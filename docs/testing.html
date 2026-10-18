@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Testing basics — Practical guides and Go examples for Labena.">
+<title>Testing basics — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/testing.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a class="selected" aria-current="page" href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Testing</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-the-smallest-useful-check">Choose the smallest useful check</a></li><li class="toc-level-2"><a href="#start-with-focused-checks">Start with focused checks</a></li><li class="toc-level-2"><a href="#choose-the-boundary">Choose the boundary</a></li><li class="toc-level-2"><a href="#keep-tests-useful">Keep tests useful</a></li><li class="toc-level-2"><a href="#find-the-next-guide">Find the next guide</a></li><li class="toc-level-2"><a href="#verify-documentation-and-public-examples">Verify documentation and public examples</a></li><li class="toc-level-2"><a href="#run-the-required-integration-gate-locally">Run the required integration gate locally</a></li><li class="toc-level-2"><a href="#read-the-result-honestly">Read the result honestly</a></li></ol></nav></details>
+<article><h1 id="testing">Testing</h1>
+<p>Test decisions through direct calls, transports through their public boundary,
+and storage or delivery guarantees against the real backend. A fake tests the
+caller’s decisions; it cannot establish database or Redis correctness.</p>
+<h2 id="choose-the-smallest-useful-check">Choose the smallest useful check<a class="heading-link" href="#choose-the-smallest-useful-check" aria-label="Link to Choose the smallest useful check">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>You changed</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Request schema, response, or middleware</td>
+<td><code>go test ./internal/platform/api/... ./docs/api</code> and the owning HTTP package</td>
+</tr>
+<tr>
+<td>Business decision or repository query</td>
+<td><code>go test ./tests/&lt;module&gt;</code>; provide the backend for integration cases</td>
+</tr>
+<tr>
+<td>Module construction or registration</td>
+<td><code>go test ./tests/modules ./tests/architecture</code></td>
+</tr>
+<tr>
+<td>Task/event behavior</td>
+<td>The delivery package and <code>tests/queue</code> with Redis</td>
+</tr>
+<tr>
+<td>Configuration defaults or guides</td>
+<td>The configuration-reference and documentation checks below</td>
+</tr>
+</tbody>
+</table>
+<p>These are starting points. Broaden verification when the change crosses a boundary
+or changes delivery, authorization, persistence, or lifecycle behavior.</p>
+<h2 id="start-with-focused-checks">Start with focused checks<a class="heading-link" href="#start-with-focused-checks" aria-label="Link to Start with focused checks">#</a></h2>
+<pre><code class="language-sh">go test ./tests/identity ./internal/modules/identity/delivery/http
+go test ./tests/identity -run &#39;TestNotification|TestPushRegistration&#39;
+go test -race ./...
+go vet ./...
+</code></pre>
+<p>External suites skip without their connection settings. Inspect verbose output;
+a passing default run does not verify PostgreSQL, Redis or MySQL integrations.</p>
+<p>For the required PostgreSQL/Redis gate, set all four disposable endpoints and run
+<code>./scripts/verify-integration.sh</code>: <code>DATABASE_TEST_POSTGRES</code>, <code>QUEUE_TEST_REDIS</code>,
+<code>RATE_LIMIT_TEST_REDIS</code> and <code>CACHE_TEST_REDIS</code>. The script refuses missing values
+and runs the full suite with race detection and no cached results. The CI service
+setup in <code>.github/workflows/verify.yml</code> is a reproducible reference. Optional MySQL,
+Redis Cluster and live provider behavior need separate evidence.</p>
+<h2 id="choose-the-boundary">Choose the boundary<a class="heading-link" href="#choose-the-boundary" aria-label="Link to Choose the boundary">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Behavior</th>
+<th>Approach</th>
+<th>Current reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business decisions</td>
+<td>Direct calls and small fakes of owner contracts</td>
+<td><code>tests/identity/service_test.go</code></td>
+</tr>
+<tr>
+<td>HTTP validation and authorization</td>
+<td>Fresh Huma server and <code>httptest</code></td>
+<td><code>internal/modules/identity/delivery/http/user_handler_test.go</code></td>
+</tr>
+<tr>
+<td>Task validation and retry classification</td>
+<td>Native task and mux calls</td>
+<td><code>internal/modules/identity/delivery/jobs/welcome_test.go</code></td>
+</tr>
+<tr>
+<td>Event fanout and cancellation</td>
+<td>Fresh GoChannel/router with owned shutdown</td>
+<td><code>internal/platform/messaging</code> tests</td>
+</tr>
+<tr>
+<td>Queue persistence and native options</td>
+<td>Disposable Redis</td>
+<td><code>tests/queue/queue_test.go</code></td>
+</tr>
+<tr>
+<td>Queries and concurrent constraints</td>
+<td>Real PostgreSQL</td>
+<td><code>tests/identity</code> repository integration tests</td>
+</tr>
+<tr>
+<td>Application wiring, HTTP and console execution</td>
+<td>Public entry points with disposable backends</td>
+<td><code>tests/app</code></td>
+</tr>
+<tr>
+<td>Cross-module transactions and delivery</td>
+<td>Explicit module registration with PostgreSQL/Redis</td>
+<td><code>tests/modules</code></td>
+</tr>
+<tr>
+<td>Startup, partial failure and drain</td>
+<td>Explicit signals and bounded waits</td>
+<td><code>internal/platform/lifecycle/lifecycle_test.go</code></td>
+</tr>
+</tbody>
+</table>
+<p>Service and repository packages contain production code only. Their tests import
+public constructors and contracts from <code>tests/&lt;module&gt;</code>; avoid private test hooks.</p>
+<h2 id="keep-tests-useful">Keep tests useful<a class="heading-link" href="#keep-tests-useful" aria-label="Link to Keep tests useful">#</a></h2>
+<p>Assert outcomes and invariants, including failure paths. A service test should
+show a decision, not duplicate every internal call. Use deterministic coordination
+for concurrent work: channels, cancellation and completion signals rather than
+sleeping and hoping work finished. Every test-created resource needs cleanup.</p>
+<p>Check malformed input, unauthorized access, duplicate delivery, rollback and
+cancellation where relevant. Run race tests, but remember that they check only
+executed schedules. Do not chase coverage percentages or add interfaces solely
+to make every constructor mockable.</p>
+<h2 id="find-the-next-guide">Find the next guide<a class="heading-link" href="#find-the-next-guide" aria-label="Link to Find the next guide">#</a></h2>
+<ul>
+<li><a href="testing-http.html">HTTP and module tests</a>: decode, authorize and render.</li>
+<li><a href="testing-async.html">Task and event tests</a>: native handlers and delivery boundaries.</li>
+<li><a href="testing-database.html">Database tests</a>: real engine fixtures and transactions.</li>
+</ul>
+<h2 id="verify-documentation-and-public-examples">Verify documentation and public examples<a class="heading-link" href="#verify-documentation-and-public-examples" aria-label="Link to Verify documentation and public examples">#</a></h2>
+<pre><code class="language-sh">go test docs/build.go docs/highlight_test.go
+go test ./tests/modules ./tests/architecture ./docs/api
+go test ./internal/app/config -run TestConfigurationReferenceMatchesDefaults
+go run docs/build.go
+</code></pre>
+<p>The builder checks local published links, anchors, and assets; the Go suite protects
+selected copyable examples and configuration defaults. It does not compile every
+arbitrary Markdown fragment. When adding a substantial complete example, compile
+it against current APIs or back it with an existing checked source file. Regenerate
+the site after changing its Markdown sources; do not hand-edit generated HTML.</p>
+<p>CI rebuilds documentation and expects the checked-in generated artifacts to match.
+The live HTTP specification has no checked-in generation step: test it with
+<code>go test ./docs/api</code>.</p>
+<h2 id="run-the-required-integration-gate-locally">Run the required integration gate locally<a class="heading-link" href="#run-the-required-integration-gate-locally" aria-label="Link to Run the required integration gate locally">#</a></h2>
+<p>Use disposable PostgreSQL and Redis. The following creates dedicated local test
+containers; use different names or ports if those are already occupied:</p>
+<pre><code class="language-sh">docker run --rm -d --name go-modular-test-postgres \
+  -e POSTGRES_PASSWORD=test-only -p 15432:5432 postgres:17-alpine
+docker run --rm -d --name go-modular-test-redis \
+  -p 16379:6379 redis:7-alpine
+</code></pre>
+<p>Wait until both readiness commands succeed:</p>
+<pre><code class="language-sh">docker exec go-modular-test-postgres pg_isready -U postgres
+docker exec go-modular-test-redis redis-cli ping
+</code></pre>
+<p>Then configure all four test endpoints in that terminal:</p>
+<pre><code class="language-sh">export DATABASE_TEST_POSTGRES=&#39;postgres://postgres:test-only@127.0.0.1:15432/postgres?sslmode=disable&#39;
+export QUEUE_TEST_REDIS=&#39;redis://127.0.0.1:16379/5&#39;
+export RATE_LIMIT_TEST_REDIS=&#39;redis://127.0.0.1:16379/2&#39;
+export CACHE_TEST_REDIS=&#39;redis://127.0.0.1:16379/4&#39;
+./scripts/verify-integration.sh
+</code></pre>
+<p>The script disables dotenv loading and runs <code>go test -race -count=1 ./...</code>. Missing
+settings fail before the suite starts. Optional MySQL, Redis Cluster, and live
+provider tests still need their own setup; a core pass does not certify them.
+When finished, remove only these disposable containers:</p>
+<pre><code class="language-sh">docker stop go-modular-test-postgres go-modular-test-redis
+</code></pre>
+<p>Their <code>--rm</code> option removes the containers. This procedure intentionally supplies
+no persistent data volume. Do not reuse an application database or Redis instance
+for convenience.</p>
+<h2 id="read-the-result-honestly">Read the result honestly<a class="heading-link" href="#read-the-result-honestly" aria-label="Link to Read the result honestly">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>What it establishes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit test passed</td>
+<td>The exercised behavior under that fixture</td>
+</tr>
+<tr>
+<td>Integration test skipped</td>
+<td>No evidence for that backend from this run</td>
+</tr>
+<tr>
+<td>Race suite passed</td>
+<td>No race detected in executed schedules</td>
+</tr>
+<tr>
+<td>Build passed</td>
+<td>Types and linking are valid; runtime dependencies were not necessarily exercised</td>
+</tr>
+<tr>
+<td>Provider mock passed</td>
+<td>Caller behavior, not live delivery or provider compatibility</td>
+</tr>
+</tbody>
+</table>
+<p>Record the command, toolchain, backend versions, enabled test endpoints, and skipped
+suites for release evidence. Rerun relevant checks after changing the tested source.</p>
+<p>Use disposable infrastructure and isolated schemas/namespaces. Never point test
+settings at application or production data. Dependency/security changes also need
+<code>govulncheck ./...</code> with the project toolchain; review reachable findings.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="deployment.html"><small>← Previous</small>Deployment</a>
+<a href="testing-http.html"><small>Next →</small>HTTP and modules</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-the-smallest-useful-check">Choose the smallest useful check</a></li><li class="toc-level-2"><a href="#start-with-focused-checks">Start with focused checks</a></li><li class="toc-level-2"><a href="#choose-the-boundary">Choose the boundary</a></li><li class="toc-level-2"><a href="#keep-tests-useful">Keep tests useful</a></li><li class="toc-level-2"><a href="#find-the-next-guide">Find the next guide</a></li><li class="toc-level-2"><a href="#verify-documentation-and-public-examples">Verify documentation and public examples</a></li><li class="toc-level-2"><a href="#run-the-required-integration-gate-locally">Run the required integration gate locally</a></li><li class="toc-level-2"><a href="#read-the-result-honestly">Read the result honestly</a></li></ol></nav><a class="source-link" href="markdown/testing.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

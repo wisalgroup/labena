@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="File storage — Practical guides and Go examples for Labena.">
+<title>File storage — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/filesystems.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a class="selected" aria-current="page" href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Files and media</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#select-a-disk">Select a disk</a></li><li class="toc-level-2"><a href="#try-a-complete-storage-operation">Try a complete storage operation</a></li><li class="toc-level-2"><a href="#inject-and-use-the-bucket">Inject and use the bucket</a></li><li class="toc-level-2"><a href="#stream-larger-objects">Stream larger objects</a></li><li class="toc-level-3"><a href="#read-and-close-an-object">Read and close an object</a></li><li class="toc-level-2"><a href="#open-another-named-disk">Open another named disk</a></li><li class="toc-level-2"><a href="#listing-deletion-and-signed-urls">Listing, deletion and signed URLs</a></li><li class="toc-level-2"><a href="#media-visibility-and-urls">Media visibility and URLs</a></li><li class="toc-level-3"><a href="#configure-a-direct-public-root">Configure a direct public root</a></li><li class="toc-level-3"><a href="#grant-public-access-to-public-objects-only">Grant public access to public objects only</a></li><li class="toc-level-2"><a href="#storage-limits-and-verification">Storage limits and verification</a></li><li class="toc-level-2"><a href="#media-asset-urls">Media asset URLs</a></li></ol></nav></details>
+<article><h1 id="file-storage">File storage</h1>
+<p>A disk is a named storage connection. App opens selected disks and shares native
+Go CDK <code>*blob.Bucket</code> values. Use those buckets for exports, documents or other raw
+objects. For owned uploads, public/private asset URLs and deletion recovery, use
+<a href="media.html">Media</a> above these primitives.</p>
+<h2 id="select-a-disk">Select a disk<a class="heading-link" href="#select-a-disk" aria-label="Link to Select a disk">#</a></h2>
+<p>Start locally without a cloud provider:</p>
+<pre><code class="language-dotenv">FILESYSTEM_DISK=local
+FILESYSTEM_LOCAL_ROOT=storage/app
+</code></pre>
+<p><code>FILESYSTEM_DISK</code> selects a <strong>name</strong>, not a driver. Named definitions live in
+<code>internal/app/config/filesystems.go</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Disk name</th>
+<th>Driver</th>
+<th>Environment prefix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>local</code></td>
+<td>Local filesystem</td>
+<td><code>FILESYSTEM_LOCAL_</code></td>
+</tr>
+<tr>
+<td><code>s3</code></td>
+<td>Amazon S3</td>
+<td><code>FILESYSTEM_S3_</code></td>
+</tr>
+<tr>
+<td><code>minio</code></td>
+<td>S3-compatible MinIO</td>
+<td><code>FILESYSTEM_MINIO_</code></td>
+</tr>
+<tr>
+<td><code>spaces</code></td>
+<td>S3-compatible Spaces</td>
+<td><code>FILESYSTEM_SPACES_</code></td>
+</tr>
+<tr>
+<td><code>gcs</code></td>
+<td>Google Cloud Storage</td>
+<td><code>FILESYSTEM_GCS_</code></td>
+</tr>
+<tr>
+<td><code>azure</code></td>
+<td>Azure Blob Storage</td>
+<td><code>FILESYSTEM_AZURE_</code></td>
+</tr>
+</tbody>
+</table>
+<p>App opens the default plus <code>FILESYSTEM_ADDITIONAL_DISKS</code> once. <code>disabled</code> omits the
+default, but explicitly selected additional disks still open. Unselected providers
+need no credentials/bucket. Media URL settings are validated for all definitions;
+provider requirements are validated when a disk is selected or explicitly opened.</p>
+<p>The Go default selects MinIO; the tutorial profile disables storage. Tilt enables
+MinIO by default, while Compose needs its storage profile. See
+<a href="local-development.html#optional-object-storage">local development</a>.</p>
+<h2 id="try-a-complete-storage-operation">Try a complete storage operation<a class="heading-link" href="#try-a-complete-storage-operation" aria-label="Link to Try a complete storage operation">#</a></h2>
+<pre><code class="language-sh">APP_ENV_FILE=&#39;&#39; FILESYSTEM_DISK=local go run ./examples/storage
+</code></pre>
+<p>Expect <code>Hello from the configured filesystem.</code> The example writes a uniquely named
+small object, reads it, deletes it, and closes its connection. No full app or
+migration is needed. It uses the existing configuration loader but constructs only
+storage; inherited process settings still affect configuration validation.</p>
+<h2 id="inject-and-use-the-bucket">Inject and use the bucket<a class="heading-link" href="#inject-and-use-the-bucket" aria-label="Link to Inject and use the bucket">#</a></h2>
+<p>During module construction, choose from <code>resources.Disks</code> and pass that bucket to
+the service that needs it. Fail construction if an enabled operation requires an
+unavailable disk; do not look it up from the resource bundle on every call.</p>
+<p>For a small bounded object inside the service:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">bucket</span><span class="go-punctuation">.</span><span class="go-function">WriteAll</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;exports/example.txt&#34;</span><span class="go-punctuation">,</span> <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">byte</span><span class="go-bracket-1">(</span><span class="go-string">&#34;hello&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+body<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">bucket</span><span class="go-punctuation">.</span><span class="go-function">ReadAll</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;exports/example.txt&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>operation fragment</strong> assumes a borrowed <code>*blob.Bucket</code> and context. Consume
+<code>body</code> as the result. App owns the connection; the service must not close it.
+Generate or validate object keys in the business operation. A request filename is
+not an authorization rule.</p>
+<h2 id="stream-larger-objects">Stream larger objects<a class="heading-link" href="#stream-larger-objects" aria-label="Link to Stream larger objects">#</a></h2>
+<p>Use readers/writers when the object should not be buffered in memory. Complete
+helper for a borrowed bucket, authorized key and caller-owned reader:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> files
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">io</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">gocloud.dev/</span><span class="go-import-name">blob</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">Upload</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">bucket</span> <span class="go-operator">*</span><span class="go-type">blob</span><span class="go-punctuation">.</span><span class="go-type">Bucket</span><span class="go-punctuation">,</span> <span class="go-parameter">key</span> <span class="go-builtin-type">string</span><span class="go-punctuation">,</span> <span class="go-parameter">src</span> <span class="go-type">io</span><span class="go-punctuation">.</span><span class="go-type">Reader</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-parameter">ctx</span><span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithCancel</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	writer<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">bucket</span><span class="go-punctuation">.</span><span class="go-function">NewWriter</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">key</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-1">}</span>
+	_<span class="go-punctuation">,</span> copyErr <span class="go-operator">:=</span> <span class="go-package">io</span><span class="go-punctuation">.</span><span class="go-function">Copy</span><span class="go-bracket-1">(</span>writer<span class="go-punctuation">,</span> <span class="go-parameter">src</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> copyErr <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-callable">cancel</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-1">(</span>copyErr<span class="go-punctuation">,</span> writer<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The caller bounds input size and duration. Writer <code>Close</code> finalizes an upload and
+can fail; preserve its error. Cancel before closing if input copying fails.
+Cancellation still cannot prove that a remote write rolled back after acceptance.
+Use stable keys and reconciliation when an outcome is uncertain.</p>
+<h3 id="read-and-close-an-object">Read and close an object<a class="heading-link" href="#read-and-close-an-object" aria-label="Link to Read and close an object">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes">reader<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">bucket</span><span class="go-punctuation">.</span><span class="go-function">NewReader</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> key<span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> copyErr <span class="go-operator">:=</span> <span class="go-package">io</span><span class="go-punctuation">.</span><span class="go-function">Copy</span><span class="go-bracket-0">(</span>destination<span class="go-punctuation">,</span> reader<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-0">(</span>copyErr<span class="go-punctuation">,</span> reader<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This <strong>function-body fragment</strong> imports <code>io</code> and <code>errors</code>; <code>destination</code> is an
+<code>io.Writer</code>. Finish all readers/writers before the owner closes the connection.
+Native range reads are available when your operation needs only part of an object.</p>
+<h2 id="open-another-named-disk">Open another named disk<a class="heading-link" href="#open-another-named-disk" aria-label="Link to Open another named disk">#</a></h2>
+<p>Add a name to the definitions in <code>FilesystemConfig.load</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-string">&#34;invoices&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-0">{</span>Driver<span class="go-punctuation">:</span> <span class="go-string">&#34;s3&#34;</span><span class="go-bracket-0">}</span><span class="go-punctuation">,</span>
+</code></pre>
+<p>Then supply its own settings and select it alongside the default:</p>
+<pre><code class="language-dotenv">FILESYSTEM_ADDITIONAL_DISKS=invoices
+FILESYSTEM_INVOICES_BUCKET=example-invoices
+FILESYSTEM_INVOICES_REGION=eu-west-1
+</code></pre>
+<p>Use provider-managed credentials or the disk&#39;s explicit credential fields. Names
+and drivers are defined in Go; setting an environment prefix does not create a
+new disk. Settings are immutable after assembly.</p>
+<p>For a connection you own independently:</p>
+<pre><code class="language-go" data-highlighted="yes">options<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">cfg</span><span class="go-punctuation">.</span>Filesystem<span class="go-punctuation">.</span><span class="go-function">StorageConfig</span><span class="go-bracket-0">(</span><span class="go-string">&#34;invoices&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+connection<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">storage</span><span class="go-punctuation">.</span><span class="go-function">Open</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> options<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>acquisition fragment</strong> imports <code>github.com/wisalgroup/labena/pkg/storage</code>. Pass
+<code>connection.Bucket</code> to consumers, then preserve <code>connection.Close()</code> errors after
+all users finish. Calls are not cached. See <code>examples/storage/main.go</code> for a full
+function with cleanup, or the <code>pkg/storage/README.md</code> constructor reference.</p>
+<h2 id="listing-deletion-and-signed-urls">Listing, deletion and signed URLs<a class="heading-link" href="#listing-deletion-and-signed-urls" aria-label="Link to Listing, deletion and signed URLs">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Native operation</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Attributes</code></td>
+<td>Read size and object metadata</td>
+</tr>
+<tr>
+<td><code>List</code></td>
+<td>Iterate a prefix with a caller-defined result limit</td>
+</tr>
+<tr>
+<td><code>NewRangeReader</code></td>
+<td>Read a byte range</td>
+</tr>
+<tr>
+<td><code>Copy</code></td>
+<td>Copy an object within the bucket</td>
+</tr>
+<tr>
+<td><code>Delete</code></td>
+<td>Remove an object</td>
+</tr>
+<tr>
+<td><code>SignedURL</code></td>
+<td>Grant temporary provider access</td>
+</tr>
+</tbody>
+</table>
+<p>Handle iterator errors as well as the end of iteration. Use <code>gcerrors.Code(err)</code>
+for portable error classification. Copy then delete is not a portable atomic
+rename; blob operations do not become atomic with SQL.</p>
+<p>After authorizing an object, issue a native download link:</p>
+<pre><code class="language-go" data-highlighted="yes">url<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">bucket</span><span class="go-punctuation">.</span><span class="go-function">SignedURL</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> key<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span><span class="go-type">blob</span><span class="go-punctuation">.</span><span class="go-type">SignedURLOptions</span><span class="go-bracket-1">{</span>
+    Expiry<span class="go-punctuation">:</span> <span class="go-number">5</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>fragment</strong> imports <code>time</code> and <code>gocloud.dev/blob</code>. Its <code>url</code> is a bearer
+credential. Store the disk/key, not the expiring link. A signed PUT URL is possible
+through native options, but does not verify that an uploaded file is safe or create
+a managed Media asset.</p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Signing requirement in this integration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S3-compatible</td>
+<td>SDK signing credentials and a client-reachable endpoint</td>
+</tr>
+<tr>
+<td>GCS</td>
+<td>Service-account credentials containing email/private key; IAM remote signing is not configured</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>Shared-key client; signed PUT also needs <code>x-ms-blob-type: BlockBlob</code></td>
+</tr>
+<tr>
+<td>Local</td>
+<td>Native signing is not configured; use Media&#39;s internal links</td>
+</tr>
+</tbody>
+</table>
+<h2 id="media-visibility-and-urls">Media visibility and URLs<a class="heading-link" href="#media-visibility-and-urls" aria-label="Link to Media visibility and URLs">#</a></h2>
+<p>These disk settings apply to <strong>Media assets</strong>, not raw bucket writes or operating
+system permissions:</p>
+<pre><code class="language-dotenv">FILESYSTEM_MINIO_VISIBILITY=public
+FILESYSTEM_MINIO_URL_MODE=internal
+FILESYSTEM_MINIO_PUBLIC_URL=http://localhost:9000/uploads
+MEDIA_BASE_URL=http://localhost:8080/api/v1/media
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VISIBILITY=public|private</code></td>
+<td>Default for new uploads; an explicit upload value overrides it</td>
+</tr>
+<tr>
+<td><code>URL_MODE=internal</code></td>
+<td>Return application content/download routes</td>
+</tr>
+<tr>
+<td><code>URL_MODE=direct</code></td>
+<td>Public permanent provider URLs and private signed provider URLs</td>
+</tr>
+<tr>
+<td><code>PUBLIC_URL</code></td>
+<td>Browser-reachable public bucket/CDN root, including any bucket path</td>
+</tr>
+<tr>
+<td><code>MEDIA_BASE_URL</code></td>
+<td>Application media route origin/prefix; not the storage endpoint</td>
+</tr>
+</tbody>
+</table>
+<p>Direct mode requires <code>PUBLIC_URL</code>, even when the default visibility is private.
+Local disks require internal mode. The <a href="media.html#public-urls-and-private-links">Media URL matrix</a>
+shows precisely which links require a bearer header and which expire.</p>
+<h3 id="configure-a-direct-public-root">Configure a direct public root<a class="heading-link" href="#configure-a-direct-public-root" aria-label="Link to Configure a direct public root">#</a></h3>
+<p>Examples:</p>
+<pre><code class="language-text">S3 virtual-host: https://BUCKET.s3.REGION.amazonaws.com
+MinIO path-style: https://storage.example.com/BUCKET
+CDN:             https://media.example.com
+</code></pre>
+<p>This setting builds public URLs. Private signatures use the native client&#39;s
+<strong>Endpoint</strong>, not PublicURL. Compose/Tilt&#39;s internal <code>http://minio:9000</code> is useful
+for app-to-storage traffic but inaccessible to an ordinary browser outside that
+network. Choose an endpoint reachable by both before enabling private direct links.</p>
+<p>Do not rewrite the hostname after signing: the signature includes it. Temporary
+provider credentials may expire sooner than the requested link lifetime.</p>
+<h3 id="grant-public-access-to-public-objects-only">Grant public access to public objects only<a class="heading-link" href="#grant-public-access-to-public-objects-only" aria-label="Link to Grant public access to public objects only">#</a></h3>
+<p>Media writes public assets under <code>public/assets/&lt;id&gt;</code> and private assets under
+<code>assets/&lt;id&gt;</code>. For permanent public links, provision anonymous read only on
+<code>public/*</code>, leaving uploads/deletes authenticated. Example S3/MinIO statement for
+an <code>uploads</code> bucket:</p>
+<pre><code class="language-json">{
+  &#34;Effect&#34;: &#34;Allow&#34;,
+  &#34;Principal&#34;: &#34;*&#34;,
+  &#34;Action&#34;: &#34;s3:GetObject&#34;,
+  &#34;Resource&#34;: &#34;arn:aws:s3:::uploads/public/*&#34;
+}
+</code></pre>
+<p>Place this in a bucket policy&#39;s <code>Statement</code> array with version <code>2012-10-17</code> and
+check account-level public-access restrictions. The framework does not change
+ACLs or policies. For providers lacking suitable prefix restrictions, use separate
+public and private disks instead of exposing a mixed container.</p>
+<p>Direct reads bypass app headers, visibility/deletion status checks and rate limits.
+Objects may be readable before metadata is ready, and CDN caches may retain deleted
+bytes. Use provider/CDN controls and a separate media origin for untrusted content.
+Changing to internal URL mode does not revoke existing public storage permissions.</p>
+<p>Legacy public objects outside <code>public/</code> retain internal URLs until explicitly
+copied and their keys updated. Configuration changes do not move objects.</p>
+<h2 id="storage-limits-and-verification">Storage limits and verification<a class="heading-link" href="#storage-limits-and-verification" aria-label="Link to Storage limits and verification">#</a></h2>
+<p>Remote buckets/containers must already exist. Constructing a client does not probe
+bucket existence or permissions; the first operation can still fail. Use HTTPS
+for remote endpoints. Workload identity or operator-managed credentials belong in
+configuration, never upload inputs.</p>
+<p>Local roots are created with private permissions; existing permissions are not
+rewritten. Keep Go CDK attribute sidecars when backing up. Protect the root against
+untrusted writes/symlinks and provision shared storage deliberately for replicas.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App starts but upload is denied</td>
+<td>Bucket existence and operation-specific credentials</td>
+</tr>
+<tr>
+<td>An additional disk is missing</td>
+<td>Add its Go definition and select it in Additional disks</td>
+</tr>
+<tr>
+<td>File exists on one replica only</td>
+<td>Local storage is host-specific without a shared volume</td>
+</tr>
+<tr>
+<td>Read succeeds but signing fails</td>
+<td>Provider-specific signing credentials</td>
+</tr>
+<tr>
+<td>Direct URL opens only inside a container</td>
+<td>Endpoint/PublicURL reachability</td>
+</tr>
+</tbody>
+</table>
+<p>Local and MinIO tests do not prove real-cloud permissions or recovery semantics.
+Use disposable provider acceptance resources for the operations you rely on.</p>
+<h2 id="media-asset-urls">Media asset URLs<a class="heading-link" href="#media-asset-urls" aria-label="Link to Media asset URLs">#</a></h2>
+<p>For database-backed uploads, use <a href="media.html">Media</a> and its HTTP <code>url</code> field or
+<code>Library.URL(ctx, asset)</code> after authorization. The library returns a <code>Link</code>;
+HTTP asset responses map its expiry to <code>url_expires_at</code>. Explicit temporary links
+return <code>expires_at</code>. See <a href="media.html#request-a-temporary-link">private-link examples</a>
+for client code and signing-failure behavior.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="push.html"><small>← Previous</small>Push</a>
+<a href="media.html"><small>Next →</small>Media assets</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#select-a-disk">Select a disk</a></li><li class="toc-level-2"><a href="#try-a-complete-storage-operation">Try a complete storage operation</a></li><li class="toc-level-2"><a href="#inject-and-use-the-bucket">Inject and use the bucket</a></li><li class="toc-level-2"><a href="#stream-larger-objects">Stream larger objects</a></li><li class="toc-level-3"><a href="#read-and-close-an-object">Read and close an object</a></li><li class="toc-level-2"><a href="#open-another-named-disk">Open another named disk</a></li><li class="toc-level-2"><a href="#listing-deletion-and-signed-urls">Listing, deletion and signed URLs</a></li><li class="toc-level-2"><a href="#media-visibility-and-urls">Media visibility and URLs</a></li><li class="toc-level-3"><a href="#configure-a-direct-public-root">Configure a direct public root</a></li><li class="toc-level-3"><a href="#grant-public-access-to-public-objects-only">Grant public access to public objects only</a></li><li class="toc-level-2"><a href="#storage-limits-and-verification">Storage limits and verification</a></li><li class="toc-level-2"><a href="#media-asset-urls">Media asset URLs</a></li></ol></nav><a class="source-link" href="markdown/filesystems.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="WebSockets — Practical guides and Go examples for Labena.">
+<title>WebSockets — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/websockets.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a class="selected" aria-current="page" href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Extensions</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#understand-the-available-boundary">Understand the available boundary</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#keep-the-session-inside-the-handler">Keep the session inside the handler</a></li><li class="toc-level-2"><a href="#configure-the-listener">Configure the listener</a></li><li class="toc-level-2"><a href="#shutdown-behavior">Shutdown behavior</a></li><li class="toc-level-2"><a href="#logging-and-scaling">Logging and scaling</a></li><li class="toc-level-2"><a href="#verify-a-protocol-integration">Verify a protocol integration</a></li></ol></nav></details>
+<article><h1 id="websocket-integration">WebSocket integration</h1>
+<p>The HTTP server supports connection upgrades and tracks hijacked connections during shutdown. The application has no WebSocket endpoint, hub or room registry. This guide describes the transport lifecycle hooks available when adding your own protocol.</p>
+<p>Choose a protocol implementation for your application and mount its handler on the server mux. This page describes the existing integration boundary without adding a dependency.</p>
+<h2 id="understand-the-available-boundary">Understand the available boundary<a class="heading-link" href="#understand-the-available-boundary" aria-label="Link to Understand the available boundary">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Provided by the framework</th>
+<th>Supplied by your application/integration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Standard HTTP handler mount and upgrade-compatible response handling</td>
+<td>WebSocket protocol implementation and handshake</td>
+</tr>
+<tr>
+<td>Request correlation and handler-lifetime logging</td>
+<td>Authentication, origin checks, and message authorization</td>
+</tr>
+<tr>
+<td>Tracking/closing hijacked connections during shutdown</td>
+<td>Protocol close frames, heartbeats, backpressure, and reconnection</td>
+</tr>
+<tr>
+<td>Application lifecycle ownership</td>
+<td>Cross-replica broadcast, room state, history, and replay</td>
+</tr>
+</tbody>
+</table>
+<p>There is no built-in chat or realtime notification channel. Push notification
+support is a separate <a href="push.html">Expo capability</a>; it does not provide an active
+WebSocket connection or message-history protocol.</p>
+<h2 id="register-a-handler">Register a handler<a class="heading-link" href="#register-a-handler" aria-label="Link to Register a handler">#</a></h2>
+<p>Protocol upgrades are a platform transport integration, outside the typed business
+API. Install an explicitly constructed <code>http.Handler</code> from platform HTTP setup,
+where the native router is owned:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">server</span><span class="go-punctuation">.</span>Mux<span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-string">&#34;GET /ws&#34;</span><span class="go-punctuation">,</span> socketHandler<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Here <code>server</code> is the platform&#39;s <code>*api.Server</code> and <code>socketHandler</code> is a standard
+<code>http.Handler</code> implementing the handshake and session protocol. This illustrative
+mount is not implemented by the boilerplate. It does not belong on
+<code>dependencies.Targets.HTTP</code>, which is a Huma API. Keep native adapter details in
+platform setup; modules and services retain standard contexts and business inputs.</p>
+<h2 id="keep-the-session-inside-the-handler">Keep the session inside the handler<a class="heading-link" href="#keep-the-session-inside-the-handler" aria-label="Link to Keep the session inside the handler">#</a></h2>
+<p>The handler should remain active for the session lifetime. If it starts read/write goroutines, stop and join them before returning. Returning immediately while detached goroutines use app dependencies defeats the server&#39;s handler-drain ownership.</p>
+<p>Pass <code>r.Context()</code> into application operations. A protocol read must also stop when its connection closes; context cancellation alone does not necessarily interrupt a library&#39;s blocking read.</p>
+<p>Bound incoming message size, outbound queues, and write deadlines in the chosen implementation. Decide whether a slow consumer is disconnected or messages are dropped. Authenticate and check browser origins before upgrading, then authorize individual operations as needed.</p>
+<h2 id="configure-the-listener">Configure the listener<a class="heading-link" href="#configure-the-listener" aria-label="Link to Configure the listener">#</a></h2>
+<p>WebSocket handlers share the application server&#39;s address and HTTP settings:</p>
+<pre><code class="language-dotenv">HTTP_ADDRESS=:8080
+HTTP_READ_HEADER_TIMEOUT=5s
+HTTP_SHUTDOWN_TIMEOUT=10s
+</code></pre>
+<p>HTTP limits govern the handshake and normal requests; protocol-level message limits and heartbeat behavior belong to the WebSocket implementation. Configure post-upgrade connection deadlines deliberately and verify how your library handles inherited deadlines.</p>
+<p>Reverse proxies need upgrade forwarding and suitable connection timeouts.</p>
+<h2 id="shutdown-behavior">Shutdown behavior<a class="heading-link" href="#shutdown-behavior" aria-label="Link to Shutdown behavior">#</a></h2>
+<p>When HTTP shutdown begins, the server stops admission and closes tracked upgraded connections. It then joins active handlers before their dependencies can be released.</p>
+<p>This closes the transport connection; it does not automatically send a WebSocket close frame. If the product needs protocol-level farewell messages or session draining, implement and coordinate that behavior in the application. Keep it bounded within the app&#39;s shutdown budget.</p>
+<p>Ordinary request contexts are preserved during HTTP drain, then canceled. Do not rely only on immediate context cancellation to notice WebSocket shutdown; socket closure is the direct signal at shutdown start.</p>
+<h2 id="logging-and-scaling">Logging and scaling<a class="heading-link" href="#logging-and-scaling" aria-label="Link to Logging and scaling">#</a></h2>
+<p>The built-in HTTP request log covers the handler lifetime, not individual frames. Add context logging for relevant session outcomes and errors without recording sensitive message bodies. Correlation and connection identifiers belong in logs rather than unbounded metric labels.</p>
+<p>A process-local connection registry and GoChannel bus reach only that process. With multiple replicas, add an explicit cross-process broadcast design; the current bus cannot deliver to every replica. Match routing and retention to the product rather than treating queue workers as a broadcast hub.</p>
+<p>Reconnect, replay, ordering, presence, and offline delivery remain application contracts. Define them before exposing those guarantees to clients.</p>
+<h2 id="verify-a-protocol-integration">Verify a protocol integration<a class="heading-link" href="#verify-a-protocol-integration" aria-label="Link to Verify a protocol integration">#</a></h2>
+<p>Use a real local HTTP server and a protocol client for tests that depend on
+upgrades; a response recorder cannot establish socket behavior. Exercise:</p>
+<ul>
+<li>Authentication/origin rejection before upgrade.</li>
+<li>A permitted session exchanging messages without unbounded buffers.</li>
+<li>A slow or disconnected client and a blocked protocol read.</li>
+<li>Application shutdown with an active session and joined goroutines.</li>
+<li>Reconnect behavior and any promised replay/ordering rules.</li>
+</ul>
+<p>Only advertise the semantics implemented by your chosen integration. The existing
+HTTP shutdown support is a lifecycle building block, not proof of chat delivery
+or multi-replica consistency. Continue with <a href="handlers.html">HTTP handlers</a>,
+<a href="application-lifecycle.html">application lifecycle</a>, and <a href="events.html">events</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="release-readiness.html"><small>← Previous</small>Release readiness</a>
+
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#understand-the-available-boundary">Understand the available boundary</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#keep-the-session-inside-the-handler">Keep the session inside the handler</a></li><li class="toc-level-2"><a href="#configure-the-listener">Configure the listener</a></li><li class="toc-level-2"><a href="#shutdown-behavior">Shutdown behavior</a></li><li class="toc-level-2"><a href="#logging-and-scaling">Logging and scaling</a></li><li class="toc-level-2"><a href="#verify-a-protocol-integration">Verify a protocol integration</a></li></ol></nav><a class="source-link" href="markdown/websockets.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

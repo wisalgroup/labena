@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Troubleshooting — Practical guides and Go examples for Labena.">
+<title>Troubleshooting — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/troubleshooting.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a class="selected" aria-current="page" href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Getting started</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#pick-the-failing-boundary">Pick the failing boundary</a></li><li class="toc-level-2"><a href="#configuration-or-startup-fails">Configuration or startup fails</a></li><li class="toc-level-2"><a href="#authentication-fails-or-a-route-is-missing">Authentication fails or a route is missing</a></li><li class="toc-level-2"><a href="#queued-work-does-not-run">Queued work does not run</a></li><li class="toc-level-2"><a href="#notifications-are-pending-failed-or-duplicated">Notifications are pending, failed or duplicated</a></li><li class="toc-level-2"><a href="#a-local-event-disappeared">A local event disappeared</a></li><li class="toc-level-2"><a href="#media-upload-download-or-cleanup-fails">Media upload, download or cleanup fails</a></li><li class="toc-level-3"><a href="#the-returned-asset-url-does-not-work">The returned asset URL does not work</a></li><li class="toc-level-2"><a href="#request-diagnostics-are-missing">Request diagnostics are missing</a></li><li class="toc-level-2"><a href="#readiness-or-shutdown-does-not-finish">Readiness or shutdown does not finish</a></li><li class="toc-level-2"><a href="#prepare-a-useful-issue-report">Prepare a useful issue report</a></li></ol></nav></details>
+<article><h1 id="troubleshooting">Troubleshooting</h1>
+<p>Locate the stage that failed before retrying the whole operation. Keep the request
+ID, safe error code, process role and task/delivery ID when available. Do not include
+tokens, OTPs, recipient payloads, environment dumps or connection credentials in a
+report. Configuration and transport errors deliberately omit sensitive values.</p>
+<h2 id="pick-the-failing-boundary">Pick the failing boundary<a class="heading-link" href="#pick-the-failing-boundary" aria-label="Link to Pick the failing boundary">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>What you observe</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Process cannot construct or CLI help fails</td>
+<td><a href="#configuration-or-startup-fails">Configuration and startup</a></td>
+</tr>
+<tr>
+<td>401, 422, missing sign-in route</td>
+<td><a href="#authentication-fails-or-a-route-is-missing">Authentication and HTTP</a></td>
+</tr>
+<tr>
+<td>Accepted task never executes</td>
+<td><a href="#queued-work-does-not-run">Queue state</a></td>
+</tr>
+<tr>
+<td>Notification intent exists but nothing arrives</td>
+<td><a href="#notifications-are-pending-failed-or-duplicated">Delivery ledger</a></td>
+</tr>
+<tr>
+<td>Reaction missing after an event</td>
+<td><a href="#a-local-event-disappeared">Local event guarantees</a></td>
+</tr>
+<tr>
+<td>Wrong asset URL or missing bytes</td>
+<td><a href="#media-upload-download-or-cleanup-fails">Media and storage</a></td>
+</tr>
+<tr>
+<td>Missing logs, trace, or SQL text</td>
+<td><a href="#request-diagnostics-are-missing">Observability</a></td>
+</tr>
+<tr>
+<td>Pod stays unready or termination times out</td>
+<td><a href="#readiness-or-shutdown-does-not-finish">Lifecycle</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration-or-startup-fails">Configuration or startup fails<a class="heading-link" href="#configuration-or-startup-fails" aria-label="Link to Configuration or startup fails">#</a></h2>
+<p>Use the same profile in each terminal. Existing shell values override dotenv;
+changing <code>.env</code> does not change a running process. <code>APP_ENV_FILE=&#39;&#39;</code> disables file
+loading, while an explicit path must exist. Defaults and supported keys are in the
+<a href="configuration-reference.html">configuration reference</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check and next action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A dependency opens unexpectedly</td>
+<td>Check the selected profile and overrides for that capability. The full defaults select MinIO; quickstart disables it.</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL is required</code></td>
+<td>Installed modules need PostgreSQL. The component-only Asynq profile cannot serve them without a database.</td>
+</tr>
+<tr>
+<td>Database or Redis connection refused</td>
+<td>Match the host/port to where the process runs. Container service names work inside their network; host processes need published ports.</td>
+</tr>
+<tr>
+<td>Missing tables or columns</td>
+<td>Run <code>migrate status</code> against the intended database. Apply pending migrations with <code>migrate up</code>. Rewritten development baselines do not upgrade an older schema.</td>
+</tr>
+<tr>
+<td>Conflicting migration versions or dialects</td>
+<td>Check all registered sources and timestamp versions. Installed modules use PostgreSQL. Discard failed startup; fix source registration before retrying.</td>
+</tr>
+<tr>
+<td>CLI help fails</td>
+<td>Help uses full application construction. Fix settings or resource access first; it is not an offline configuration checker.</td>
+</tr>
+<tr>
+<td>Address already in use</td>
+<td>Stop the other local process or change its listener. Give separate host processes different metrics ports too.</td>
+</tr>
+<tr>
+<td>Invalid Redis isolation</td>
+<td>Queue, cache and limiter cannot use the same address/database pair. Namespaces alone do not satisfy this isolation check.</td>
+</tr>
+<tr>
+<td>Read-only filesystem or permission denied</td>
+<td>Select stdout/stderr or supply a writable log/storage mount with the process UID/GID. Relative paths start at the process working directory.</td>
+</tr>
+</tbody>
+</table>
+<p>Read-only diagnostics, after the application can construct:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate status
+go run ./cmd/cli route list
+curl -i http://127.0.0.1:8080/healthz
+curl -i http://127.0.0.1:8080/readyz
+</code></pre>
+<p>Run those commands with the same selected profile as the failing process. The
+quickstart disables authentication, push, and storage; mail is always constructed
+and connects on send. A quickstart check does not diagnose an enabled full profile. Do not use <code>migrate refresh</code> to repair a
+database containing data you need: it deletes the configured schema&#39;s objects/data.
+Choose a forward migration or an explicitly disposable database instead.</p>
+<h2 id="authentication-fails-or-a-route-is-missing">Authentication fails or a route is missing<a class="heading-link" href="#authentication-fails-or-a-route-is-missing" aria-label="Link to Authentication fails or a route is missing">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Meaning and next action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OTP routes return 404</td>
+<td>Enable <code>AUTH_ENABLED</code>, configure its required dependencies and restart. The unified OTP flow has no separate registration/email-verification endpoint.</td>
+</tr>
+<tr>
+<td>Protected route returns 401</td>
+<td>Use an application access token and an active session. Disabled auth fails closed; an <code>X-User-ID</code>, Google token or refresh token is not an app bearer token.</td>
+</tr>
+<tr>
+<td>Code is rejected</td>
+<td>Use the challenge ID returned by the latest sign-in-code request and its matching six-digit code, including leading zeroes. Check expiry, resend, attempt limits and prior consumption.</td>
+</tr>
+<tr>
+<td>OTP send returns 503</td>
+<td>Inspect mail and Redis availability. Identity fails closed when its shared admission limiter is unavailable. A failed send can still be subject to cooldown and budgets.</td>
+</tr>
+<tr>
+<td>Request returns 429</td>
+<td>Respect retry metadata and cooldown. Do not flush limiter keys or rotate the verification key to bypass the budget.</td>
+</tr>
+<tr>
+<td>Google returns 409</td>
+<td>The email already belongs to an account. Sign in through its existing method; automatic linking and a linking endpoint are not implemented.</td>
+</tr>
+<tr>
+<td>New Google account returns 422</td>
+<td>Check the safe validation response. The current provider policy can require email OTP for addresses whose ownership Google is not authoritative for.</td>
+</tr>
+<tr>
+<td>Refresh returns 401</td>
+<td>The token can be expired, revoked, malformed or already rotated. Concurrent refresh/retrying a used token can revoke the entire session.</td>
+</tr>
+<tr>
+<td>JSON returns 400, 413 or 422</td>
+<td>Follow the endpoint schema: one object, known fields, valid values and bounded body. Do not retry an unchanged invalid payload.</td>
+</tr>
+</tbody>
+</table>
+<p>Serialize refresh calls per session. Persist a successful replacement before the
+next refresh; never keep retrying an old refresh token after an uncertain result.
+Recover with a new sign-in when the session is invalid. Access tokens expire after seven days by default,
+while refresh tokens and sessions have no absolute time limit by default. Revocation
+and account state still apply. See
+<a href="identity.html#refresh-and-replay-behavior">Identity</a> and the
+<a href="api-reference.html">API contract</a>.</p>
+<p>OTP send returns an accepted challenge; account creation occurs when OTP or social
+proof succeeds. Verification returns 201 for a new account and 200 for an existing
+account. After either status, inspect <code>data.user.profile_complete</code> and use
+<code>PATCH /users/me</code> for profile completion. There is no second registration request or
+verification-unavailable signup warning. Neither sign-in response confirms a
+background welcome reaction completed.</p>
+<h2 id="queued-work-does-not-run">Queued work does not run<a class="heading-link" href="#queued-work-does-not-run" aria-label="Link to Queued work does not run">#</a></h2>
+<p>Use the always-available queue commands to inspect the actual
+queue and task ID returned at enqueue:</p>
+<pre><code class="language-sh">go run ./cmd/cli queue list
+go run ./cmd/cli queue inspect default TASK_ID
+</code></pre>
+<p>Inspection can expose saved payloads; keep output private. Check in this order:</p>
+<ol>
+<li>Producer and worker use the same Redis address <strong>and database number</strong>; confirm both process profiles.</li>
+<li>The worker consumes the task&#39;s queue; check <code>QUEUE_DEFAULT</code>, <code>QUEUE_ROUTES</code> and
+the named priorities. A per-task queue option can override routing.</li>
+<li>A worker process is running, and the queue is not paused. HTTP-only processes
+enqueue work but do not execute it.</li>
+<li>The task is due and its type is registered. Every consumer of <code>app.command</code>
+must register the requested command factory; every consumer of <code>mail.send.v1</code> needs valid SMTP settings.</li>
+<li>Inspect retry/archived state and the safe error. Fix dependencies or invalid
+payloads before choosing replay. Successful tasks normally disappear unless retained.</li>
+</ol>
+<p><code>queue replay QUEUE ID</code> moves eligible work to pending and can repeat effects.
+It does not reset retry history. First establish whether the previous attempt
+committed or sent anything. Do not delete tasks or flush Redis as a diagnostic step.
+See <a href="failed-jobs.html">failures and retries</a>.</p>
+<p>For recurring work, run one <code>cmd/scheduler</code> process. <code>cmd/worker</code> never starts cron scheduling. Central
+schedules also have feature conditions; command handlers are registered independently of scheduler execution. Calendar expressions use UTC, and missed ticks are not
+replayed. See <a href="scheduling.html">scheduling</a>.</p>
+<h2 id="notifications-are-pending-failed-or-duplicated">Notifications are pending, failed or duplicated<a class="heading-link" href="#notifications-are-pending-failed-or-duplicated" aria-label="Link to Notifications are pending, failed or duplicated">#</a></h2>
+<p>Notification intent is stored in PostgreSQL before a dispatcher submits delivery
+IDs to Redis. A returned receipt inside a transaction still depends on commit.
+First inspect the ledger rather than assuming the notification is an ordinary task:</p>
+<pre><code class="language-sh">go run ./cmd/cli notifications deliveries --status pending
+go run ./cmd/cli notifications deliveries --status awaiting_receipt
+go run ./cmd/cli notifications deliveries --status failed
+go run ./cmd/cli notifications delivery DELIVERY_ID
+</code></pre>
+<ul>
+<li>Pending work needs a dispatcher and worker using the same database and queue.
+Workers run the dispatcher without cron. <code>notifications dispatch</code> is a manual
+enqueue operation; it does not deliver synchronously.</li>
+<li>Sending rows are leased. Let an expired lease recover; do not manually overwrite
+state while a worker may still own it.</li>
+<li>Pending rows can be waiting for their next automatic attempt; inspect the due
+time. Failed rows need operator review. Use <code>notifications retry DELIVERY_ID</code>
+after correcting the cause and accepting possible duplicate provider effects.</li>
+<li>An omitted key creates a new occurrence on every Enqueue call. Use the same
+business occurrence key across retries to reuse saved channel intents.</li>
+<li>A repeated key retains the first snapshot; editing a template does not rewrite
+existing delivery content. Database, email and push channels progress independently.</li>
+</ul>
+<p>Email success means SMTP accepted the operation, not inbox placement. A network
+failure after acceptance leaves uncertainty. Ordinary <code>Mailer.Enqueue</code> is tracked
+in Asynq, not the notification ledger; use queue inspection for those sends.</p>
+<p>Expo <code>awaiting_receipt</code> is normal after ticket acceptance. The dispatcher starts
+receipt checks after 15 minutes and polls missing receipts without resending.
+An <code>ok</code> receipt confirms provider handoff, not device display. After 24 hours an
+unconfirmed result becomes a failed uncertain delivery; manual retry may duplicate.
+Check the current subscription, project configuration and client permissions using
+the <a href="push.html">push guide</a>. Explicit logout detaches session-bound
+subscriptions; already admitted sends cannot be retracted.</p>
+<h2 id="a-local-event-disappeared">A local event disappeared<a class="heading-link" href="#a-local-event-disappeared" aria-label="Link to A local event disappeared">#</a></h2>
+<p>GoChannel delivers only within the publishing process. A CLI process cannot notify
+subscribers in an API/worker process. Register local handlers before producers
+start, and keep subscribers with each producer role. Router retry middleware bounds
+one processing cycle; a subsequent Nack can trigger GoChannel redelivery while the
+process is alive. It is not a global attempt cap. There is no configured
+<code>failed.events</code> dead-letter route or durable replay store. Restart and process
+failure can lose in-memory events.</p>
+<p>For the existing welcome example, an operator can enqueue the stable welcome task
+with <code>identity welcome USER_ID</code>. For business work that must survive failure,
+persist notification intent in the business transaction or design an explicit
+outbox. Adding a broker container alone changes none of these guarantees. See
+<a href="events.html">events</a> and <a href="transactional-notifications.html">transactional notifications</a>.</p>
+<h2 id="media-upload-download-or-cleanup-fails">Media upload, download or cleanup fails<a class="heading-link" href="#media-upload-download-or-cleanup-fails" aria-label="Link to Media upload, download or cleanup fails">#</a></h2>
+<p>Check both PostgreSQL metadata and the disk selected by the asset. A configured
+definition alone is not an opened disk: use the default or additional-disk list.
+Keep disk names stable for existing records; changing the default does not move
+previous objects. Authentication supplies user ownership; other model types need
+business-authorized handlers.</p>
+<p>The default HTTP upload accepts exactly one file and optional visibility, with a
+20 MiB file limit and bounded multipart overhead. Authenticated downloads require
+a ready asset belonging to the caller; the content route allows public assets or
+valid temporary links. A ready metadata row with a missing object points to backing-storage or
+restore consistency, not a reason to reassign ownership.</p>
+<p>Interrupted uploads and deletions retain recoverable metadata. Run <code>media recover</code>
+or the central recovery schedule, with storage available. Recovery leaves recent
+uploads alone and processes bounded batches; it is not a bucket inventory cleaner.
+Back up metadata and objects together. See <a href="media.html">Media</a>.</p>
+<h3 id="the-returned-asset-url-does-not-work">The returned asset URL does not work<a class="heading-link" href="#the-returned-asset-url-does-not-work" aria-label="Link to The returned asset URL does not work">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Direct URL contains an internal container hostname</td>
+<td>Configure a client-reachable storage endpoint; signatures cannot be repaired by rewriting the host afterward</td>
+</tr>
+<tr>
+<td>Public provider URL returns access denied</td>
+<td>Public-read policy must cover the asset&#39;s public prefix; the app does not change bucket policy</td>
+</tr>
+<tr>
+<td>Private link worked earlier</td>
+<td>Its expiry; request a fresh authorized temporary link</td>
+</tr>
+<tr>
+<td>Internal media URL points to the wrong origin</td>
+<td><code>MEDIA_BASE_URL</code> for this deployment</td>
+</tr>
+<tr>
+<td>Changing the default disk did not move old assets</td>
+<td>Each record keeps its disk; migration is an explicit operation</td>
+</tr>
+<tr>
+<td>Old public asset still uses an internal URL</td>
+<td>Legacy object prefixes retain the internal fallback</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="media.html">Media</a> for direct versus internal URLs and visibility. A direct
+provider URL bypasses application response headers and may have provider/CDN cache
+behavior independent of metadata deletion.</p>
+<h2 id="request-diagnostics-are-missing">Request diagnostics are missing<a class="heading-link" href="#request-diagnostics-are-missing" aria-label="Link to Request diagnostics are missing">#</a></h2>
+<p>Start with the request&#39;s response header or body ID:</p>
+<pre><code class="language-logql">{service_name=&#34;labena&#34;} | request_id=&#34;YOUR_REQUEST_ID&#34;
+</code></pre>
+<p>Use your <code>APP_NAME</code> as <code>service_name</code> if it differs. In Grafana Explore&#39;s Builder,
+add a Label filter for <code>request_id</code>; it is structured metadata, not an indexed
+stream label. New OTLP records need no JSON parser.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Next check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No matching log</td>
+<td>Time range, application identity, selected <code>observability</code> channel, collector reachability</td>
+</tr>
+<tr>
+<td><code>request_id_extracted</code> or <code>level_extracted</code></td>
+<td>Remove an unnecessary JSON parser; old file records and new OTLP metadata use different shapes</td>
+</tr>
+<tr>
+<td>Trace link exists but trace does not</td>
+<td>Sampling, export loss, retention, and selected Tempo instance</td>
+</tr>
+<tr>
+<td>INSERT span has duration but no text</td>
+<td>SQL sanitization/size limits; use current code and a newly recorded trace</td>
+</tr>
+<tr>
+<td>Query text missing from log records</td>
+<td>Expected: sanitized SQL lives in Tempo&#39;s <code>db.query.text</code>, not Loki</td>
+</tr>
+<tr>
+<td>INFO missing only from local file</td>
+<td>Built-in file channel defaults to WARN</td>
+</tr>
+</tbody>
+</table>
+<p>Follow <a href="observability.html#inspect-a-requests-sql-in-grafana">request → log → trace → SQL</a>.
+Do not enable raw payload or SQL-value logging to diagnose these boundaries.</p>
+<h2 id="readiness-or-shutdown-does-not-finish">Readiness or shutdown does not finish<a class="heading-link" href="#readiness-or-shutdown-does-not-finish" aria-label="Link to Readiness or shutdown does not finish">#</a></h2>
+<p>Readiness is a startup signal unless dependency probing is enabled. A green ready
+response does not establish schema correctness, SMTP delivery or cloud health.
+During shutdown it becomes unavailable before admission stops. Worker-only processes
+have no business HTTP readiness endpoint.</p>
+<p>Shutdown stops admission, drains workers then local subscribers, stops metrics and
+closes owned resources. A handler that ignores cancellation can exhaust the shared
+drain budget. The app then reports failure and refuses to close dependencies still
+in use; it cannot forcibly stop a goroutine. Give the deployment enough termination
+time for both shutdown and cleanup, and ensure the executable receives the signal.</p>
+<p>Fix unbounded work or an unreachable dependency before increasing timeouts. Check
+<a href="application-lifecycle.html">application lifecycle</a> and <a href="observability.html">observability</a>
+for correlation and bounded diagnostics. Recovery after forced termination must
+still tolerate incomplete operations and duplicate task delivery.</p>
+<h2 id="prepare-a-useful-issue-report">Prepare a useful issue report<a class="heading-link" href="#prepare-a-useful-issue-report" aria-label="Link to Prepare a useful issue report">#</a></h2>
+<p>Include the operation and expected result, source revision, environment/role,
+relevant non-secret feature switches, HTTP status and safe error type, request ID,
+and task/delivery ID where applicable. State whether the problem reproduces after
+restart and which backend check failed.</p>
+<p>Attach a minimal sanitized request or task shape only when needed. Remove access
+and refresh tokens, OTPs, connection URLs with credentials, provider payloads, and
+full configuration dumps. Report uncertain effects explicitly—for example, “SMTP
+acceptance is unknown”—so recovery does not accidentally duplicate them.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="local-development.html"><small>← Previous</small>Local development</a>
+<a href="structure.html"><small>Next →</small>Directory structure</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#pick-the-failing-boundary">Pick the failing boundary</a></li><li class="toc-level-2"><a href="#configuration-or-startup-fails">Configuration or startup fails</a></li><li class="toc-level-2"><a href="#authentication-fails-or-a-route-is-missing">Authentication fails or a route is missing</a></li><li class="toc-level-2"><a href="#queued-work-does-not-run">Queued work does not run</a></li><li class="toc-level-2"><a href="#notifications-are-pending-failed-or-duplicated">Notifications are pending, failed or duplicated</a></li><li class="toc-level-2"><a href="#a-local-event-disappeared">A local event disappeared</a></li><li class="toc-level-2"><a href="#media-upload-download-or-cleanup-fails">Media upload, download or cleanup fails</a></li><li class="toc-level-3"><a href="#the-returned-asset-url-does-not-work">The returned asset URL does not work</a></li><li class="toc-level-2"><a href="#request-diagnostics-are-missing">Request diagnostics are missing</a></li><li class="toc-level-2"><a href="#readiness-or-shutdown-does-not-finish">Readiness or shutdown does not finish</a></li><li class="toc-level-2"><a href="#prepare-a-useful-issue-report">Prepare a useful issue report</a></li></ol></nav><a class="source-link" href="markdown/troubleshooting.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

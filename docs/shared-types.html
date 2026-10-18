@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Shared types — Practical guides and Go examples for Labena.">
+<title>Shared types — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/shared-types.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a class="selected" aria-current="page" href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-types-home">Choose a type&#39;s home</a></li><li class="toc-level-2"><a href="#records-and-transport-shapes">Records and transport shapes</a></li><li class="toc-level-2"><a href="#identity-and-references">Identity and references</a></li><li class="toc-level-2"><a href="#publish-a-business-contract">Publish a business contract</a></li><li class="toc-level-2"><a href="#keep-errors-with-their-behavior">Keep errors with their behavior</a></li><li class="toc-level-2"><a href="#common-helpers">Common helpers</a></li></ol></nav></details>
+<article><h1 id="shared-types">Shared types</h1>
+<p>Shared definitions make modules agree on business identity and published contracts.
+They do not transfer ownership: another module can refer to a <code>User</code>, but Identity
+still controls account operations and writes.</p>
+<h2 id="choose-a-types-home">Choose a type&#39;s home<a class="heading-link" href="#choose-a-types-home" aria-label="Link to Choose a type&#39;s home">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Home</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business entity and invariants</td>
+<td><code>internal/modules/shared/entities</code></td>
+<td><code>User</code>, <code>Session</code></td>
+</tr>
+<tr>
+<td>Business enum</td>
+<td><code>internal/modules/shared/enums</code></td>
+<td>User status, authentication platform</td>
+</tr>
+<tr>
+<td>Polymorphic type constant</td>
+<td><code>internal/modules/shared/entities/entity_types.go</code></td>
+<td><code>UserEntityType</code></td>
+</tr>
+<tr>
+<td>Published event and occurrence metadata</td>
+<td><code>internal/modules/shared/events</code></td>
+<td><code>UserRegistered</code>, <code>Event</code></td>
+</tr>
+<tr>
+<td>Service input/result</td>
+<td>Owning module&#39;s <code>service</code></td>
+<td><code>UpdateProfileInput</code>, <code>SignInResult</code></td>
+</tr>
+<tr>
+<td>Repository projection</td>
+<td>Owning module&#39;s <code>repository</code></td>
+<td>A query-specific result</td>
+</tr>
+<tr>
+<td>HTTP request/response</td>
+<td>Owning <code>delivery/http</code></td>
+<td>Public account response</td>
+</tr>
+<tr>
+<td>Capability record/input/error</td>
+<td>Owning platform package</td>
+<td><code>media.Asset</code>, <code>notification.Record</code></td>
+</tr>
+<tr>
+<td>Authenticated caller</td>
+<td><code>internal/platform/auth</code></td>
+<td><code>Principal</code> with user and session IDs</td>
+</tr>
+<tr>
+<td>Operation error</td>
+<td>Owning domain/capability</td>
+<td>Identity authentication failure</td>
+</tr>
+</tbody>
+</table>
+<p>Do not move every reusable struct into shared. <code>media.Owner</code> and
+<code>notification.Recipient</code> have different meanings even though both identify a
+business model with a type and ID.</p>
+<h2 id="records-and-transport-shapes">Records and transport shapes<a class="heading-link" href="#records-and-transport-shapes" aria-label="Link to Records and transport shapes">#</a></h2>
+<p>Business entities may carry Bun mappings when the persisted and business shapes
+agree. This avoids an otherwise identical model plus a conversion layer. Add a
+separate private query shape only when persistence actually differs.</p>
+<p>HTTP responses select public fields deliberately. A Bun entity&#39;s JSON tags do not
+prove that every field is appropriate for every caller. Service inputs likewise
+exclude transport concerns such as HTTP headers and Huma validation tags.</p>
+<p>Migrations change schemas; struct tags do not execute DDL. The owning module
+registers its migration source and the operator applies it explicitly.</p>
+<h2 id="identity-and-references">Identity and references<a class="heading-link" href="#identity-and-references" aria-label="Link to Identity and references">#</a></h2>
+<p>Use shared entity-type constants at business call sites:</p>
+<pre><code class="language-go" data-highlighted="yes">owner <span class="go-operator">:=</span> <span class="go-type">media</span><span class="go-punctuation">.</span><span class="go-type">Owner</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-1">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    ID<span class="go-punctuation">:</span>   <span class="go-package">user</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+recipient <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Recipient</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-1">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    ID<span class="go-punctuation">:</span>   <span class="go-package">user</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>reference fragment</strong> assumes an existing <code>*entities.User</code> and imports
+<code>internal/modules/shared/entities</code>, <code>internal/platform/media</code> and
+<code>internal/platform/notification</code> under the <code>github.com/wisalgroup/labena</code> module path.</p>
+<p>The business caller checks existence and authorization. A <code>(type, id)</code> value is
+not permission, an automatic model lookup, or an ordinary foreign key across
+arbitrary tables. The caller also owns deletion policy for attached records.</p>
+<p>Type names match <code>[a-z][a-z0-9_.-]{0,63}</code>. IDs are nonempty UTF-8 strings of at most
+200 bytes, with no surrounding whitespace or control characters. Media and
+Notifications share private syntax validation while keeping their public types
+and errors separate.</p>
+<h2 id="publish-a-business-contract">Publish a business contract<a class="heading-link" href="#publish-a-business-contract" aria-label="Link to Publish a business contract">#</a></h2>
+<p><code>internal/modules/shared/events/user_registered.go</code> defines Identity&#39;s account-created
+contract. Constructing an event only describes an occurrence:</p>
+<pre><code class="language-go" data-highlighted="yes">event <span class="go-operator">:=</span> <span class="go-package">events</span><span class="go-punctuation">.</span><span class="go-function">NewUserRegistered</span><span class="go-bracket-0">(</span><span class="go-package">user</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment imports <code>github.com/wisalgroup/labena/internal/modules/shared/events</code>; it does not publish.
+The event contains <code>UserID</code> and metadata (<code>ID</code>, <code>Type</code>, <code>OccurredAt</code>). Identity owns
+the meaning and the versioned topic. Consumers own handlers in their own
+<code>delivery/events</code> package.</p>
+<p>Keep contracts limited to IDs and event-specific values. Do not embed complete
+entities or import repositories, services, application config or transports.
+Publication and delivery are explicit operations covered in <a href="events.html">events</a>.</p>
+<h2 id="keep-errors-with-their-behavior">Keep errors with their behavior<a class="heading-link" href="#keep-errors-with-their-behavior" aria-label="Link to Keep errors with their behavior">#</a></h2>
+<p>Use <code>pkg/apperror</code> for common classification, safe public codes and validation
+issues. Define the actual failure beside the module, entity or capability that
+owns its meaning. There is no global <code>internal/modules/shared/errors</code> catalog.</p>
+<p>Across a future service boundary, share serialized schemas and stable error codes.
+Go interface identity, database mappings and error values are not a transport
+contract. Extract the contracts needed by consumers rather than exporting the
+entire shared directory.</p>
+<h2 id="common-helpers">Common helpers<a class="heading-link" href="#common-helpers" aria-label="Link to Common helpers">#</a></h2>
+<p><code>shared/domain.Entity</code> supplies UUID identity and timestamps.
+<code>shared/domain/valueobjects.Email</code> owns validated email representation and its
+JSON/database conversion. <code>events.Event</code> is plain occurrence metadata; it neither
+buffers nor publishes events.</p>
+<p>Technical helpers belong in <code>pkg</code> and must not import shared application types.
+For example, <code>pagination.Pagination</code> remains a reusable paging input; HTTP
+envelopes belong to <code>internal/platform/api/response</code>.</p>
+<p>Continue with <a href="conventions.html">conventions</a>, <a href="events.html">events</a>, and
+<a href="database-queries.html">entities and queries</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="application-lifecycle.html"><small>← Previous</small>Application lifecycle</a>
+<a href="console.html"><small>Next →</small>Console commands</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-types-home">Choose a type&#39;s home</a></li><li class="toc-level-2"><a href="#records-and-transport-shapes">Records and transport shapes</a></li><li class="toc-level-2"><a href="#identity-and-references">Identity and references</a></li><li class="toc-level-2"><a href="#publish-a-business-contract">Publish a business contract</a></li><li class="toc-level-2"><a href="#keep-errors-with-their-behavior">Keep errors with their behavior</a></li><li class="toc-level-2"><a href="#common-helpers">Common helpers</a></li></ol></nav><a class="source-link" href="markdown/shared-types.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

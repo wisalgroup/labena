@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: go-modular-dev
+data:
+  rabbitmq.conf: 'default_queue_type = quorum
+
+    '

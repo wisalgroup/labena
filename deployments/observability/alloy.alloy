@@ -1,0 +1,65 @@
+otelcol.receiver.otlp "app" {
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+  output {
+    traces = [otelcol.processor.memory_limiter.app.input]
+    logs   = [otelcol.processor.memory_limiter.app.input]
+  }
+}
+otelcol.processor.memory_limiter "app" {
+  check_interval = "1s"
+  limit = "192MiB"
+  spike_limit = "48MiB"
+  output {
+    traces = [otelcol.processor.batch.app.input]
+    logs   = [otelcol.processor.batch.app.input]
+  }
+}
+otelcol.processor.batch "app" {
+  timeout = "1s"
+  send_batch_size = 256
+  send_batch_max_size = 512
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+    logs   = [otelcol.exporter.otlphttp.loki.input]
+  }
+}
+otelcol.exporter.otlp "tempo" {
+  timeout = "5s"
+  client {
+    endpoint = "tempo:4317"
+    tls {
+      insecure = true
+    }
+  }
+  sending_queue {
+    enabled = true
+    num_consumers = 2
+    queue_size = 256
+  }
+  retry_on_failure {
+    enabled = true
+    initial_interval = "1s"
+    max_interval = "10s"
+    max_elapsed_time = "30s"
+  }
+}
+
+otelcol.exporter.otlphttp "loki" {
+  client {
+    timeout = "5s"
+    endpoint = "http://loki:3100/otlp"
+  }
+  sending_queue {
+    enabled = true
+    num_consumers = 2
+    queue_size = 256
+  }
+  retry_on_failure {
+    enabled = true
+    initial_interval = "1s"
+    max_interval = "10s"
+    max_elapsed_time = "30s"
+  }
+}

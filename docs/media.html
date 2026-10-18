@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Media assets — Practical guides and Go examples for Labena.">
+<title>Media assets — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/media.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a class="selected" aria-current="page" href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Files and media</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#before-uploading">Before uploading</a></li><li class="toc-level-2"><a href="#upload-and-use-an-asset">Upload and use an asset</a></li><li class="toc-level-3"><a href="#upload-from-a-business-operation">Upload from a business operation</a></li><li class="toc-level-3"><a href="#validate-upload-policy">Validate upload policy</a></li><li class="toc-level-2"><a href="#public-urls-and-private-links">Public URLs and private links</a></li><li class="toc-level-3"><a href="#resolve-an-existing-asset-url">Resolve an existing asset URL</a></li><li class="toc-level-3"><a href="#request-a-temporary-link">Request a temporary link</a></li><li class="toc-level-3"><a href="#configure-internal-signing">Configure internal signing</a></li><li class="toc-level-3"><a href="#understand-link-failures">Understand link failures</a></li><li class="toc-level-3"><a href="#content-behavior">Content behavior</a></li><li class="toc-level-2"><a href="#relationships-and-collections">Relationships and collections</a></li><li class="toc-level-3"><a href="#delete-an-owner-safely">Delete an owner safely</a></li><li class="toc-level-2"><a href="#disks-and-lifecycle">Disks and lifecycle</a></li><li class="toc-level-3"><a href="#upload-and-deletion-state">Upload and deletion state</a></li><li class="toc-level-3"><a href="#recover-interrupted-work">Recover interrupted work</a></li><li class="toc-level-2"><a href="#http-and-cli">HTTP and CLI</a></li><li class="toc-level-2"><a href="#compatibility-and-extension">Compatibility and extension</a></li><li class="toc-level-2"><a href="#troubleshoot-and-verify">Troubleshoot and verify</a></li></ol></nav></details>
+<article><h1 id="media-assets">Media assets</h1>
+<p>Media adds owned asset records, visibility, URLs and recoverable deletion above
+<a href="filesystems.html">file storage</a>. PostgreSQL stores metadata; a named
+Go CDK disk stores bytes. Use it for files attached to users or other business
+models. Use raw storage for an object that needs no asset lifecycle.</p>
+<h2 id="before-uploading">Before uploading<a class="heading-link" href="#before-uploading" aria-label="Link to Before uploading">#</a></h2>
+<p>For a local first run, configure a disk and a client-reachable media origin:</p>
+<pre><code class="language-dotenv">FILESYSTEM_DISK=local
+FILESYSTEM_LOCAL_ROOT=storage/app
+FILESYSTEM_LOCAL_VISIBILITY=public
+FILESYSTEM_LOCAL_URL_MODE=internal
+MEDIA_BASE_URL=http://127.0.0.1:8080/api/v1/media
+</code></pre>
+<p>Keep the working PostgreSQL/Redis settings from <a href="index.html">installation</a>.
+Apply migrations with <code>go run ./cmd/cli migrate up</code>. The supplied HTTP routes also
+require <a href="identity.html">Identity authentication</a>; sign in and save the
+access token before trying the commands below.</p>
+<p>App supplies <code>Resources.Media</code>, a constructed <code>*media.Library</code>. Modules borrow
+it; the library starts no workers and never closes app-owned buckets.</p>
+<h2 id="upload-and-use-an-asset">Upload and use an asset<a class="heading-link" href="#upload-and-use-an-asset" aria-label="Link to Upload and use an asset">#</a></h2>
+<p>The default disk visibility is <strong>public</strong>. Upload a file through the existing API:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/media \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39; \
+  -F &#39;file=@photo.png&#39;
+</code></pre>
+<p>Expect <strong>201</strong>. The response&#39;s <code>data</code> contains the asset ID, filename, content type,
+size, collection, status, visibility and <code>url</code>. Use <code>data.url</code> to display the public
+asset. Storage keys and disk names are deliberately omitted from HTTP responses.</p>
+<p>For a sensitive document, choose private visibility explicitly:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/media \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39; \
+  -F &#39;file=@statement.pdf&#39; \
+  -F &#39;visibility=private&#39;
+</code></pre>
+<p>The generic HTTP upload accepts exactly one <code>file</code> part and an optional visibility
+field, uses the <code>default</code> collection, and limits the file to <strong>20 MiB</strong>. It does not
+accept an arbitrary owner, disk or collection from the client. Build a business
+route when those choices require your own policy.</p>
+<h3 id="upload-from-a-business-operation">Upload from a business operation<a class="heading-link" href="#upload-from-a-business-operation" aria-label="Link to Upload from a business operation">#</a></h3>
+<p>After authorizing the target user, call the borrowed library:</p>
+<pre><code class="language-go" data-highlighted="yes">asset<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-function">Upload</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">media</span><span class="go-punctuation">.</span><span class="go-type">UploadInput</span><span class="go-bracket-1">{</span>
+    Owner<span class="go-punctuation">:</span> <span class="go-type">media</span><span class="go-punctuation">.</span><span class="go-type">Owner</span><span class="go-bracket-2">{</span>
+        Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-3">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-3">)</span><span class="go-punctuation">,</span>
+        ID<span class="go-punctuation">:</span>   <span class="go-package">userID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    Collection<span class="go-punctuation">:</span> <span class="go-string">&#34;avatar&#34;</span><span class="go-punctuation">,</span>
+    Filename<span class="go-punctuation">:</span>   filename<span class="go-punctuation">,</span>
+    Body<span class="go-punctuation">:</span>       file<span class="go-punctuation">,</span>
+    Policy<span class="go-punctuation">:</span> <span class="go-type">media</span><span class="go-punctuation">.</span><span class="go-type">Policy</span><span class="go-bracket-2">{</span>
+        MaxBytes<span class="go-punctuation">:</span>     <span class="go-number">5</span> <span class="go-operator">&lt;&lt;</span> <span class="go-number">20</span><span class="go-punctuation">,</span>
+        ContentTypes<span class="go-punctuation">:</span> <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-builtin-type">string</span><span class="go-bracket-3">{</span><span class="go-string">&#34;image/jpeg&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;image/png&#34;</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>service fragment</strong> assumes <code>library</code>, <code>ctx</code>, <code>userID</code>, filename and an open
+reader. Import <code>github.com/wisalgroup/labena/internal/platform/media</code> and
+<code>github.com/wisalgroup/labena/internal/modules/shared/entities</code>. The caller closes its reader and supplies
+its deadline. An explicit <code>Visibility: media.Private</code> overrides the disk default.
+<code>Policy.Disk</code> selects an already opened disk; omission uses the default.</p>
+<p><code>Upload</code> returns an <code>Asset</code>, not an enriched HTTP response. Call <code>URL</code> after a
+successful upload when you need a link. Decide how to report later link-resolution
+failure without telling a client that its already committed upload rolled back.</p>
+<h3 id="validate-upload-policy">Validate upload policy<a class="heading-link" href="#validate-upload-policy" aria-label="Link to Validate upload policy">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MaxBytes</code></td>
+<td>Required; 1 byte through 1 GiB</td>
+</tr>
+<tr>
+<td><code>ContentTypes</code></td>
+<td>Optional list of detected MIME types; empty allows any detected type</td>
+</tr>
+<tr>
+<td><code>Disk</code></td>
+<td>Optional configured/opened disk name</td>
+</tr>
+<tr>
+<td>Filename</td>
+<td>Sanitized display metadata; never an object key</td>
+</tr>
+</tbody>
+</table>
+<p>Media sniffs a small prefix and streams the remainder with a byte limit. Generated
+UUID keys prevent user filenames from choosing object paths. MIME detection does
+not prove that content is malware-free or a decodable image. If your application
+requires scanning, add a deliberate quarantine/processing policy before exposure.</p>
+<h2 id="public-urls-and-private-links">Public URLs and private links<a class="heading-link" href="#public-urls-and-private-links" aria-label="Link to Public URLs and private links">#</a></h2>
+<p>Visibility and delivery mode are separate decisions:</p>
+<table>
+<thead>
+<tr>
+<th>Visibility</th>
+<th>Disk URL mode</th>
+<th><code>URL</code> / HTTP <code>url</code></th>
+<th>Reader needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public</td>
+<td><code>internal</code></td>
+<td>App <code>/media/{id}/content</code></td>
+<td>No bearer token</td>
+</tr>
+<tr>
+<td>Private</td>
+<td><code>internal</code></td>
+<td>App <code>/media/{id}/download</code></td>
+<td>Owner&#39;s bearer token</td>
+</tr>
+<tr>
+<td>Public</td>
+<td><code>direct</code></td>
+<td>Permanent provider/CDN URL</td>
+<td>Public-read storage policy</td>
+</tr>
+<tr>
+<td>Private</td>
+<td><code>direct</code></td>
+<td>Provider-signed URL, normally 15 minutes</td>
+<td>Possession of the link</td>
+</tr>
+</tbody>
+</table>
+<p>New uploads inherit the selected disk&#39;s visibility; explicit upload visibility
+wins. Changing the default affects new uploads only. Visibility is fixed for an
+existing asset; replacing it creates another asset ID.</p>
+<p>For direct mode, configure public prefixes, signing credentials and a
+client-reachable endpoint as described in
+<a href="filesystems.html#media-visibility-and-urls">filesystem URL settings</a>.
+Local disks require internal mode. Internal mode does not remove a bucket&#39;s existing
+public permissions.</p>
+<h3 id="resolve-an-existing-asset-url">Resolve an existing asset URL<a class="heading-link" href="#resolve-an-existing-asset-url" aria-label="Link to Resolve an existing asset URL">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes">asset<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> owner<span class="go-punctuation">,</span> assetID<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+link<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-number">URL</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> asset<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>read fragment</strong> assumes an already authorized <code>owner</code>. <code>Get</code> scopes the
+record to that owner. <strong><code>URL</code> itself does not authorize</strong> the supplied Asset or
+reload its state: call it only after authorization. Private direct URLs grant
+bearer access. A nil/non-ready asset yields an empty link.</p>
+<p><code>media.Link</code> exposes <code>URL</code> and <code>ExpiresAt</code>; zero expiry means a stable URL. Public
+legacy objects whose keys lack <code>public/</code> retain internal URLs until an explicit
+storage/metadata migration.</p>
+<h3 id="request-a-temporary-link">Request a temporary link<a class="heading-link" href="#request-a-temporary-link" aria-label="Link to Request a temporary link">#</a></h3>
+<p>For a private asset displayed where an Authorization header is impractical:</p>
+<pre><code class="language-sh">curl -i -X POST http://127.0.0.1:8080/api/v1/media/ASSET_ID/url \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39; \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;expires_in&#34;:900}&#39;
+</code></pre>
+<p>Expect <strong>200</strong>, with <code>data.url</code> and <code>data.expires_at</code>. The endpoint authorizes the
+owner and checks readiness. For Go callers:</p>
+<pre><code class="language-go" data-highlighted="yes">link<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-function">TemporaryURL</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> owner<span class="go-punctuation">,</span> assetID<span class="go-punctuation">,</span> <span class="go-number">15</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>time</code>. The Go API uses 15 minutes for zero duration; the HTTP field defaults
+to 900 seconds. Allowed lifetime is 1 second through 24 hours.</p>
+<table>
+<thead>
+<tr>
+<th>Response/call</th>
+<th>Expiry field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Upload/list/metadata HTTP asset</td>
+<td><code>url_expires_at</code>, omitted for stable URLs</td>
+</tr>
+<tr>
+<td>Temporary-link HTTP response</td>
+<td><code>expires_at</code></td>
+</tr>
+<tr>
+<td><code>Library.URL</code> or <code>TemporaryURL</code> result</td>
+<td><code>Link.ExpiresAt</code></td>
+</tr>
+</tbody>
+</table>
+<p>Links are reusable bearer credentials until expiry, not single-use tokens. They do
+not end when an Identity session logs out. Provider credentials may expire before
+the requested lifetime. Do not persist an expiring URL as an asset identifier;
+store the asset ID and request a current link.</p>
+<h3 id="configure-internal-signing">Configure internal signing<a class="heading-link" href="#configure-internal-signing" aria-label="Link to Configure internal signing">#</a></h3>
+<p>Internal temporary links need a separate 32-byte secret:</p>
+<pre><code class="language-sh">openssl rand -base64 32
+</code></pre>
+<p>Store it as <code>MEDIA_SIGNING_KEY</code> and share it across replicas. Keep <code>MEDIA_BASE_URL</code>
+at the exact public origin/path used by the registered routes. The application
+default is <code>http://localhost:8080/api/v1/media</code>; direct <code>media.New</code> callers get
+<code>/api/v1/media</code> when BaseURL is empty.</p>
+<p>Without a key, public internal URLs and authenticated downloads still work;
+internal temporary-link creation returns <strong>503</strong>. Direct temporary links use
+provider signing instead. Rotating the media key or changing BaseURL invalidates
+existing internal signatures.</p>
+<h3 id="understand-link-failures">Understand link failures<a class="heading-link" href="#understand-link-failures" aria-label="Link to Understand link failures">#</a></h3>
+<p>Private direct signing can fail because a disk is missing, credentials cannot sign,
+or the provider operation fails. <code>Library.URL</code> returns an authenticated internal
+fallback <strong>and an error</strong> in that case.</p>
+<p>The supplied upload HTTP handler returns its already committed asset with that
+fallback. Metadata/list requests surface the signing error, and explicit temporary
+link requests return an error. A successful upload response therefore does not
+prove provider signing is configured. Always inspect the returned URL mode/expiry
+when diagnosing client access.</p>
+<h3 id="content-behavior">Content behavior<a class="heading-link" href="#content-behavior" aria-label="Link to Content behavior">#</a></h3>
+<p>Internal content reads check ready state and visibility/signature on each request.
+Private, missing, deleted and invalid-link assets return the same not-found result.
+Supplying invalid signature parameters is rejected even for public assets.</p>
+<p>App content uses <code>no-store</code>, <code>nosniff</code>, sandbox and no-referrer headers. Only an
+allowlist of image/audio/video MIME types displays inline; HTML, SVG and other
+active formats download as attachments. The download endpoint always uses an
+attachment and <code>application/octet-stream</code>. This integration does not implement
+range-request/video-streaming behavior.</p>
+<p>Direct URLs bypass app headers, rate limits and metadata checks. A direct public
+object can become readable as soon as its bytes exist, before metadata is marked
+ready. It stops being directly readable when the object is deleted, subject to
+provider/CDN caches. Choose internal delivery when these app checks are required.</p>
+<h2 id="relationships-and-collections">Relationships and collections<a class="heading-link" href="#relationships-and-collections" aria-label="Link to Relationships and collections">#</a></h2>
+<p>Every asset has one owner and one collection. The owner is the model the file
+belongs to, not necessarily the actor uploading it. <code>user/42</code> and <code>admin/42</code> are
+different owners. Add stable business type names in
+<code>internal/modules/shared/entities/entity_types.go</code>; no platform model registry is needed.</p>
+<p>An omitted collection becomes <code>default</code>. List a particular collection:</p>
+<pre><code class="language-go" data-highlighted="yes">page<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-function">List</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> owner<span class="go-punctuation">,</span> <span class="go-string">&#34;avatar&#34;</span><span class="go-punctuation">,</span> <span class="go-package">pagination</span><span class="go-punctuation">.</span><span class="go-function">NewPagination</span><span class="go-bracket-1">(</span><span class="go-number">1</span><span class="go-punctuation">,</span> <span class="go-number">20</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/pkg/pagination</code>. An empty collection filter lists all ready
+assets for that owner. Type/collection names match <code>[a-z][a-z0-9_.-]{0,63}</code>;
+owner IDs are nonempty UTF-8 strings up to 200 bytes without surrounding whitespace
+or controls.</p>
+<p>Collections group assets; they do not automatically enforce quotas, ordering or
+single-avatar replacement. Define those rules in the business operation. For
+replacement:</p>
+<ol>
+<li>Upload and validate the new asset.</li>
+<li>Commit the business relationship to the new asset ID.</li>
+<li>Delete the old asset after commit, retaining failures for recovery.</li>
+</ol>
+<p>If relationships require deletion checks, adapt or disable the generic delete
+route; Media cannot infer arbitrary future relationships. There is no many-to-many
+shared-attachment registry.</p>
+<h3 id="delete-an-owner-safely">Delete an owner safely<a class="heading-link" href="#delete-an-owner-safely" aria-label="Link to Delete an owner safely">#</a></h3>
+<p>Polymorphic references cannot enforce foreign keys across arbitrary owner tables.
+The business operation checks existence and access, stops new uploads for a
+deleting owner, coordinates in-flight work, then deletes assets through Library.
+Deleting the owner row or publishing a best-effort local event alone does not
+remove blobs.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">library</span><span class="go-punctuation">.</span><span class="go-function">Delete</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> owner<span class="go-punctuation">,</span> assetID<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Delete is owner-scoped and repeatable for retained tombstones. A foreign owner
+cannot delete the record. <code>Open</code> also checks ownership/readiness and returns a
+native reader which its caller must close.</p>
+<h2 id="disks-and-lifecycle">Disks and lifecycle<a class="heading-link" href="#disks-and-lifecycle" aria-label="Link to Disks and lifecycle">#</a></h2>
+<p><code>Resources.Disks</code> contains app-owned opened buckets; <code>DefaultDisk</code> selects one.
+Media copies the map and borrows the bucket pointers. Construct independently
+inside this application template using existing clients:</p>
+<pre><code class="language-go" data-highlighted="yes">library<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">media</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span>db<span class="go-punctuation">,</span> disks<span class="go-punctuation">,</span> defaultDisk<span class="go-punctuation">,</span> <span class="go-type">media</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-1">{</span>
+    BaseURL<span class="go-punctuation">:</span>    <span class="go-string">&#34;/api/v1/media&#34;</span><span class="go-punctuation">,</span>
+    SigningKey<span class="go-punctuation">:</span> signingKey<span class="go-punctuation">,</span>
+    Disks<span class="go-punctuation">:</span>      diskOptions<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>construction fragment</strong> assumes a Bun DB, named native buckets and validated
+options. It opens nothing and starts no goroutines. Use <code>integration.Register</code>
+for public/signed content serving, CLI, jobs and migrations. Identity registers
+user management endpoints separately through its own HTTP delivery. Platform
+media imports no business modules or shared business definitions.</p>
+<p>Keep names/backing locations stable while assets reference them. Changing the
+default affects new uploads; changing an endpoint does not migrate objects.
+Copy/verify bytes and update metadata explicitly when changing providers. Local
+storage needs an intentionally shared filesystem across replicas. Remote
+permissions must match the selected visibility/URL policy.</p>
+<h3 id="upload-and-deletion-state">Upload and deletion state<a class="heading-link" href="#upload-and-deletion-state" aria-label="Link to Upload and deletion state">#</a></h3>
+<pre><code class="language-mermaid">stateDiagram-v2
+    accTitle: Asset state follows the object lifecycle
+    accDescr: Upload saves pending metadata, writes and closes the object, then marks it ready. Failed uploads and explicit deletion become deleting work. Recovery retries removal before leaving a deleted tombstone.
+    [*] --&gt; Pending: Save metadata
+    Pending --&gt; Ready: Write object and close writer
+    Pending --&gt; Deleting: Failure or stale upload
+    Ready --&gt; Deleting: Delete requested
+    Deleting --&gt; Deleting: Removal failed
+    Deleting --&gt; Deleted: Object removed or absent
+</code></pre>
+<p>Blob I/O cannot join a SQL transaction. <code>Upload</code>, <code>Delete</code> and <code>Recover</code> reject a
+caller SQL transaction context. Upload has a two-minute deadline; failed/canceled
+uploads attempt cleanup with a separate five-second budget and preserve cleanup
+errors. SQL metadata remains recoverable if cleanup fails.</p>
+<p>Deletion stores intent before touching bytes. Missing objects count as removed;
+metadata becomes a tombstone only after removal. Unready uploads remain eligible
+for repeated deletion through the ten-minute crash grace to catch late remote
+writes after cancellation.</p>
+<h3 id="recover-interrupted-work">Recover interrupted work<a class="heading-link" href="#recover-interrupted-work" aria-label="Link to Recover interrupted work">#</a></h3>
+<pre><code class="language-sh">go run ./cmd/cli media recover
+</code></pre>
+<p>Recovery marks uploads older than ten minutes for cleanup and attempts at most
+100 deletion rows per batch. Failed rows rotate through the backlog; concurrent
+and repeated runs are supported. It scans known metadata, not arbitrary bucket
+objects. A provider capable of completing writes beyond this grace requires a
+longer deliberate recovery policy.</p>
+<p>App schedules <code>media.recover.v1</code> every five minutes when disks exist. Run one
+scheduler and workers, or invoke recovery through an operator schedule. Monitor
+old pending/deleting rows and task failures. Back up metadata and objects together;
+a database restored behind its bucket needs explicit inventory reconciliation.
+Tombstone retention is a separate policy because removing tombstones changes
+repeated-delete behavior.</p>
+<h2 id="http-and-cli">HTTP and CLI<a class="heading-link" href="#http-and-cli" aria-label="Link to HTTP and CLI">#</a></h2>
+<p>Identity owns the authenticated user management routes in
+<code>internal/modules/identity/delivery/http/media_handler.go</code>, with registration in
+Identity&#39;s <code>routes.go</code>. Platform media integration
+owns only the public/signed content route and generic streaming behavior.</p>
+<p>All routes below are beneath <code>/api/v1</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Method and route</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /media</code></td>
+<td>Owner-authenticated multipart upload; <strong>201</strong></td>
+</tr>
+<tr>
+<td><code>GET /media?page=1&amp;per_page=20&amp;collection=avatar</code></td>
+<td>Owner-scoped ready assets</td>
+</tr>
+<tr>
+<td><code>GET /media/{id}</code></td>
+<td>Owner-scoped metadata and resolved URL</td>
+</tr>
+<tr>
+<td><code>GET /media/{id}/download</code></td>
+<td>Owner-authenticated attachment</td>
+</tr>
+<tr>
+<td><code>GET /media/{id}/content</code></td>
+<td>Ready public content or a valid signed link</td>
+</tr>
+<tr>
+<td><code>POST /media/{id}/url</code></td>
+<td>Owner-authorized temporary link</td>
+</tr>
+<tr>
+<td><code>DELETE /media/{id}</code></td>
+<td>Owner-scoped deletion; <strong>204</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The current user&#39;s ID determines management ownership; callers cannot substitute a
+body owner. Metadata stays private even for public bytes. The upload adapter bounds
+the complete multipart body and cleans temporary files.</p>
+<p>Trusted operators can select other owner types:</p>
+<pre><code class="language-sh">go run ./cmd/cli media upload user USER_ID ./document.pdf --collection documents --visibility private
+go run ./cmd/cli media list user USER_ID --collection documents
+go run ./cmd/cli media delete user USER_ID ASSET_ID
+go run ./cmd/cli media recover
+</code></pre>
+<p>CLI output is the capability record, not the enriched HTTP AssetResponse. Use the
+HTTP metadata endpoint or <code>Library.URL</code> when you need a resolved URL.</p>
+<h2 id="compatibility-and-extension">Compatibility and extension<a class="heading-link" href="#compatibility-and-extension" aria-label="Link to Compatibility and extension">#</a></h2>
+<p>The visibility migration preserves existing rows as private and defaults new rows
+to public. Apply it with <code>migrate up</code>; no database reset is needed. Internal mode
+needs no public bucket policy. Direct public mode requires explicit scoped
+permissions, as documented in <a href="filesystems.html">file storage</a>.</p>
+<p>Image variants, antivirus scanning, direct-upload verification and video processing
+are extension work. Native storage can create signed PUT URLs, but Media does not
+provide a managed direct-upload/finalization flow. Use bounded jobs carrying asset
+IDs when adding processors. Business workflows decide whether an outcome should
+notify; Media does not automatically call Notifications.</p>
+<h2 id="troubleshoot-and-verify">Troubleshoot and verify<a class="heading-link" href="#troubleshoot-and-verify" aria-label="Link to Troubleshoot and verify">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public URL returns not found</td>
+<td>Ready metadata, visibility and disk/object availability</td>
+</tr>
+<tr>
+<td>Private URL fails in an image element</td>
+<td>Internal download needs a bearer header; request a temporary link</td>
+</tr>
+<tr>
+<td>Direct link uses <code>minio:9000</code></td>
+<td>Provider endpoint must be reachable by the client, not only app containers</td>
+</tr>
+<tr>
+<td>Signature fails after replacing its hostname</td>
+<td>Signatures cover the original host; configure the endpoint before signing</td>
+</tr>
+<tr>
+<td>Temporary internal link returns 503</td>
+<td>Shared <code>MEDIA_SIGNING_KEY</code> configuration</td>
+</tr>
+<tr>
+<td>Public direct link returns access denied</td>
+<td>Read-only policy on <code>public/*</code>, account restrictions and correct PublicURL</td>
+</tr>
+<tr>
+<td>Upload succeeded but returned an internal download URL</td>
+<td>Provider signing failed and the upload adapter used its fallback</td>
+</tr>
+<tr>
+<td>Deleted direct content is still visible</td>
+<td>Object removal or CDN/provider caching</td>
+</tr>
+</tbody>
+</table>
+<p>Tests cover owner separation, visibility, URL modes, cleanup and recovery. Use
+<a href="testing-database.html">disposable integration services</a> to verify
+PostgreSQL and storage behavior; local/MinIO tests do not establish real-cloud
+permissions. Continue with <a href="filesystems.html">file storage</a>,
+<a href="scheduling.html">scheduling</a>, and <a href="observability.html">observability</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="filesystems.html"><small>← Previous</small>File storage</a>
+<a href="persistent-workflow.html"><small>Next →</small>A persisted HTTP and CLI operation</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#before-uploading">Before uploading</a></li><li class="toc-level-2"><a href="#upload-and-use-an-asset">Upload and use an asset</a></li><li class="toc-level-3"><a href="#upload-from-a-business-operation">Upload from a business operation</a></li><li class="toc-level-3"><a href="#validate-upload-policy">Validate upload policy</a></li><li class="toc-level-2"><a href="#public-urls-and-private-links">Public URLs and private links</a></li><li class="toc-level-3"><a href="#resolve-an-existing-asset-url">Resolve an existing asset URL</a></li><li class="toc-level-3"><a href="#request-a-temporary-link">Request a temporary link</a></li><li class="toc-level-3"><a href="#configure-internal-signing">Configure internal signing</a></li><li class="toc-level-3"><a href="#understand-link-failures">Understand link failures</a></li><li class="toc-level-3"><a href="#content-behavior">Content behavior</a></li><li class="toc-level-2"><a href="#relationships-and-collections">Relationships and collections</a></li><li class="toc-level-3"><a href="#delete-an-owner-safely">Delete an owner safely</a></li><li class="toc-level-2"><a href="#disks-and-lifecycle">Disks and lifecycle</a></li><li class="toc-level-3"><a href="#upload-and-deletion-state">Upload and deletion state</a></li><li class="toc-level-3"><a href="#recover-interrupted-work">Recover interrupted work</a></li><li class="toc-level-2"><a href="#http-and-cli">HTTP and CLI</a></li><li class="toc-level-2"><a href="#compatibility-and-extension">Compatibility and extension</a></li><li class="toc-level-2"><a href="#troubleshoot-and-verify">Troubleshoot and verify</a></li></ol></nav><a class="source-link" href="markdown/media.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Authentication and sessions — Practical guides and Go examples for Labena.">
+<title>Authentication and sessions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/identity.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a class="selected" aria-current="page" href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Authentication</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-flow">Choose a flow</a></li><li class="toc-level-2"><a href="#email-otp-configuration-and-security">Email OTP configuration and security</a></li><li class="toc-level-3"><a href="#code-policy">Code policy</a></li><li class="toc-level-2"><a href="#email-otp-sign-in-and-bearer-sessions">Email OTP sign-in and bearer sessions</a></li><li class="toc-level-3"><a href="#sign-in">Sign in</a></li><li class="toc-level-3"><a href="#update-a-profile">Update a profile</a></li><li class="toc-level-3"><a href="#understand-token-and-session-lifetimes">Understand token and session lifetimes</a></li><li class="toc-level-3"><a href="#refresh-and-replay-behavior">Refresh and replay behavior</a></li><li class="toc-level-3"><a href="#manage-sessions">Manage sessions</a></li><li class="toc-level-3"><a href="#protected-routes-and-compatibility">Protected routes and compatibility</a></li><li class="toc-level-3"><a href="#cleanup-and-verification">Cleanup and verification</a></li><li class="toc-level-2"><a href="#google-and-unified-social-login">Google and unified social login</a></li><li class="toc-level-3"><a href="#account-matching-and-provider-validation">Account matching and provider validation</a></li><li class="toc-level-3"><a href="#test-with-the-supplied-installed-app-credentials">Test with the supplied installed-app credentials</a></li><li class="toc-level-2"><a href="#shared-rate-limiting">Shared rate limiting</a></li><li class="toc-level-2"><a href="#boundaries-and-verification">Boundaries and verification</a></li><li class="toc-level-2"><a href="#complete-module-example-account-onboarding">Complete module example: account onboarding</a></li><li class="toc-level-3"><a href="#follow-one-registration">Follow one registration</a></li><li class="toc-level-3"><a href="#mail-views-the-mailable-equivalent">Mail views: the mailable equivalent</a></li><li class="toc-level-3"><a href="#run-and-inspect-the-welcome-flow">Run and inspect the welcome flow</a></li><li class="toc-level-2"><a href="#http-organization">HTTP organization</a></li><li class="toc-level-2"><a href="#module-flow-and-route-ownership">Module flow and route ownership</a></li><li class="toc-level-2"><a href="#authentication-dependencies">Authentication dependencies</a></li><li class="toc-level-2"><a href="#organizing-a-substantial-use-case">Organizing a substantial use case</a></li><li class="toc-level-2"><a href="#operation-inputs">Operation inputs</a></li><li class="toc-level-3"><a href="#push-registrations-and-logout">Push registrations and logout</a></li><li class="toc-level-2"><a href="#passwordless-scope">Passwordless scope</a></li><li class="toc-level-2"><a href="#troubleshoot-sign-in">Troubleshoot sign-in</a></li><li class="toc-level-2"><a href="#test-the-behavior">Test the behavior</a></li></ol></nav></details>
+<article><h1 id="identity">Identity</h1>
+<p>Identity provides passwordless accounts, email OTP and Google sign-in, profile
+updates, access tokens and revocable sessions. A successful proof either creates
+an account or signs into an existing one; clients use the same flow for both.</p>
+<h2 id="choose-a-flow">Choose a flow<a class="heading-link" href="#choose-a-flow" aria-label="Link to Choose a flow">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configure your first sign-in</td>
+<td><a href="#email-otp-configuration-and-security">Email OTP setup</a></td>
+</tr>
+<tr>
+<td>Register or sign in with email</td>
+<td><a href="#sign-in">Request and confirm a code</a></td>
+</tr>
+<tr>
+<td>Complete the user&#39;s name</td>
+<td><a href="#update-a-profile">Update a profile</a></td>
+</tr>
+<tr>
+<td>Keep the user signed in</td>
+<td><a href="#refresh-and-replay-behavior">Refresh</a> and <a href="#understand-token-and-session-lifetimes">lifetimes</a></td>
+</tr>
+<tr>
+<td>Add Google sign-in</td>
+<td><a href="#google-and-unified-social-login">Social login</a></td>
+</tr>
+<tr>
+<td>Protect your own operation</td>
+<td><a href="#protected-routes-and-compatibility">Protected routes</a></td>
+</tr>
+<tr>
+<td>Investigate authentication failure</td>
+<td><a href="#troubleshoot-sign-in">Troubleshooting</a></td>
+</tr>
+</tbody>
+</table>
+<p>For a guided end-to-end example, follow the
+<a href="persistent-workflow.html">persisted HTTP and CLI operation</a>.</p>
+<h2 id="email-otp-configuration-and-security">Email OTP configuration and security<a class="heading-link" href="#email-otp-configuration-and-security" aria-label="Link to Email OTP configuration and security">#</a></h2>
+<p>Start with the PostgreSQL/Redis setup in <a href="index.html">installation</a>.
+Copy the quickstart profile into your ignored local configuration, retaining its
+connection addresses. Configure these additional values:</p>
+<pre><code class="language-dotenv">AUTH_ENABLED=true
+AUTH_VERIFICATION_KEY=&lt;first-independent-base64-32-byte-secret&gt;
+AUTH_ACCESS_TOKEN_KEY=&lt;second-independent-base64-32-byte-secret&gt;
+RATE_LIMIT_REDIS_URL=redis://127.0.0.1:56379/2
+MAIL_HOST=&lt;your-SMTP-host&gt;
+MAIL_PORT=587
+MAIL_USERNAME=&lt;your-SMTP-user&gt;
+MAIL_PASSWORD=&lt;your-SMTP-password&gt;
+MAIL_FROM_ADDRESS=&lt;your-verified-sender-address&gt;
+</code></pre>
+<p>This is a <strong>configuration fragment</strong> for the tutorial Redis port. Use your own
+SMTP provider&#39;s port and credentials. Mail has no enable switch; it is constructed
+by the app and connects when sending. Authentication additionally requires a
+working rate-limit Redis connection, even when the broad API limiter is off.</p>
+<p>Generate each key independently:</p>
+<pre><code class="language-sh">openssl rand -base64 32
+</code></pre>
+<p>Run it twice, save different outputs in the two fields, and keep them stable across
+restarts and shared across replicas. Never publish the values. Replacing the OTP
+verification key invalidates outstanding challenges and changes rate-limit keys.</p>
+<p>Apply migrations and restart with that profile:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env
+go run ./cmd/cli migrate up
+go run ./cmd/app
+</code></pre>
+<p>Check <a href="configuration.html#understand-precedence">configuration precedence</a>
+if a shell variable overrides the file. Use a fresh local schema for a first run;
+startup never resets or migrates a database automatically.</p>
+<h3 id="code-policy">Code policy<a class="heading-link" href="#code-policy" aria-label="Link to Code policy">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Default</th>
+<th>Where it is enforced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Code format</td>
+<td>Six decimal digits, including leading zeros</td>
+<td>HTTP and proof processing</td>
+</tr>
+<tr>
+<td>Lifetime</td>
+<td>10 minutes, including email delivery time</td>
+<td>Stored challenge expiry</td>
+</tr>
+<tr>
+<td>Resend cooldown</td>
+<td>1 minute per normalized address/purpose</td>
+<td>PostgreSQL</td>
+</tr>
+<tr>
+<td>Evaluated attempts</td>
+<td>5 per challenge, including a successful submission</td>
+<td>PostgreSQL, even when proof is denied</td>
+</tr>
+<tr>
+<td>Shared request/attempt budgets</td>
+<td>Destination and accepted client IP</td>
+<td>Redis</td>
+</tr>
+<tr>
+<td>Synchronous email-send deadline</td>
+<td>10 seconds</td>
+<td>Authentication service</td>
+</tr>
+</tbody>
+</table>
+<p>A new request invalidates earlier unused codes for that address. Use the challenge
+ID and code from the <strong>same email request</strong>. Resending does not reset shared Redis
+budgets. Only keyed code digests are stored; plaintext codes are not put in logs,
+responses, events, jobs or the notification ledger.</p>
+<p>SMTP acceptance is not inbox delivery. Delivery failure returns a safe <strong>503</strong>,
+creates no account and does not refund abuse budgets. Wait for the cooldown, then
+request a fresh code. See <a href="mail.html">Mail</a> for delivery behavior.</p>
+<h2 id="email-otp-sign-in-and-bearer-sessions">Email OTP sign-in and bearer sessions<a class="heading-link" href="#email-otp-sign-in-and-bearer-sessions" aria-label="Link to Email OTP sign-in and bearer sessions">#</a></h2>
+<pre><code class="language-text">Request code → temporary challenge → confirm email proof
+                                      ├─ unused email → create account + session → 201
+                                      ├─ active account → create session          → 200
+                                      └─ disabled/deleted account → deny
+</code></pre>
+<p>Sending a code creates no account. Successful confirmation consumes the proof,
+creates or verifies the account, and creates its session in one transaction.
+There is no separate signup or standalone email-verification endpoint.</p>
+<h3 id="sign-in">Sign in<a class="heading-link" href="#sign-in" aria-label="Link to Sign in">#</a></h3>
+<p>Request a code for an address you control:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/auth/otp/send \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;email&#34;:&#34;person@example.com&#34;}&#39;
+</code></pre>
+<p>Expect <strong>202 Accepted</strong> for both new and existing addresses:</p>
+<pre><code class="language-json">{
+  &#34;data&#34;: {
+    &#34;challenge_id&#34;: &#34;&lt;challenge-uuid&gt;&#34;,
+    &#34;message&#34;: &#34;Check your email for a sign-in code.&#34;
+  }
+}
+</code></pre>
+<p>Save <code>data.challenge_id</code>, read the code from the email, then submit both:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/auth/otp/verify \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;challenge_id&#34;:&#34;CHALLENGE_UUID&#34;,&#34;code&#34;:&#34;CODE_FROM_EMAIL&#34;,&#34;platform&#34;:&#34;web&#34;,&#34;device_name&#34;:&#34;My browser&#34;}&#39;
+</code></pre>
+<p>Replace both placeholders. Send the code as a string so a leading zero survives.
+<code>platform</code> is <code>web</code>, <code>ios</code> or <code>android</code>; <code>device_name</code> is an optional display label,
+not a trusted device identifier. An optional <code>name</code> applies only to a new account.</p>
+<p>Expect <strong>201</strong> for creation or <strong>200</strong> for an existing account. Both use the same
+<code>data</code> shape:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Client use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>access_token</code></td>
+<td>Send in the Authorization header</td>
+</tr>
+<tr>
+<td><code>refresh_token</code></td>
+<td>Save securely; replace after every refresh</td>
+</tr>
+<tr>
+<td><code>token_type</code></td>
+<td><code>Bearer</code></td>
+</tr>
+<tr>
+<td><code>expires_in</code></td>
+<td>Remaining access lifetime in seconds</td>
+</tr>
+<tr>
+<td><code>refresh_expires_at</code></td>
+<td>Refresh deadline, or <code>null</code> for no time-based expiry</td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>This login&#39;s session ID</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>Public account fields, including <code>id</code>, <code>name</code>, <code>email</code> and <code>profile_complete</code></td>
+</tr>
+</tbody>
+</table>
+<p>The API discloses account existence only after proof succeeds. It does not set
+authentication cookies and does not accept tokens in URLs. Identity responses use
+<code>Cache-Control: no-store</code>.</p>
+<h3 id="update-a-profile">Update a profile<a class="heading-link" href="#update-a-profile" aria-label="Link to Update a profile">#</a></h3>
+<p>After either <strong>200</strong> or <strong>201</strong>, inspect <code>data.user.profile_complete</code>. Currently a
+nonempty name makes the profile complete. New email accounts can have an empty
+name; social accounts use the provider name when available. Returning sign-ins
+never overwrite the existing profile.</p>
+<pre><code class="language-sh">curl -i -X PATCH http://127.0.0.1:8080/api/v1/users/me \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39; \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;name&#34;:&#34;Ada Lovelace&#34;}&#39;
+</code></pre>
+<p>Expect <strong>200</strong>, the updated public user and <code>profile_complete: true</code>. Names are
+trimmed and must contain 1–100 characters. At least one editable field is required;
+unknown fields, email, account status and user IDs are rejected. The completion
+flag is derived from the current profile rather than stored separately.</p>
+<p>Read the state on later application launches:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/users/me \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39;
+</code></pre>
+<p>Add future editable fields explicitly to <code>UpdateProfileRequest</code> and
+<code>service.UpdateProfileInput</code>, with validation in the operation/entity as needed.</p>
+<h3 id="understand-token-and-session-lifetimes">Understand token and session lifetimes<a class="heading-link" href="#understand-token-and-session-lifetimes" aria-label="Link to Understand token and session lifetimes">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Policy field</th>
+<th>Environment key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AccessTokenLifetime</code></td>
+<td><code>AUTH_ACCESS_TTL</code></td>
+<td><code>168h</code> (7 days)</td>
+<td>Expiry of one access JWT</td>
+</tr>
+<tr>
+<td><code>RefreshTokenLifetime</code></td>
+<td><code>AUTH_REFRESH_TTL</code></td>
+<td><code>0</code></td>
+<td>Lifetime granted to each new refresh credential; positive values slide on rotation</td>
+</tr>
+<tr>
+<td><code>AbsoluteSessionLifetime</code></td>
+<td><code>AUTH_SESSION_TTL</code></td>
+<td><code>0</code></td>
+<td>Maximum age from sign-in; activity never moves this deadline</td>
+</tr>
+</tbody>
+</table>
+<p>Access lifetime must be between 1 minute and 7 days. Positive refresh lifetime
+must be at least the access lifetime and at most 30 days. Positive session lifetime
+must cover the access and positive refresh lifetime and be at most 90 days.
+Zero disables only the respective refresh/session time limit.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Defaults; user returns months later</td>
+<td>Access expired; the saved current refresh credential can obtain new tokens</td>
+</tr>
+<tr>
+<td>Refresh <code>168h</code>, session <code>0</code>; refresh on day 6</td>
+<td>The replacement refresh credential receives another 7 days</td>
+</tr>
+<tr>
+<td>Refresh <code>168h</code>; no refresh for 8 days</td>
+<td>Sign-in required; normal API reads do not renew refresh expiry</td>
+</tr>
+<tr>
+<td>Session <code>720h</code>; continuous activity</td>
+<td>Sign-in required after 30 days; refresh cannot extend that deadline</td>
+</tr>
+<tr>
+<td>Logout or security revocation</td>
+<td>Subsequent access and refresh fail regardless of unlimited lifetimes</td>
+</tr>
+</tbody>
+</table>
+<p>Positive token lifetimes are capped by the stored session deadline. Unlimited
+expiry is SQL <code>NULL</code> and JSON <code>null</code>. Configuration changes affect new sessions
+and newly issued tokens; existing sessions retain their stored absolute deadline,
+and a refresh checks its current stored expiry before issuing a successor.</p>
+<p>Unlimited lifetime does not mean automatic client refresh. The client must retain
+its refresh credential securely, refresh when needed, and sign in again if that
+credential is lost.</p>
+<h3 id="refresh-and-replay-behavior">Refresh and replay behavior<a class="heading-link" href="#refresh-and-replay-behavior" aria-label="Link to Refresh and replay behavior">#</a></h3>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/auth/refresh \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;refresh_token&#34;:&#34;CURRENT_REFRESH_TOKEN&#34;}&#39;
+</code></pre>
+<p>Expect <strong>200</strong> with new token fields in <code>data</code>. Replace <strong>both</strong> saved credentials.
+The response is a token result, without the sign-in response&#39;s <code>user</code> object.</p>
+<p>Rotation consumes the old credential and saves its successor atomically. Tokens
+contain 256 bits of randomness; only SHA-256 hashes are stored. Reusing a consumed
+credential revokes its session, including the newest access token.</p>
+<p><strong>Serialize refreshes in the client.</strong> Two concurrent refreshes with one token
+can cause a rotation followed by replay revocation. If the response is lost, sign
+in again instead of replaying the old token. There is no grace period or cached
+plaintext successor. An uncertain database commit also requires fresh sign-in.</p>
+<p>Consumed hashes remain while a session is usable. Unlimited active sessions
+therefore accumulate rotation history until revoked or expired. Replay revocation
+commits even though the operation returns an authentication error.</p>
+<h3 id="manage-sessions">Manage sessions<a class="heading-link" href="#manage-sessions" aria-label="Link to Manage sessions">#</a></h3>
+<p>All operations below use the current access token:</p>
+<table>
+<thead>
+<tr>
+<th>Method and route</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/v1/auth/sessions?page=1&amp;per_page=20</code></td>
+<td>Page of active sessions; <code>current</code> identifies this login</td>
+</tr>
+<tr>
+<td><code>DELETE /api/v1/auth/sessions/{id}</code></td>
+<td>Revoke one owned session; <strong>204</strong></td>
+</tr>
+<tr>
+<td><code>DELETE /api/v1/auth/sessions</code></td>
+<td>Revoke all owned sessions, including this one; <strong>204</strong></td>
+</tr>
+<tr>
+<td><code>POST /api/v1/auth/logout</code></td>
+<td>Revoke the current session; <strong>204</strong></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sh">curl -i -X POST http://127.0.0.1:8080/api/v1/auth/logout \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39;
+</code></pre>
+<p>Discard the saved credentials after logout. Session <code>last_used_at</code> reflects
+sign-in/refresh activity, not presence; a device name is an untrusted label.
+Sign-in updates the user&#39;s <code>last_active_at</code>; background refresh does not claim
+meaningful account activity.</p>
+<p><code>domain.AllowConcurrentSessions</code> defaults to true. Setting it false revokes other
+sessions under the account lock during a new sign-in. Concurrent sign-ins cannot
+leave two active sessions. Changing the constant alone does not revoke existing
+sessions; use explicit revocation to reconcile them.</p>
+<h3 id="protected-routes-and-compatibility">Protected routes and compatibility<a class="heading-link" href="#protected-routes-and-compatibility" aria-label="Link to Protected routes and compatibility">#</a></h3>
+<p>Register private operations on <code>targets.AuthenticatedHTTP</code>. App constructs that
+Huma group using Identity&#39;s authenticator; middleware verifies the bearer token
+and current PostgreSQL account/session state on each request.</p>
+<p>Inside a typed handler, obtain the current user ID:</p>
+<pre><code class="language-go" data-highlighted="yes">userID<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>handler fragment</strong> imports platform <code>api</code> and <code>api/response</code>; use <code>userID</code>
+for the authorized service operation. For a route containing an account ID, use
+<code>api.RequireCurrentUser(ctx, id)</code> before the read. It returns not found on a mismatch
+and grants no administrator rights.</p>
+<p><code>api.Principal(ctx)</code> returns <code>auth.Principal{UserID, SessionID}</code> after authentication.
+The principal contract lives in <code>internal/platform/auth</code>; account/session behavior
+and persistence remain owned by Identity.
+It is the verified identity for the current operation, not the raw JWT claims or a
+role/permission model. A valid principal does not authorize access to every record.</p>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disabled authentication</td>
+<td>Protected routes fail with <strong>401</strong></td>
+</tr>
+<tr>
+<td><code>/users/{id}</code></td>
+<td>Only the current user&#39;s ID is permitted</td>
+</tr>
+<tr>
+<td>Notifications/private media</td>
+<td>Recipient/owner derived from the authenticated user</td>
+</tr>
+<tr>
+<td>Forged user headers or query tokens</td>
+<td>Do not establish a principal</td>
+</tr>
+<tr>
+<td>Account suspension, deletion state, contact changes or logout</td>
+<td>Subsequent protected requests fail</td>
+</tr>
+<tr>
+<td>Database outage</td>
+<td>Operational failure; never anonymous access</td>
+</tr>
+</tbody>
+</table>
+<p>Reactivating an account does not revive revoked sessions. Requests admitted before
+revocation may finish; revocation is not cancellation of in-flight work. Checking
+state costs a database read per protected request. Account listing and status
+changes remain internal service operations; callers must supply administrative
+policy where appropriate.</p>
+<p>Use HTTPS beyond loopback. Keep mobile tokens in platform secure storage and
+choose browser token custody/BFF design explicitly. Never put bearer credentials
+in URLs, logs, analytics or error reports.</p>
+<h3 id="cleanup-and-verification">Cleanup and verification<a class="heading-link" href="#cleanup-and-verification" aria-label="Link to Cleanup and verification">#</a></h3>
+<pre><code class="language-sh">go run ./cmd/cli identity prune-verification
+go run ./cmd/cli identity prune-sessions
+</code></pre>
+<p>These operator commands remove bounded batches. Session cleanup removes up to
+1000 token rows, then up to 1000 empty revoked/absolutely expired sessions. Active
+sessions retain replay history, including when their lifetime is unlimited.</p>
+<p>App declares five-minute command schedules when authentication and command
+scheduling are enabled. A designated scheduler and workers must run; neither
+configuration nor registration executes cleanup by itself. Monitor whether the
+batch rate keeps up with expired data. Redis owns limiter-key expiry.</p>
+<h2 id="google-and-unified-social-login">Google and unified social login<a class="heading-link" href="#google-and-unified-social-login" aria-label="Link to Google and unified social login">#</a></h2>
+<p>Google exchanges a verified provider ID token for the same application session
+used by OTP. Configure the provider alongside authentication:</p>
+<pre><code class="language-dotenv">AUTH_GOOGLE_ENABLED=true
+AUTH_GOOGLE_CLIENT_ID=&lt;allowed-audience&gt;.apps.googleusercontent.com
+# Optional additional azp presenters, comma-separated without spaces.
+AUTH_GOOGLE_TRUSTED_PRESENTER_IDS=&lt;mobile-client&gt;.apps.googleusercontent.com
+</code></pre>
+<p>The client ID is the accepted audience. Additional presenters never become extra
+audiences. When <code>azp</code> exists, it must be a nonempty string matching the audience
+client or an explicitly trusted presenter. Tokens without it can pass the other
+checks. For a browser Google button, use a Web application client with registered
+JavaScript origins; an installed-app client is not interchangeable.</p>
+<p>Obtain a Google <strong>ID token</strong> using your client integration, then send JSON:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/auth/social/google \
+  -H &#39;Content-Type: application/json&#39; \
+  --data &#39;{&#34;id_token&#34;:&#34;GOOGLE_ID_TOKEN&#34;,&#34;platform&#34;:&#34;web&#34;,&#34;device_name&#34;:&#34;Chrome&#34;}&#39;
+</code></pre>
+<p>Expect <strong>201</strong> for a new account or <strong>200</strong> for an already linked provider identity,
+with the same tokens-and-user response as OTP. Never send a provider access token,
+email address or user ID as a substitute for the ID token. No Google client secret
+is needed by this API.</p>
+<h3 id="account-matching-and-provider-validation">Account matching and provider validation<a class="heading-link" href="#account-matching-and-provider-validation" aria-label="Link to Account matching and provider validation">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Provider result</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Known <code>(provider, subject)</code></td>
+<td>Sign into its linked active, verified account</td>
+</tr>
+<tr>
+<td>New subject, unused authoritative verified email</td>
+<td>Create account, provider identity and session atomically</td>
+</tr>
+<tr>
+<td>New subject, email already belongs to an account</td>
+<td><strong>409</strong>; no automatic linking or merging</td>
+</tr>
+<tr>
+<td>New account with non-authoritative Google email</td>
+<td><strong>422</strong>; use email OTP instead</td>
+</tr>
+<tr>
+<td>Suspended/deleted account</td>
+<td>Deny access</td>
+</tr>
+</tbody>
+</table>
+<p>Gmail and verified Google Workspace addresses can establish current email
+ownership. Other Google-account email addresses may have been verified only in
+the past and cannot create an account through this flow. Provider changes do not
+overwrite a linked account&#39;s local email or name.</p>
+<p>The configured verifier uses Google&#39;s ID-token validator for signatures, audience,
+expiry and cached key rotation, with explicit issuer, subject, issued-at and
+presenter checks. It never uses caller-selected issuer/key URLs. The client owns
+callback state, PKCE for redirect flows and nonce validation when requested.
+Google&#39;s direct HTML form-post callback is not supported; submit JSON.</p>
+<p>An ID token is reusable until its expiry, subject to account/session policy and
+rate limits. There is no one-time provider exchange challenge. No Google
+access/refresh tokens are persisted. Protect the ID token as a bearer credential.</p>
+<h3 id="test-with-the-supplied-installed-app-credentials">Test with the supplied installed-app credentials<a class="heading-link" href="#test-with-the-supplied-installed-app-credentials" aria-label="Link to Test with the supplied installed-app credentials">#</a></h3>
+<p>If you have a local installed-app credential file and the API is configured for
+its audience:</p>
+<pre><code class="language-sh">go run ./examples/social-login -credentials client_secret_*.json
+</code></pre>
+<p>Open the printed URL. The helper uses a loopback callback, state, PKCE and a
+locally validated nonce. It saves the API response in <code>.env.google-session.json</code>
+with owner-only permissions, never prints tokens, and refuses to overwrite an
+existing file. Use <code>-output .env.google-session-2.json</code> for another attempt.
+The Google project&#39;s consent/test-user settings must allow your account.</p>
+<p>Read <a href="https://developers.google.com/identity/gsi/web/guides/verify-google-id-token">Google server-side verification</a>
+and <a href="https://developers.google.com/identity/protocols/oauth2/native-app">native-app authorization</a>
+when building the client integration.</p>
+<h2 id="shared-rate-limiting">Shared rate limiting<a class="heading-link" href="#shared-rate-limiting" aria-label="Link to Shared rate limiting">#</a></h2>
+<p>Authentication uses shared Redis GCRA budgets: an initial burst replenishes
+gradually, not at calendar-hour boundaries. The defaults in
+<code>domain.DefaultAuthRateLimitPolicy()</code> are:</p>
+<table>
+<thead>
+<tr>
+<th>Budget</th>
+<th>Burst and replenishment per hour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Code requests per normalized destination</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Code requests per accepted client IP</td>
+<td>30</td>
+</tr>
+<tr>
+<td>Proof/provider attempts per identity</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Proof/provider attempts per peer IP</td>
+<td>50</td>
+</tr>
+</tbody>
+</table>
+<p>OTP identity budgets cover the destination across purposes. Social verification
+checks the peer before provider verification and the verified subject afterward.
+Successful and failed admitted work both count. One check may consume budget
+before a second denies access; failures do not refund it.</p>
+<p><code>RATE_LIMIT_REDIS_URL</code> defaults to Redis database <strong>2</strong>. Keep the namespace and
+policies consistent across replicas and separate from queue/cache databases.
+Loss, eviction or clearing of limiter data resets budgets; choose persistence and
+memory policy accordingly. Logical Redis databases do not isolate server memory
+or availability.</p>
+<p>The optional broad <code>/api/v1</code> limiter is separate:</p>
+<pre><code class="language-dotenv">API_RATE_LIMIT_ENABLED=true
+API_RATE_LIMIT_REQUESTS=120
+API_RATE_LIMIT_BURST=120
+API_RATE_LIMIT_PERIOD=1m
+</code></pre>
+<p>It exempts common health routes. Rejections return <strong>429</strong>; the global middleware
+includes <code>Retry-After</code>. Redis failure returns <strong>503</strong> rather than bypassing
+admission. HTTP supplies <code>api.ClientIP</code>, which uses the immediate TCP peer by
+default. <code>HTTP_TRUSTED_PROXIES</code> enables a bounded, validated <code>X-Forwarded-For</code> chain
+only from explicitly trusted ingress peers. With no trust configured, clients
+behind a proxy/NAT share its budget. See the
+<a href="deployment.html#ingress-and-readiness">ingress contract</a>.</p>
+<h2 id="boundaries-and-verification">Boundaries and verification<a class="heading-link" href="#boundaries-and-verification" aria-label="Link to Boundaries and verification">#</a></h2>
+<p>Authentication repositories intentionally own proof/refresh transactions. Failed
+proof counters and replay revocation must commit even when authentication is
+denied. Do not wrap these operations in a transaction that rolls back their
+security effects. Ordinary profile operations can join a caller-owned transaction.</p>
+<p>The proof contains the challenge ID, keyed digest, purpose and policy. The
+repository checks and consumes it atomically; a challenge is not an authenticated
+session. Wrong, expired, superseded, exhausted or consumed codes create neither
+account nor session. Concurrent confirmations cannot create duplicate accounts.</p>
+<p>If an account is created between request and proof, confirmation signs into that
+account without replacing its profile. A proof bound to an existing account
+cannot create another account using its old address after a contact change.
+Deleted addresses remain reserved. A different-purpose verification code cannot
+be used for sign-in.</p>
+<p>Access JWTs use HS256 with issuer, audience, expiry, issued-at, user/session UUIDs
+and <code>typ: at+jwt</code>. They contain IDs, not contact fields or authorization roles.
+The signing key is distinct from the OTP key. Replacing it invalidates access
+tokens; valid refresh credentials can obtain tokens signed with the new key.
+Overlapping signing-key rotation is not implemented. Share this symmetric key only
+with trusted instances able to mint tokens.</p>
+<h2 id="complete-module-example-account-onboarding">Complete module example: account onboarding<a class="heading-link" href="#complete-module-example-account-onboarding" aria-label="Link to Complete module example: account onboarding">#</a></h2>
+<p>Account creation publishes <code>UserRegistered</code> only after commit. Existing-account
+sign-in does not publish it again. The canonical walkthrough is
+<a href="onboarding.html">account onboarding</a>, which includes complete event,
+job, notification and mail-view examples.</p>
+<h3 id="follow-one-registration">Follow one registration<a class="heading-link" href="#follow-one-registration" aria-label="Link to Follow one registration">#</a></h3>
+<pre><code class="language-text">Committed new account
+  → local UserRegistered event
+  → identity.welcome.v1 task in Redis
+  → reload the current account
+  → persist database/email notification intent
+  → worker dispatcher enqueues delivery IDs
+  → channel handlers attempt delivery
+</code></pre>
+<p>The welcome job skips missing, deleted and inactive users. Eligible users receive
+database content and, with the configured sender and a verified address, email.
+Its stable <code>welcome</code> key converges retries for each recipient/channel; saved
+content is not overwritten. A replay can add an eligible email channel later.</p>
+<p>The initial event remains process-local and best-effort. The SQL ledger cannot
+recover a reaction that never reached it. Signup remains committed if publication
+fails. Use <a href="transactional-notifications.html">transactional notification intent</a>
+for operations requiring atomic business state and intent. SMTP can still repeat
+after an ambiguous external failure.</p>
+<h3 id="mail-views-the-mailable-equivalent">Mail views: the mailable equivalent<a class="heading-link" href="#mail-views-the-mailable-equivalent" aria-label="Link to Mail views: the mailable equivalent">#</a></h3>
+<p>Identity supplies content through its <code>mailviews</code> package; <code>pkg/mailview</code> supplies
+the common layout, branding, escaping and text alternative. Preview without SMTP:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./examples/mail
+</code></pre>
+<p>Open <code>storage/app/mail-preview/welcome.html</code> and <code>otp.html</code>, plus their text versions.
+The sign-in service sends short-lived codes synchronously; they never enter welcome
+jobs or durable notifications. See <a href="mail.html">Mail</a> for rendering and
+optional queued ordinary emails.</p>
+<h3 id="run-and-inspect-the-welcome-flow">Run and inspect the welcome flow<a class="heading-link" href="#run-and-inspect-the-welcome-flow" aria-label="Link to Run and inspect the welcome flow">#</a></h3>
+<p>Use the sign-in response&#39;s user ID and the same configured environment:</p>
+<pre><code class="language-sh">go run ./cmd/cli identity welcome &#39;&lt;user-id&gt;&#39;
+go run ./cmd/cli notifications deliveries --status pending
+go run ./cmd/cli notifications list user &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p>The first command enqueues; workers must run before records appear. Signup already
+requests this flow, so manual replay is an operator recovery action. Job completion
+means intents are saved, not email received. See
+<a href="notifications.html">notifications</a> for delivery inspection.</p>
+<h2 id="http-organization">HTTP organization<a class="heading-link" href="#http-organization" aria-label="Link to HTTP organization">#</a></h2>
+<p><code>delivery/http/routes.go</code> owns typed operation registration, <code>requests.go</code> owns
+wire inputs and mappings, and <code>responses.go</code> selects public outputs. Profile and
+authentication handlers call their services; reusable middleware lives in platform
+API. Live <code>/docs</code> and <code>/openapi.json</code> describe the enabled operations.</p>
+<p><code>media_handler.go</code>, <code>notifications_handler.go</code> and <code>subscriptions_handler.go</code>
+handle the authenticated user&#39;s assets, notifications and push installations.
+Their wire inputs live in <code>requests.go</code>, output shapes and projections in
+<code>responses.go</code>, and operation registration in <code>routes.go</code>, alongside the existing
+account/authentication endpoints. Handlers derive owner/recipient scope from the
+platform principal and call the existing platform capabilities.
+Push registration calls Identity&#39;s AuthService directly so the account lock and
+session transaction remain authoritative. Platform media integration separately
+serves public/signed content and owns streaming cleanup.</p>
+<h2 id="module-flow-and-route-ownership">Module flow and route ownership<a class="heading-link" href="#module-flow-and-route-ownership" aria-label="Link to Module flow and route ownership">#</a></h2>
+<p>All application routes below are prefixed by <code>/api/v1</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /auth/otp/send</code>, <code>POST /auth/otp/verify</code></td>
+<td>Public proof flow when authentication is enabled</td>
+</tr>
+<tr>
+<td><code>POST /auth/social/{provider}</code></td>
+<td>Public, explicitly enabled provider</td>
+</tr>
+<tr>
+<td><code>POST /auth/refresh</code></td>
+<td>Current refresh credential</td>
+</tr>
+<tr>
+<td><code>GET/PATCH /users/me</code>, <code>GET /users/{id}</code></td>
+<td>Bearer session and ownership</td>
+</tr>
+<tr>
+<td><code>/auth/logout</code>, <code>/auth/sessions</code></td>
+<td>Bearer session</td>
+</tr>
+<tr>
+<td><code>/media</code>, <code>/media/{id}</code>, <code>/media/{id}/download</code>, <code>/media/{id}/url</code></td>
+<td>Bearer session and user asset ownership</td>
+</tr>
+<tr>
+<td><code>/notifications</code>, <code>/notifications/unread-count</code>, <code>/notifications/{id}/read</code></td>
+<td>Bearer session and recipient ownership</td>
+</tr>
+<tr>
+<td><code>/notifications/subscriptions</code>, <code>/notifications/subscriptions/{id}</code></td>
+<td>Bearer session; registration rechecks the session under Identity&#39;s account lock</td>
+</tr>
+</tbody>
+</table>
+<p><code>register.go</code> constructs account collaborators and registers transports. App
+constructs the AuthService in <code>internal/app/auth.go</code>, creates the authenticated
+group, and passes the service into <code>identity.Register</code>. For architecture examples, see
+<a href="module-registration.html">module registration</a> and
+<a href="dependency-injection.html">dependency injection</a>.</p>
+<h2 id="authentication-dependencies">Authentication dependencies<a class="heading-link" href="#authentication-dependencies" aria-label="Link to Authentication dependencies">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Owner</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UserService</code></td>
+<td>Profile reads/edits, listing and internal account-status operations</td>
+</tr>
+<tr>
+<td><code>AuthService</code></td>
+<td>OTP/provider proof, token issuance, session management and cleanup</td>
+</tr>
+<tr>
+<td><code>VerificationCodePolicy</code></td>
+<td>Code lifetime, cooldown and attempts</td>
+</tr>
+<tr>
+<td><code>AuthRateLimitPolicy</code></td>
+<td>Shared refill/burst budgets</td>
+</tr>
+<tr>
+<td><code>SessionPolicy</code></td>
+<td>Token/session lifetime and concurrent sign-ins</td>
+</tr>
+<tr>
+<td><code>integrations.SocialProvider</code></td>
+<td>Configured provider verification</td>
+</tr>
+</tbody>
+</table>
+<p>Service/repository interfaces live in their owner packages; implementations are
+private and constructors live beside them. <code>AuthOptions</code> borrows repositories,
+policies, token issuer, mail renderer/sender, limiter, publisher and provider
+implementations. Framework contracts are imported from their owner rather than
+redeclared. Construction performs no I/O or background work.</p>
+<h2 id="organizing-a-substantial-use-case">Organizing a substantial use case<a class="heading-link" href="#organizing-a-substantial-use-case" aria-label="Link to Organizing a substantial use case">#</a></h2>
+<p><code>session.go</code>, <code>verification.go</code> and <code>social.go</code> contain methods on the same private
+<code>authService</code>. A substantial use case can move to its own file without another
+service or registration step. Follow the <a href="modules.html#keep-large-use-cases-on-the-same-service">module growth guide</a>.</p>
+<h2 id="operation-inputs">Operation inputs<a class="heading-link" href="#operation-inputs" aria-label="Link to Operation inputs">#</a></h2>
+<p>For direct service use, pass trusted transport context explicitly:</p>
+<pre><code class="language-go" data-highlighted="yes">result<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">authentication</span><span class="go-punctuation">.</span><span class="go-function">SignInWithCode</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">SignInInput</span><span class="go-bracket-1">{</span>
+    Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Ada&#34;</span><span class="go-punctuation">,</span>
+    Proof<span class="go-punctuation">:</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">ProofInput</span><span class="go-bracket-2">{</span>
+        ChallengeID<span class="go-punctuation">:</span> challengeID<span class="go-punctuation">,</span>
+        Code<span class="go-punctuation">:</span> code<span class="go-punctuation">,</span>
+        ClientIP<span class="go-punctuation">:</span> trustedClientIP<span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    Device<span class="go-punctuation">:</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">Device</span><span class="go-bracket-2">{</span>Platform<span class="go-punctuation">:</span> <span class="go-package">enums</span><span class="go-punctuation">.</span>PlatformWeb<span class="go-punctuation">,</span> Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Browser&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>service-call fragment</strong> assumes a constructed <code>service.AuthService</code>, context
+and proof values. Imports are Identity <code>service</code> and shared <code>enums</code>. The caller
+consumes <code>result.User</code>, <code>result.Tokens</code> and <code>result.Created</code>; an HTTP adapter maps
+Created to 201/200. Client IP comes from the trusted boundary, never a JSON field.
+Social sign-in uses <code>SocialSignInInput{ClientIP, Device}</code> and a provider credential.</p>
+<h3 id="push-registrations-and-logout">Push registrations and logout<a class="heading-link" href="#push-registrations-and-logout" aria-label="Link to Push registrations and logout">#</a></h3>
+<p>When Notifier is injected, explicit session revocation detaches matching push
+registrations in the same SQL transaction. Revoking all sessions detaches all
+registrations for that user. Cleanup failure rolls back revocation; an external
+send already admitted cannot be retracted.</p>
+<p>Registration validates the active session under the same account lock, so a
+request authenticated just before logout cannot reattach a revoked session.
+Other account-lifecycle operations must choose their own push-cleanup policy.
+See <a href="notifications.html">notification subscriptions</a>.</p>
+<h2 id="passwordless-scope">Passwordless scope<a class="heading-link" href="#passwordless-scope" aria-label="Link to Passwordless scope">#</a></h2>
+<p>Implemented: email OTP, Google sign-in, profiles, refresh rotation and session
+revocation. Not implemented: passwords, phone/SMS proof, Apple, provider linking or
+unlinking, lost-email recovery, roles and public administrative account APIs.
+<code>pkg/hasher</code> remains available independently for other needs.</p>
+<h2 id="troubleshoot-sign-in">Troubleshoot sign-in<a class="heading-link" href="#troubleshoot-sign-in" aria-label="Link to Troubleshoot sign-in">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OTP <strong>422</strong></td>
+<td>Same challenge/code pair, six digits, expiry, resend replacement and consumed/attempt-exhausted state</td>
+</tr>
+<tr>
+<td>OTP send <strong>503</strong></td>
+<td>SMTP configuration/reachability or shared rate-limit Redis; wait for cooldown before retry</td>
+</tr>
+<tr>
+<td><strong>429</strong></td>
+<td>Destination/peer budgets; resending does not replenish them</td>
+</tr>
+<tr>
+<td>Protected request <strong>401</strong></td>
+<td>Authorization header, token expiry, enabled auth and current session state</td>
+</tr>
+<tr>
+<td>Tokens stop working after refresh</td>
+<td>Concurrent refresh or replay may have revoked the session; sign in again</td>
+</tr>
+<tr>
+<td>Google <strong>409</strong></td>
+<td>Existing email is not automatically linked; use its current sign-in method</td>
+</tr>
+<tr>
+<td>Google <strong>422</strong> on new account</td>
+<td>The provider email may not establish current ownership; use OTP</td>
+</tr>
+<tr>
+<td>Profile <strong>422</strong></td>
+<td>Supply a nonempty trimmed name; omit unsupported fields</td>
+</tr>
+<tr>
+<td>Welcome is missing</td>
+<td>Inspect the local event/queue/ledger stages; sign-in success does not prove delivery</td>
+</tr>
+</tbody>
+</table>
+<p>Use the <code>X-Request-ID</code> response header with <a href="observability.html">observability</a>.
+Never attach raw codes or tokens to logs while diagnosing.</p>
+<h2 id="test-the-behavior">Test the behavior<a class="heading-link" href="#test-the-behavior" aria-label="Link to Test the behavior">#</a></h2>
+<p>Business service and repository tests live in <code>tests/identity</code>. They use public
+constructors, isolated PostgreSQL/Redis and captured mail. They cover concurrent
+proof consumption and refresh, durable denial state, profile policy, account
+changes, expiry, revocation and push/session isolation. HTTP tests cover validation,
+no-store behavior and rejection of spoofed forwarding headers.</p>
+<p>The <a href="testing-database.html">integration testing guide</a> supplies disposable
+backend setup. <code>tests/modules/workflow_test.go</code> follows signup → profile → returning
+sign-in → notifications → refresh → logout. Tests do not send external email;
+real Google consent is a separate manual client exercise.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="cache.html"><small>← Previous</small>Cache</a>
+<a href="queues.html"><small>Next →</small>Queues and tasks</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-flow">Choose a flow</a></li><li class="toc-level-2"><a href="#email-otp-configuration-and-security">Email OTP configuration and security</a></li><li class="toc-level-3"><a href="#code-policy">Code policy</a></li><li class="toc-level-2"><a href="#email-otp-sign-in-and-bearer-sessions">Email OTP sign-in and bearer sessions</a></li><li class="toc-level-3"><a href="#sign-in">Sign in</a></li><li class="toc-level-3"><a href="#update-a-profile">Update a profile</a></li><li class="toc-level-3"><a href="#understand-token-and-session-lifetimes">Understand token and session lifetimes</a></li><li class="toc-level-3"><a href="#refresh-and-replay-behavior">Refresh and replay behavior</a></li><li class="toc-level-3"><a href="#manage-sessions">Manage sessions</a></li><li class="toc-level-3"><a href="#protected-routes-and-compatibility">Protected routes and compatibility</a></li><li class="toc-level-3"><a href="#cleanup-and-verification">Cleanup and verification</a></li><li class="toc-level-2"><a href="#google-and-unified-social-login">Google and unified social login</a></li><li class="toc-level-3"><a href="#account-matching-and-provider-validation">Account matching and provider validation</a></li><li class="toc-level-3"><a href="#test-with-the-supplied-installed-app-credentials">Test with the supplied installed-app credentials</a></li><li class="toc-level-2"><a href="#shared-rate-limiting">Shared rate limiting</a></li><li class="toc-level-2"><a href="#boundaries-and-verification">Boundaries and verification</a></li><li class="toc-level-2"><a href="#complete-module-example-account-onboarding">Complete module example: account onboarding</a></li><li class="toc-level-3"><a href="#follow-one-registration">Follow one registration</a></li><li class="toc-level-3"><a href="#mail-views-the-mailable-equivalent">Mail views: the mailable equivalent</a></li><li class="toc-level-3"><a href="#run-and-inspect-the-welcome-flow">Run and inspect the welcome flow</a></li><li class="toc-level-2"><a href="#http-organization">HTTP organization</a></li><li class="toc-level-2"><a href="#module-flow-and-route-ownership">Module flow and route ownership</a></li><li class="toc-level-2"><a href="#authentication-dependencies">Authentication dependencies</a></li><li class="toc-level-2"><a href="#organizing-a-substantial-use-case">Organizing a substantial use case</a></li><li class="toc-level-2"><a href="#operation-inputs">Operation inputs</a></li><li class="toc-level-3"><a href="#push-registrations-and-logout">Push registrations and logout</a></li><li class="toc-level-2"><a href="#passwordless-scope">Passwordless scope</a></li><li class="toc-level-2"><a href="#troubleshoot-sign-in">Troubleshoot sign-in</a></li><li class="toc-level-2"><a href="#test-the-behavior">Test the behavior</a></li></ol></nav><a class="source-link" href="markdown/identity.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

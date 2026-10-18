@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Databases and transactions — Practical guides and Go examples for Labena.">
+<title>Databases and transactions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/testing-database.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a class="selected" aria-current="page" href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Testing</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#use-an-isolated-database">Use an isolated database</a></li><li class="toc-level-2"><a href="#apply-the-schema-your-test-needs">Apply the schema your test needs</a></li><li class="toc-level-2"><a href="#verify-a-rollback">Verify a rollback</a></li><li class="toc-level-2"><a href="#run-postgresql-and-mysql-suites">Run PostgreSQL and MySQL suites</a></li><li class="toc-level-2"><a href="#cover-transaction-boundaries">Cover transaction boundaries</a></li><li class="toc-level-2"><a href="#migrations-and-cleanup">Migrations and cleanup</a></li><li class="toc-level-2"><a href="#diagnose-a-skipped-or-failing-integration-test">Diagnose a skipped or failing integration test</a></li></ol></nav></details>
+<article><h1 id="testing-databases">Testing databases</h1>
+<p>Run database tests against the engine used in production. SQLite can check basic
+transaction flow, but it cannot establish PostgreSQL or MySQL locking, SQL dialect,
+constraint, or recovery behavior.</p>
+<h2 id="use-an-isolated-database">Use an isolated database<a class="heading-link" href="#use-an-isolated-database" aria-label="Link to Use an isolated database">#</a></h2>
+<p><code>internal/platform/testdb.Open(t)</code> selects PostgreSQL by default, or MySQL when
+<code>DATABASE_TEST_DRIVER=mysql</code>. It reads the matching <code>DATABASE_TEST_POSTGRES</code> or
+<code>DATABASE_TEST_MYSQL</code> DSN and skips when that variable is absent.</p>
+<p>The helper creates a unique PostgreSQL schema or MySQL database, applies the
+cache migration templates with Goose, and registers
+cleanup. It does not apply your module&#39;s application migrations. Add those through
+the migration registry/provider when testing application queries, or create a
+small explicit test table for a transaction contract as below.</p>
+<p>Use only disposable database credentials. The helper creates and drops schemas or
+databases, so the test account needs those permissions. Application accounts do
+not need the same privileges. Isolation is within the selected database server;
+it does not isolate server-wide configuration or resource limits.</p>
+<h2 id="apply-the-schema-your-test-needs">Apply the schema your test needs<a class="heading-link" href="#apply-the-schema-your-test-needs" aria-label="Link to Apply the schema your test needs">#</a></h2>
+<p><code>testdb.Open</code> installs cache fixture tables, not all business tables. For an
+Identity, Media, or Notification repository test, register the matching embedded
+migration sources and apply their combined history in the isolated schema.
+<code>tests/modules/profile_test.go</code> and the existing Identity repository tests show
+complete fixtures for those owners.</p>
+<p>Avoid creating an approximate table in a repository test when its real constraints
+are part of the behavior. Small explicit tables are useful for generic transaction
+manager tests, such as the rollback example below.</p>
+<h2 id="verify-a-rollback">Verify a rollback<a class="heading-link" href="#verify-a-rollback" aria-label="Link to Verify a rollback">#</a></h2>
+<p>Place this complete example in <code>tests/identity/rollback_example_test.go</code>, outside
+the service and repository packages. The internal fixture is for tests, not an
+application dependency.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> identity_test
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">testing</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">time</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">testdb</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">database</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">TestRollbackExample</span><span class="go-bracket-0">(</span><span class="go-parameter">t</span> <span class="go-operator">*</span><span class="go-type">testing</span><span class="go-punctuation">.</span><span class="go-type">T</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	db <span class="go-operator">:=</span> <span class="go-package">testdb</span><span class="go-punctuation">.</span><span class="go-function">Open</span><span class="go-bracket-1">(</span><span class="go-parameter">t</span><span class="go-bracket-1">)</span>
+	ctx<span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithTimeout</span><span class="go-bracket-1">(</span><span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-number">10</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> _<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> db<span class="go-punctuation">.</span><span class="go-function">ExecContext</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;CREATE TABLE test_entries (id INTEGER PRIMARY KEY)&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	manager<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">NewTxManager</span><span class="go-bracket-1">(</span>db<span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	rejected <span class="go-operator">:=</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-1">(</span><span class="go-string">&#34;operation rejected&#34;</span><span class="go-bracket-1">)</span>
+	err <span class="go-operator">=</span> manager<span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-2">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-2">{</span>
+		executor<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Executor</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> db<span class="go-bracket-3">)</span>
+		<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+			<span class="go-keyword">return</span> err
+		<span class="go-bracket-3">}</span>
+		<span class="go-keyword">if</span> _<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> executor<span class="go-punctuation">.</span><span class="go-function">ExecContext</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-string">&#34;INSERT INTO test_entries (id) VALUES (?)&#34;</span><span class="go-punctuation">,</span> <span class="go-number">1</span><span class="go-bracket-3">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+			<span class="go-keyword">return</span> err
+		<span class="go-bracket-3">}</span>
+		<span class="go-keyword">return</span> rejected
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> <span class="go-operator">!</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Is</span><span class="go-bracket-1">(</span>err<span class="go-punctuation">,</span> rejected<span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-2">(</span><span class="go-string">&#34;error=%v&#34;</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">var</span> count <span class="go-builtin-type">int</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> db<span class="go-punctuation">.</span><span class="go-function">QueryRowContext</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;SELECT COUNT(*) FROM test_entries&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">Scan</span><span class="go-bracket-1">(</span><span class="go-operator">&amp;</span>count<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> count <span class="go-operator">!=</span> <span class="go-number">0</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-2">(</span><span class="go-string">&#34;rollback left %d rows&#34;</span><span class="go-punctuation">,</span> count<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The insert uses <code>database.Executor(ctx, db)</code>, so it participates in the managed
+transaction. The final query uses the pool after the transaction returns. Calling
+the raw pool inside the callback would bypass the transaction.</p>
+<h2 id="run-postgresql-and-mysql-suites">Run PostgreSQL and MySQL suites<a class="heading-link" href="#run-postgresql-and-mysql-suites" aria-label="Link to Run PostgreSQL and MySQL suites">#</a></h2>
+<p>Set <code>DATABASE_TEST_POSTGRES</code> or <code>DATABASE_TEST_MYSQL</code> to a disposable database DSN, then run:</p>
+<pre><code class="language-sh">DATABASE_TEST_DRIVER=postgres go test -race -count=1 ./pkg/database ./pkg/database/migrate ./internal/platform/testdb
+DATABASE_TEST_DRIVER=mysql go test -race -count=1 ./pkg/database ./pkg/database/migrate ./internal/platform/testdb
+</code></pre>
+<p>Add your module&#39;s package path to run its integration tests too. Both DSNs may be
+set: engine-specific tests use their own DSN; <code>DATABASE_TEST_DRIVER</code> selects the
+backend for shared transaction fixtures. Without backend settings, some database
+tests run on SQLite and the external suites skip. Inspect verbose output rather
+than treating that run as PostgreSQL or MySQL verification.</p>
+<h2 id="cover-transaction-boundaries">Cover transaction boundaries<a class="heading-link" href="#cover-transaction-boundaries" aria-label="Link to Cover transaction boundaries">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Assert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Successful operation</td>
+<td>Changes are visible after commit</td>
+</tr>
+<tr>
+<td>Callback failure</td>
+<td>No participating writes remain</td>
+</tr>
+<tr>
+<td>Nested operation fails</td>
+<td>The outer transaction cannot commit even if the inner error is swallowed</td>
+</tr>
+<tr>
+<td>Context cancellation</td>
+<td>No later business work proceeds; rollback is attempted</td>
+</tr>
+<tr>
+<td>Different pool in a transaction</td>
+<td>The operation is rejected</td>
+</tr>
+<tr>
+<td>Concurrent uniqueness conflict</td>
+<td>The database constraint protects the invariant</td>
+</tr>
+<tr>
+<td>SQL plus notification intent</td>
+<td>Verify both commit/rollback together; tests/modules/profile_test.go exercises the existing PostgreSQL ledger</td>
+</tr>
+<tr>
+<td>SQL plus arbitrary Redis/GoChannel publication</td>
+<td>No atomic guarantee is supplied; design and verify an explicit outbox if required</td>
+</tr>
+</tbody>
+</table>
+<p>The existing database tests also cover savepoints and transaction ownership.
+Do not share a managed transaction context concurrently between goroutines.
+For concurrency tests, coordinate independent transactions and assert the final
+stored state; sequential check-then-insert calls do not reproduce a race.</p>
+<h2 id="migrations-and-cleanup">Migrations and cleanup<a class="heading-link" href="#migrations-and-cleanup" aria-label="Link to Migrations and cleanup">#</a></h2>
+<p>Use a fresh schema to test migration application and the resulting constraints.
+For upgrade tests, apply the earlier schema, insert representative data, then apply
+the new migration. A fresh install alone does not test an upgrade.</p>
+<p>Let each fixture own its resources and clean them up after users stop. Do not
+truncate shared development tables. Do not wrap every test in a rollback transaction
+when the behavior under test must commit, publish, or use another connection.</p>
+<p>See <a href="database-transactions.html">Transactions</a> and <a href="migrations.html">Migrations</a>
+for the production APIs and ownership rules.</p>
+<h2 id="diagnose-a-skipped-or-failing-integration-test">Diagnose a skipped or failing integration test<a class="heading-link" href="#diagnose-a-skipped-or-failing-integration-test" aria-label="Link to Diagnose a skipped or failing integration test">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Test says SKIP</td>
+<td>Matching test DSN is absent; run with <code>-v</code> to see the reason</td>
+</tr>
+<tr>
+<td>Permission denied creating schema/database</td>
+<td>Use a disposable test account with fixture privileges</td>
+</tr>
+<tr>
+<td>A module table is missing</td>
+<td>Register and apply that module&#39;s actual migrations</td>
+</tr>
+<tr>
+<td>Concurrent uniqueness test passes only sequentially</td>
+<td>Coordinate separate transactions to overlap intentionally</td>
+</tr>
+<tr>
+<td>Tests pass on SQLite but fail on PostgreSQL</td>
+<td>SQL, constraints, isolation, and locking differ; the production engine is authoritative</td>
+</tr>
+<tr>
+<td>State leaks between tests</td>
+<td>Use isolated fixtures and wait for goroutines before cleanup</td>
+</tr>
+</tbody>
+</table>
+<p>Keep query deadlines bounded, including failure paths. A database error is not
+always proof that no write committed; tests for retries should assert final durable
+state and idempotency. See <a href="testing.html#run-the-required-integration-gate-locally">integration setup</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="testing-http.html"><small>← Previous</small>HTTP and modules</a>
+<a href="testing-async.html"><small>Next →</small>Tasks and events</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#use-an-isolated-database">Use an isolated database</a></li><li class="toc-level-2"><a href="#apply-the-schema-your-test-needs">Apply the schema your test needs</a></li><li class="toc-level-2"><a href="#verify-a-rollback">Verify a rollback</a></li><li class="toc-level-2"><a href="#run-postgresql-and-mysql-suites">Run PostgreSQL and MySQL suites</a></li><li class="toc-level-2"><a href="#cover-transaction-boundaries">Cover transaction boundaries</a></li><li class="toc-level-2"><a href="#migrations-and-cleanup">Migrations and cleanup</a></li><li class="toc-level-2"><a href="#diagnose-a-skipped-or-failing-integration-test">Diagnose a skipped or failing integration test</a></li></ol></nav><a class="source-link" href="markdown/testing-database.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

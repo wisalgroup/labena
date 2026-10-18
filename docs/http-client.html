@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="HTTP client — Practical guides and Go examples for Labena.">
+<title>HTTP client — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/http-client.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a class="selected" aria-current="page" href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#send-your-first-request">Send your first request</a></li><li class="toc-level-2"><a href="#define-paths-query-parameters-and-headers">Define paths, query parameters and headers</a></li><li class="toc-level-2"><a href="#send-json-and-xml">Send JSON and XML</a></li><li class="toc-level-2"><a href="#submit-forms">Submit forms</a></li><li class="toc-level-2"><a href="#upload-files-with-multipart">Upload files with multipart</a></li><li class="toc-level-2"><a href="#send-text-bytes-or-a-stream">Send text, bytes or a stream</a></li><li class="toc-level-2"><a href="#write-middleware">Write middleware</a></li><li class="toc-level-2"><a href="#read-responses-and-handle-failures">Read responses and handle failures</a></li><li class="toc-level-3"><a href="#decode-typed-or-dynamic-json">Decode typed or dynamic JSON</a></li><li class="toc-level-3"><a href="#inspect-failures-without-losing-the-response">Inspect failures without losing the response</a></li><li class="toc-level-3"><a href="#read-a-retry-hint">Read a retry hint</a></li><li class="toc-level-2"><a href="#stream-responses-and-customize-native-requests">Stream responses and customize native requests</a></li><li class="toc-level-2"><a href="#configure-timeouts-transports-and-runtime-changes">Configure timeouts, transports and runtime changes</a></li><li class="toc-level-3"><a href="#why-the-native-client-is-private">Why the native client is private</a></li><li class="toc-level-2"><a href="#build-an-integration">Build an integration</a></li><li class="toc-level-2"><a href="#verify-an-integration">Verify an integration</a></li></ol></nav></details>
+<article><h1 id="http-client">HTTP client</h1>
+<p>Send external HTTP requests using small, tagged operation structs. The client
+builds URLs, encodes bodies and runs middleware over native <code>net/http</code>. It works
+independently of application configuration, modules, databases and workers.</p>
+<h2 id="send-your-first-request">Send your first request<a class="heading-link" href="#send-your-first-request" aria-label="Link to Send your first request">#</a></h2>
+<p>Define the operation once. Put it in the integration that owns the external API.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">GetProductRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;GET&#34; path:&#34;products/{id}&#34;`</span>
+
+    ID     <span class="go-builtin-type">string</span>   <span class="go-string">`path:&#34;id&#34;`</span>
+    Fields <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;fields,omitempty&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">type</span> <span class="go-type">ProductResponse</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    ID   <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;id&#34;`</span>
+    Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Create and reuse a client:</p>
+<pre><code class="language-go" data-highlighted="yes">client<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">httpclient</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-1">{</span>
+    BaseURL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://api.example.com/v1/&#34;</span><span class="go-punctuation">,</span>
+    Timeout<span class="go-punctuation">:</span> <span class="go-number">15</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-punctuation">,</span>
+    Header<span class="go-punctuation">:</span> <span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Header</span><span class="go-bracket-2">{</span>
+        <span class="go-string">&#34;Accept&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-3">{</span><span class="go-string">&#34;application/json&#34;</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">defer</span> client<span class="go-punctuation">.</span><span class="go-function">CloseIdleConnections</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+
+response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> client<span class="go-punctuation">.</span><span class="go-function">Do</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">GetProductRequest</span><span class="go-bracket-1">{</span>
+    ID<span class="go-punctuation">:</span> <span class="go-string">&#34;123&#34;</span><span class="go-punctuation">,</span> Fields<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;name&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;price&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">CheckStatus</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">var</span> product <span class="go-type">ProductResponse</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">DecodeJSON</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>product<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Try the compiled local example in <code>examples/httpclient/main.go</code>:</p>
+<pre><code class="language-sh">go run ./examples/httpclient
+</code></pre>
+<p>It starts a disposable local provider with sample catalog data. No real
+credentials, internet service or application infrastructure are needed.</p>
+<h2 id="define-paths-query-parameters-and-headers">Define paths, query parameters and headers<a class="heading-link" href="#define-paths-query-parameters-and-headers" aria-label="Link to Define paths, query parameters and headers">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Declaration</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embedded <code>httpclient.Request</code></td>
+<td>Required operation marker; declares <code>method</code> and <code>path</code></td>
+</tr>
+<tr>
+<td><code>path:&#34;id&#34;</code></td>
+<td>Substitute <code>{id}</code> with one escaped value</td>
+</tr>
+<tr>
+<td><code>query:&#34;tag&#34;</code></td>
+<td>Encode a query parameter; slices become repeated keys</td>
+</tr>
+<tr>
+<td><code>header:&#34;Accept-Language&#34;</code></td>
+<td>Set a request header; replaces matching client defaults</td>
+</tr>
+<tr>
+<td><code>query:&#34;tag,omitempty&#34;</code></td>
+<td>Omit empty values</td>
+</tr>
+<tr>
+<td><code>header:&#34;Accept-Language,omitempty&#34;</code></td>
+<td>Omit empty values and retain any client default</td>
+</tr>
+<tr>
+<td><code>body:&#34;json&#34;</code></td>
+<td>Encode this field as the JSON body</td>
+</tr>
+</tbody>
+</table>
+<p>Tags belong on direct, exported fields. Embed one marker; no registration or
+request methods are required. Untagged fields are ignored. Parameter groups are
+not recursively flattened. Missing placeholders, duplicate parameter declarations,
+conflicting tags and unsupported encodings fail before sending. Tag spelling is
+not compiler-checked; exercise new operations with a local test server.</p>
+<p>The base URL is an API prefix. Both <code>products</code> and <code>/products</code> append to
+<code>https://api.example.com/v1/</code>. Request paths cannot switch hosts, contain query
+strings or fragments, or escape the prefix using dot segments. Use query tags
+for query parameters and <code>DoRequest</code> for a fully specified native URL.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ListProductsRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;GET&#34; path:&#34;products&#34;`</span>
+
+    Tags     <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;tag,omitempty&#34;`</span>
+    Active   <span class="go-operator">*</span><span class="go-builtin-type">bool</span>   <span class="go-string">`query:&#34;active,omitempty&#34;`</span>
+    Language <span class="go-builtin-type">string</span>  <span class="go-string">`header:&#34;Accept-Language,omitempty&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>Tags: []string{&#34;sale&#34;, &#34;new&#34;}</code> produces <code>tag=sale&amp;tag=new</code>. A nil <code>Active</code>
+omits the parameter; a pointer to <code>false</code> sends <code>active=false</code>. Non-pointer zero
+values are sent unless <code>omitempty</code> is present. Parameters support scalar values,
+slices and <code>encoding.TextMarshaler</code>, including <code>time.Time</code>.</p>
+<p>Path values must be nonempty; slashes inside values are escaped. Path, query and
+header tags describe serialization, not business validation. Keep validation in
+the integration or calling use case. Incoming <a href="requests.html">HTTP validation</a>
+remains owned by Huma; this package does not depend on it.</p>
+<h2 id="send-json-and-xml">Send JSON and XML<a class="heading-link" href="#send-json-and-xml" aria-label="Link to Send JSON and XML">#</a></h2>
+<p>Put the payload in a separate field, conventionally named <code>Body</code>. Only that field
+is serialized. Ordinary <code>json</code> and <code>xml</code> tags and custom marshalers retain their
+standard library behavior.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">UpdateProductRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;PATCH&#34; path:&#34;products/{id}&#34;`</span>
+
+    ID      <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;id&#34;`</span>
+    IfMatch <span class="go-builtin-type">string</span> <span class="go-string">`header:&#34;If-Match,omitempty&#34;`</span>
+    Body    <span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+        <span class="go-type">Name</span>      <span class="go-operator">*</span><span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name,omitempty&#34;`</span>
+        <span class="go-type">Published</span> <span class="go-operator">*</span><span class="go-builtin-type">bool</span>   <span class="go-string">`json:&#34;published,omitempty&#34;`</span>
+    <span class="go-bracket-1">}</span> <span class="go-string">`body:&#34;json&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>For partial updates, a nil pointer omits a field, while a pointer to <code>false</code>, zero
+or an empty string explicitly sends that value. A named payload struct works too.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">SubmitOrderRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;POST&#34; path:&#34;orders&#34;`</span>
+    Body <span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+        <span class="go-type">XMLName</span> <span class="go-type">xml</span><span class="go-punctuation">.</span><span class="go-type">Name</span> <span class="go-string">`xml:&#34;order&#34;`</span>
+        <span class="go-type">ID</span>      <span class="go-builtin-type">string</span>   <span class="go-string">`xml:&#34;id&#34;`</span>
+    <span class="go-bracket-1">}</span> <span class="go-string">`body:&#34;xml&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The encoder supplies <code>Content-Type</code>. Explicit compatible types are accepted,
+including <code>application/merge-patch+json</code> and UTF-8 charset parameters. Conflicting
+types fail before sending. Set <code>Accept</code> separately to describe the response you want.</p>
+<h2 id="submit-forms">Submit forms<a class="heading-link" href="#submit-forms" aria-label="Link to Submit forms">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">CreateContactRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;POST&#34; path:&#34;contacts&#34;`</span>
+    Body <span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+        <span class="go-type">Email</span> <span class="go-builtin-type">string</span>   <span class="go-string">`form:&#34;email&#34;`</span>
+        <span class="go-type">Tags</span>  <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span> <span class="go-string">`form:&#34;tag,omitempty&#34;`</span>
+    <span class="go-bracket-1">}</span> <span class="go-string">`body:&#34;form&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The content type is <code>application/x-www-form-urlencoded</code>. Use <code>url.Values</code> as the
+body for dynamically named fields. Form payloads use <code>form</code> tags; untagged fields
+are ignored. <code>form:&#34;-&#34;</code> excludes a field explicitly.</p>
+<h2 id="upload-files-with-multipart">Upload files with multipart<a class="heading-link" href="#upload-files-with-multipart" aria-label="Link to Upload files with multipart">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">UploadDocumentRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;POST&#34; path:&#34;documents&#34;`</span>
+    Body <span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+        <span class="go-type">Title</span> <span class="go-builtin-type">string</span>          <span class="go-string">`form:&#34;title&#34;`</span>
+        <span class="go-type">File</span>  <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">File</span> <span class="go-string">`form:&#34;file&#34;`</span>
+    <span class="go-bracket-1">}</span> <span class="go-string">`body:&#34;multipart&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+file<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">os</span><span class="go-punctuation">.</span><span class="go-function">Open</span><span class="go-bracket-0">(</span><span class="go-string">&#34;invoice.pdf&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">defer</span> file<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-comment">// Also covers a validation failure before the client owns it.</span>
+
+request <span class="go-operator">:=</span> <span class="go-type">UploadDocumentRequest</span><span class="go-bracket-0">{</span><span class="go-bracket-0">}</span>
+request<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span>Title <span class="go-operator">=</span> <span class="go-string">&#34;Invoice&#34;</span>
+request<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span>File <span class="go-operator">=</span> <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">File</span><span class="go-bracket-0">{</span>
+    Filename<span class="go-punctuation">:</span> <span class="go-string">&#34;invoice.pdf&#34;</span><span class="go-punctuation">,</span> ContentType<span class="go-punctuation">:</span> <span class="go-string">&#34;application/pdf&#34;</span><span class="go-punctuation">,</span> Content<span class="go-punctuation">:</span> file<span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Do</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> request<span class="go-bracket-0">)</span>
+</code></pre>
+<p><code>File</code>, <code>*File</code> and <code>[]File</code> support one, optional or multiple file parts. The client
+streams file contents and generates the multipart boundary. Do not supply your own
+boundary. <code>Filename</code> is metadata; the client never opens filesystem paths for you.</p>
+<p><code>Build</code> does not read files or start a producer. Sending starts the stream. Closing
+the request body releases the pipe and closable file readers. Readers without a
+<code>Close</code> method must arrange to unblock their own reads on cancellation. Supply fresh
+readers for another upload; multipart streams are not automatically replayable.</p>
+<h2 id="send-text-bytes-or-a-stream">Send text, bytes or a stream<a class="heading-link" href="#send-text-bytes-or-a-stream" aria-label="Link to Send text, bytes or a stream">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ImportCSVRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;POST&#34; path:&#34;imports&#34;`</span>
+
+    ContentType <span class="go-builtin-type">string</span>    <span class="go-string">`header:&#34;Content-Type&#34;`</span>
+    Body        <span class="go-type">io</span><span class="go-punctuation">.</span><span class="go-type">Reader</span> <span class="go-string">`body:&#34;raw&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Do</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">ImportCSVRequest</span><span class="go-bracket-1">{</span>
+    ContentType<span class="go-punctuation">:</span> <span class="go-string">&#34;text/csv&#34;</span><span class="go-punctuation">,</span>
+    Body<span class="go-punctuation">:</span> <span class="go-package">strings</span><span class="go-punctuation">.</span><span class="go-function">NewReader</span><span class="go-bracket-2">(</span><span class="go-string">&#34;name,email\nAlex,alex@example.com\n&#34;</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Raw bodies accept <code>string</code>, <code>[]byte</code> or <code>io.Reader</code>. Set the content type explicitly
+for text, CSV, protobuf or another format; otherwise it defaults to
+<code>application/octet-stream</code>. Closable raw readers follow native HTTP body ownership.
+Known byte/string readers retain native content length and replay support. The
+package adds no retry loop; provider idempotency and stream replay remain explicit.</p>
+<h2 id="write-middleware">Write middleware<a class="heading-link" href="#write-middleware" aria-label="Link to Write middleware">#</a></h2>
+<p>Middleware is one function receiving the native request and <code>next</code>. Headers are
+already cloned, so ordinary header edits need no transport wrapper or cloning code.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> addRequestID<span class="go-bracket-0">(</span>request <span class="go-operator">*</span>http<span class="go-punctuation">.</span>Request<span class="go-punctuation">,</span> next httpclient<span class="go-punctuation">.</span>Next<span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span>http<span class="go-punctuation">.</span>Response<span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    request<span class="go-punctuation">.</span>Header<span class="go-punctuation">.</span>Set<span class="go-bracket-1">(</span><span class="go-string">&#34;X-Request-ID&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;example-request&#34;</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> next<span class="go-bracket-1">(</span>request<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+
+client<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> httpclient<span class="go-punctuation">.</span>New<span class="go-bracket-0">(</span>httpclient<span class="go-punctuation">.</span>Config<span class="go-bracket-1">{</span>
+    BaseURL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://api.example.com/v1/&#34;</span><span class="go-punctuation">,</span>
+    Middleware<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span>httpclient<span class="go-punctuation">.</span>Middleware<span class="go-bracket-2">{</span>addRequestID<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Run code before and after <code>next</code> for timing, logging or response-header inspection:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-function">observe</span><span class="go-bracket-0">(</span><span class="go-parameter">request</span> <span class="go-operator">*</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Request</span><span class="go-punctuation">,</span> <span class="go-parameter">next</span> <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Next</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Response</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    started <span class="go-operator">:=</span> <span class="go-package">time</span><span class="go-punctuation">.</span><span class="go-function">Now</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+    response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">next</span><span class="go-bracket-1">(</span><span class="go-parameter">request</span><span class="go-bracket-1">)</span>
+    <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span><span class="go-parameter">request</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">DebugContext</span><span class="go-bracket-1">(</span><span class="go-parameter">request</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+        <span class="go-string">&#34;outbound HTTP exchange&#34;</span><span class="go-punctuation">,</span>
+        <span class="go-string">&#34;headers_duration&#34;</span><span class="go-punctuation">,</span> <span class="go-package">time</span><span class="go-punctuation">.</span><span class="go-function">Since</span><span class="go-bracket-2">(</span>started<span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+        <span class="go-string">&#34;failed&#34;</span><span class="go-punctuation">,</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> response<span class="go-punctuation">,</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>First registered is first entered and last exited. The chain is assembled on
+configuration and shared by concurrent callers. Middleware runs for each exchange,
+including redirect hops when you explicitly enable them. Call <code>next</code> synchronously,
+normally once. Middleware state must be concurrency-safe. Static headers belong in
+<code>Config.Header</code>; dynamic authentication must restrict credentials to its intended origin.</p>
+<p>Both <code>Do</code> and <code>DoRequest</code> run middleware; <code>Build</code> does not. Middleware surrounds
+transport execution through response headers. Body consumption and JSON decoding
+happen later. Do not read/close a successful response body in middleware unless you
+replace it with an equivalent readable body. Replacing a request body also makes
+the middleware responsible for the old body and correct replay/length metadata.</p>
+<h2 id="read-responses-and-handle-failures">Read responses and handle failures<a class="heading-link" href="#read-responses-and-handle-failures" aria-label="Link to Read responses and handle failures">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">response</span><span class="go-punctuation">.</span>StatusCode                    <span class="go-comment">// Numeric status</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Successful</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>                  <span class="go-comment">// Is the HTTP status 2xx?</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span>Header<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span><span class="go-string">&#34;Content-Type&#34;</span><span class="go-bracket-0">)</span>    <span class="go-comment">// Response header</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">ContentType</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>                 <span class="go-comment">// Media type without charset or other parameters</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span>Trailer<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span><span class="go-string">&#34;X-Checksum&#34;</span><span class="go-bracket-0">)</span>      <span class="go-comment">// Complete after a successful body read</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span>Body                          <span class="go-comment">// Retained bytes</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Text</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>                        <span class="go-comment">// Retained bytes as text</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">BodyError</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>                   <span class="go-comment">// Read/limit/close error, also returned by Do</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">DecodeJSON</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>result<span class="go-bracket-0">)</span>           <span class="go-comment">// Decode without consuming Body</span>
+<span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">DecodeXML</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>result<span class="go-bracket-0">)</span>            <span class="go-comment">// Decode XML without consuming Body</span>
+</code></pre>
+<p><code>Do</code> closes the network response body and retains at most <code>MaxResponseBytes</code>.
+Decoding can be repeated. No JSON envelope or content-type assumption is imposed
+on responses. Both decoders reject extra trailing values and refuse bodies whose
+read, size limit or close failed, even if the retained prefix looks valid. XML
+allows trailing whitespace, comments and processing instructions.</p>
+<p><code>Successful</code> and <code>CheckStatus</code> classify only the HTTP status. Always check the error
+from <code>Do</code> first: HTTP 200 with an interrupted body is still an incomplete response.</p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build/transport error</td>
+<td>No usable buffered response; preserve cancellation with <code>errors.Is</code></td>
+</tr>
+<tr>
+<td>HTTP 4xx/5xx</td>
+<td><code>Do</code> succeeds; call <code>CheckStatus</code> to classify the status</td>
+</tr>
+<tr>
+<td><code>*httpclient.StatusError</code></td>
+<td><code>Response</code> remains available; error text omits private provider details</td>
+</tr>
+<tr>
+<td><code>httpclient.ErrResponseTooLarge</code></td>
+<td>Partial response returned; body contains only the configured limit</td>
+</tr>
+<tr>
+<td>Body read/close error</td>
+<td>Response returned with the retained bytes; decoders reject it</td>
+</tr>
+<tr>
+<td><code>*httpclient.DecodeError</code></td>
+<td>Format and original cause available through <code>errors.As</code> / <code>errors.Is</code></td>
+</tr>
+<tr>
+<td>Empty body, including HTTP 204</td>
+<td>Skip decoding when no payload is expected; decoding returns an error wrapping <code>io.EOF</code></td>
+</tr>
+<tr>
+<td>Provider error inside HTTP 200</td>
+<td>Integration interprets it, for example GraphQL&#39;s <code>errors</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="decode-typed-or-dynamic-json">Decode typed or dynamic JSON<a class="heading-link" href="#decode-typed-or-dynamic-json" aria-label="Link to Decode typed or dynamic JSON">#</a></h3>
+<p>Typed response structs are the usual choice. For a dynamic payload, numbers remain
+<code>json.Number</code> instead of becoming floating-point values that could round a large ID:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">var</span> payload <span class="go-keyword">map</span><span class="go-bracket-0">[</span><span class="go-builtin-type">string</span><span class="go-bracket-0">]</span><span class="go-builtin-type">any</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">DecodeJSON</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>payload<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> number<span class="go-punctuation">,</span> ok <span class="go-operator">:=</span> payload<span class="go-bracket-0">[</span><span class="go-string">&#34;id&#34;</span><span class="go-bracket-0">]</span><span class="go-punctuation">.</span><span class="go-bracket-0">(</span><span class="go-type">json</span><span class="go-punctuation">.</span><span class="go-type">Number</span><span class="go-bracket-0">)</span><span class="go-punctuation">;</span> ok <span class="go-bracket-0">{</span>
+    id <span class="go-operator">:=</span> number<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span> <span class="go-comment">// Keeps the original numeric text, e.g. 9007199254740993.</span>
+    _ <span class="go-operator">=</span> id
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Typed <code>int64</code>, <code>float64</code> and other fields retain normal <code>encoding/json</code> behavior.
+Unknown JSON fields are accepted for forward compatibility. Use the retained bytes
+with a native decoder when an integration needs stricter rules or another format.
+Ignore the destination value when decoding fails; standard decoders may partially
+populate it before reporting an error.</p>
+<h3 id="inspect-failures-without-losing-the-response">Inspect failures without losing the response<a class="heading-link" href="#inspect-failures-without-losing-the-response" aria-label="Link to Inspect failures without losing the response">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes">response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Do</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">GetProductRequest</span><span class="go-bracket-1">{</span>ID<span class="go-punctuation">:</span> <span class="go-string">&#34;123&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-comment">// response can be non-nil after a body read or size-limit failure.</span>
+    <span class="go-comment">// Its bytes remain available, but DecodeJSON/DecodeXML will refuse them.</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">CheckStatus</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">var</span> status <span class="go-operator">*</span><span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">StatusError</span>
+    <span class="go-keyword">if</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">As</span><span class="go-bracket-1">(</span>err<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>status<span class="go-bracket-1">)</span> <span class="go-operator">&amp;&amp;</span> status<span class="go-punctuation">.</span>Response<span class="go-punctuation">.</span>StatusCode <span class="go-operator">==</span> <span class="go-package">http</span><span class="go-punctuation">.</span>StatusNotFound <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> ErrProductNotFound <span class="go-comment">// Your integration&#39;s error.</span>
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">var</span> product <span class="go-type">ProductResponse</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">DecodeJSON</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>product<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">var</span> mismatch <span class="go-operator">*</span><span class="go-type">json</span><span class="go-punctuation">.</span><span class="go-type">UnmarshalTypeError</span>
+    <span class="go-keyword">if</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">As</span><span class="go-bracket-1">(</span>err<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>mismatch<span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+        <span class="go-comment">// The provider changed a field&#39;s type; the original cause is preserved.</span>
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>StatusError</code> and <code>DecodeError</code> messages omit response content. Their inspectable
+response and underlying cause can still contain private provider data.</p>
+<h3 id="read-a-retry-hint">Read a retry hint<a class="heading-link" href="#read-a-retry-hint" aria-label="Link to Read a retry hint">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">response</span><span class="go-punctuation">.</span>StatusCode <span class="go-operator">==</span> <span class="go-package">http</span><span class="go-punctuation">.</span>StatusTooManyRequests <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> delay<span class="go-punctuation">,</span> ok <span class="go-operator">:=</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">RetryAfter</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">;</span> ok <span class="go-bracket-1">{</span>
+        <span class="go-comment">// Supply delay to your queue or retry policy, if the operation is safe to retry.</span>
+        _ <span class="go-operator">=</span> delay
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>RetryAfter</code> supports seconds and HTTP dates. A valid past date returns zero; the
+boolean distinguishes that from a missing, malformed or unrepresentable value.
+The client never sleeps or retries automatically.</p>
+<p>A transport error after sending does not prove the provider rejected the operation.
+Use provider idempotency support for operations you may retry. Headers and bodies
+can contain secrets; logging and tracing are opt-in and should record selected fields.</p>
+<h2 id="stream-responses-and-customize-native-requests">Stream responses and customize native requests<a class="heading-link" href="#stream-responses-and-customize-native-requests" aria-label="Link to Stream responses and customize native requests">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes">request<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Build</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">GetProductRequest</span><span class="go-bracket-1">{</span>ID<span class="go-punctuation">:</span> <span class="go-string">&#34;123&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+request<span class="go-punctuation">.</span>Header<span class="go-punctuation">.</span><span class="go-function">Set</span><span class="go-bracket-0">(</span><span class="go-string">&#34;X-Custom&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;value&#34;</span><span class="go-bracket-0">)</span>
+
+response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">DoRequest</span><span class="go-bracket-0">(</span>request<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">defer</span> response<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> response<span class="go-punctuation">.</span>StatusCode <span class="go-operator">!=</span> <span class="go-package">http</span><span class="go-punctuation">.</span>StatusOK <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Errorf</span><span class="go-bracket-1">(</span><span class="go-string">&#34;unexpected download status: %d&#34;</span><span class="go-punctuation">,</span> response<span class="go-punctuation">.</span>StatusCode<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> <span class="go-package">io</span><span class="go-punctuation">.</span><span class="go-function">Copy</span><span class="go-bracket-0">(</span>destination<span class="go-punctuation">,</span> response<span class="go-punctuation">.</span>Body<span class="go-bracket-0">)</span>
+</code></pre>
+<p><code>DoRequest</code> returns native <code>*http.Response</code>. It applies middleware, timeout, cookie
+and redirect policies, but does not add default headers or resolve the URL again.
+It also accepts a request created directly with <code>http.NewRequestWithContext</code>.
+Use native fields for Host, ContentLength, trailers and unusual protocol controls;
+these cannot be set through header tags. If you abandon a built request, close its
+body yourself. After sending successfully, close the returned response body.</p>
+<h2 id="configure-timeouts-transports-and-runtime-changes">Configure timeouts, transports and runtime changes<a class="heading-link" href="#configure-timeouts-transports-and-runtime-changes" aria-label="Link to Configure timeouts, transports and runtime changes">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default and behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BaseURL</code></td>
+<td>Required for tagged requests; optional for native-only use</td>
+</tr>
+<tr>
+<td><code>Header</code></td>
+<td>Copied defaults for tagged requests</td>
+</tr>
+<tr>
+<td><code>Timeout</code></td>
+<td>Zero selects 30 seconds, including response-body reading; <code>-1</code> disables the client timeout</td>
+</tr>
+<tr>
+<td><code>MaxResponseBytes</code></td>
+<td>Zero selects 10 MiB; positive limit for <code>Do</code>; <code>DoRequest</code> streams without this cap</td>
+</tr>
+<tr>
+<td><code>Middleware</code></td>
+<td>Ordered functions shared by both execution paths</td>
+</tr>
+<tr>
+<td><code>Transport</code></td>
+<td>Private clone of the standard default transport; explicit custom transports are borrowed</td>
+</tr>
+<tr>
+<td><code>CheckRedirect</code></td>
+<td>Redirects disabled; nil restores this default</td>
+</tr>
+<tr>
+<td><code>Jar</code></td>
+<td>Optional native cookie jar</td>
+</tr>
+</tbody>
+</table>
+<p>Configure TLS, proxies, dialing and connection limits on an <code>http.Transport</code> before
+using it. Reuse clients and transports. The default pool is kept across configuration
+updates. Custom transport owners must retire replaced pools after active users and
+response bodies finish; Configure does not close borrowed infrastructure.</p>
+<pre><code class="language-go" data-highlighted="yes">cfg <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Config</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+cfg<span class="go-punctuation">.</span>Timeout <span class="go-operator">=</span> <span class="go-number">45</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Second
+cfg<span class="go-punctuation">.</span>Header<span class="go-punctuation">.</span><span class="go-function">Set</span><span class="go-bracket-0">(</span><span class="go-string">&#34;Authorization&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;Bearer &#34;</span> <span class="go-operator">+</span> newToken<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">Configure</span><span class="go-bracket-0">(</span>cfg<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>Config</code> returns copied headers and a copied middleware slice. <code>Configure</code> validates
+the entire replacement before publishing it; failures retain the last good settings.
+Each operation captures one snapshot, including its response limit. In-flight requests
+keep their original settings. Serialize concurrent read-modify-write configuration
+updates to avoid overwriting another administrator&#39;s changes. Borrowed collaborators
+and closure state are not deep-copied.</p>
+<p>Use a request context for an individual operation&#39;s deadline. For long-lived response
+streams, choose a suitable timeout or <code>Timeout: -1</code> and manage cancellation yourself.
+<code>CloseIdleConnections</code> releases idle pools without interrupting active requests. It
+can also affect other clients sharing an explicitly supplied transport.</p>
+<h3 id="why-the-native-client-is-private">Why the native client is private<a class="heading-link" href="#why-the-native-client-is-private" aria-label="Link to Why the native client is private">#</a></h3>
+<p>Embedding <code>*http.Client</code> would expose mutable <code>Timeout</code>, <code>Transport</code> and <code>Jar</code> fields
+outside <code>Configure</code>. Editing those during requests could race and bypass validated
+configuration snapshots. Its promoted <code>Get</code> and <code>Post</code> methods would also return
+native responses without our tagged request building or buffered-body limit: Go
+embedding promotes methods but does not make their internal calls dispatch to the
+outer <code>Do</code> method.</p>
+<p>Use <code>Config</code> for native transport, cookie and redirect controls, and <code>DoRequest</code>
+when you want the full native request/response API. An integration can embed our
+<code>*httpclient.Client</code> directly, as the catalog example below does.</p>
+<p>Reuse the existing tracing transport without a second middleware API:</p>
+<pre><code class="language-go" data-highlighted="yes">client<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">httpclient</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-1">{</span>
+    BaseURL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://trusted-provider.example/v1/&#34;</span><span class="go-punctuation">,</span>
+    Transport<span class="go-punctuation">:</span> <span class="go-package">tracing</span><span class="go-punctuation">.</span><span class="go-function">NewHTTPTransport</span><span class="go-bracket-2">(</span><span class="go-keyword">nil</span><span class="go-punctuation">,</span> tracer<span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>The tracing wrapper propagates context to this deliberately trusted destination.
+See <a href="observability.html">observability</a> for provider ownership and shutdown.</p>
+<h2 id="build-an-integration">Build an integration<a class="heading-link" href="#build-an-integration" aria-label="Link to Build an integration">#</a></h2>
+<pre><code class="language-text">internal/modules/&lt;module&gt;/integrations/catalog/
+    client.go       Client construction and credentials
+    requests.go     Tagged operations and payloads
+    responses.go    Provider response types
+</code></pre>
+<p>The compiled REST example in <code>examples/httpclient/catalog/</code> has just these three
+production files. It demonstrates a fictional catalog API, with no external account
+or credentials required to run the local example.</p>
+<p>In <code>client.go</code>, embed the framework client and set provider defaults once:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">Client</span> <span class="go-keyword">struct</span><span class="go-bracket-0">{</span> <span class="go-operator">*</span><span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Client</span> <span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-parameter">baseURL</span><span class="go-punctuation">,</span> <span class="go-parameter">token</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">Client</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> <span class="go-parameter">baseURL</span> <span class="go-operator">==</span> <span class="go-string">&#34;&#34;</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span><span class="go-string">&#34;catalog: base URL is required&#34;</span><span class="go-bracket-2">)</span>
+    <span class="go-bracket-1">}</span>
+    header <span class="go-operator">:=</span> <span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Header</span><span class="go-bracket-1">{</span><span class="go-string">&#34;Accept&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;application/json&#34;</span><span class="go-bracket-2">}</span><span class="go-bracket-1">}</span>
+    <span class="go-keyword">if</span> <span class="go-parameter">token</span> <span class="go-operator">!=</span> <span class="go-string">&#34;&#34;</span> <span class="go-bracket-1">{</span>
+        header<span class="go-punctuation">.</span><span class="go-function">Set</span><span class="go-bracket-2">(</span><span class="go-string">&#34;Authorization&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;Bearer &#34;</span><span class="go-operator">+</span><span class="go-parameter">token</span><span class="go-bracket-2">)</span>
+    <span class="go-bracket-1">}</span>
+    client<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">httpclient</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-1">(</span><span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-2">{</span>
+        BaseURL<span class="go-punctuation">:</span> <span class="go-parameter">baseURL</span><span class="go-punctuation">,</span>
+        Header<span class="go-punctuation">:</span>  header<span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> err
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">return</span> <span class="go-operator">&amp;</span><span class="go-type">Client</span><span class="go-bracket-1">{</span>Client<span class="go-punctuation">:</span> client<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>Do</code>, <code>Build</code>, <code>Config</code>, <code>Configure</code>, <code>DoRequest</code> and <code>CloseIdleConnections</code> are
+available directly. No forwarding methods or second configuration type are needed.
+Embedding fits this example because it adds defaults, with no extra execution
+policy. If a provider needs mandatory signing or custom error interpretation,
+enforce that in middleware or explicit integration methods.</p>
+<p>Keep operations in <code>requests.go</code> and payload types in <code>responses.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// requests.go</span>
+<span class="go-keyword">type</span> <span class="go-type">GetProductRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;GET&#34; path:&#34;products/{id}&#34;`</span>
+    ID                 <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;id&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">type</span> <span class="go-type">CreateProductRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">httpclient</span><span class="go-punctuation">.</span><span class="go-type">Request</span> <span class="go-string">`method:&#34;POST&#34; path:&#34;products&#34;`</span>
+    Body               <span class="go-type">CreateProductBody</span> <span class="go-string">`body:&#34;json&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">type</span> <span class="go-type">CreateProductBody</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// responses.go</span>
+<span class="go-keyword">type</span> <span class="go-type">ProductResponse</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    ID   <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;id&#34;`</span>
+    Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The call site stays the same for get and create operations:</p>
+<pre><code class="language-go" data-highlighted="yes">client<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">catalog</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span>baseURL<span class="go-punctuation">,</span> token<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">defer</span> client<span class="go-punctuation">.</span><span class="go-function">CloseIdleConnections</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+
+response<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> client<span class="go-punctuation">.</span><span class="go-function">Do</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">catalog</span><span class="go-punctuation">.</span><span class="go-type">CreateProductRequest</span><span class="go-bracket-1">{</span>
+    Body<span class="go-punctuation">:</span> <span class="go-type">catalog</span><span class="go-punctuation">.</span><span class="go-type">CreateProductBody</span><span class="go-bracket-2">{</span>Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Keyboard&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">CheckStatus</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">var</span> product <span class="go-type">catalog</span><span class="go-punctuation">.</span><span class="go-type">ProductResponse</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> response<span class="go-punctuation">.</span><span class="go-function">DecodeJSON</span><span class="go-bracket-0">(</span><span class="go-operator">&amp;</span>product<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Construct integrations in their owning module and pass them explicitly to consumers.
+There is no global client registry or app resource entry. Keep maintained provider
+SDKs when they already handle specialized protocols correctly, such as Google&#39;s
+identity-token validation.</p>
+<h2 id="verify-an-integration">Verify an integration<a class="heading-link" href="#verify-an-integration" aria-label="Link to Verify an integration">#</a></h2>
+<p>Use <code>httptest.NewServer</code> to inspect the actual URL, headers, body and error handling.
+Inject a native transport for a provider whose hostname must stay fixed. Package
+tests cover encoding, middleware order, concurrent configuration, cancellation,
+bounded bodies and multipart cleanup:</p>
+<pre><code class="language-sh">go test -race ./pkg/httpclient ./examples/httpclient/...
+</code></pre>
+<p>Continue with <a href="module-registration.html">module construction</a>,
+<a href="dependency-injection.html">dependency ownership</a>,
+<a href="logging.html">logging</a> and <a href="testing-http.html">testing HTTP</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="middleware.html"><small>← Previous</small>Middleware</a>
+<a href="database.html"><small>Next →</small>Connections</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#send-your-first-request">Send your first request</a></li><li class="toc-level-2"><a href="#define-paths-query-parameters-and-headers">Define paths, query parameters and headers</a></li><li class="toc-level-2"><a href="#send-json-and-xml">Send JSON and XML</a></li><li class="toc-level-2"><a href="#submit-forms">Submit forms</a></li><li class="toc-level-2"><a href="#upload-files-with-multipart">Upload files with multipart</a></li><li class="toc-level-2"><a href="#send-text-bytes-or-a-stream">Send text, bytes or a stream</a></li><li class="toc-level-2"><a href="#write-middleware">Write middleware</a></li><li class="toc-level-2"><a href="#read-responses-and-handle-failures">Read responses and handle failures</a></li><li class="toc-level-3"><a href="#decode-typed-or-dynamic-json">Decode typed or dynamic JSON</a></li><li class="toc-level-3"><a href="#inspect-failures-without-losing-the-response">Inspect failures without losing the response</a></li><li class="toc-level-3"><a href="#read-a-retry-hint">Read a retry hint</a></li><li class="toc-level-2"><a href="#stream-responses-and-customize-native-requests">Stream responses and customize native requests</a></li><li class="toc-level-2"><a href="#configure-timeouts-transports-and-runtime-changes">Configure timeouts, transports and runtime changes</a></li><li class="toc-level-3"><a href="#why-the-native-client-is-private">Why the native client is private</a></li><li class="toc-level-2"><a href="#build-an-integration">Build an integration</a></li><li class="toc-level-2"><a href="#verify-an-integration">Verify an integration</a></li></ol></nav><a class="source-link" href="markdown/http-client.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Local development — Practical guides and Go examples for Labena.">
+<title>Local development — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/local-development.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a class="selected" aria-current="page" href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Getting started</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-your-setup">Choose your setup</a></li><li class="toc-level-2"><a href="#run-on-the-host">Run on the host</a></li><li class="toc-level-2"><a href="#run-with-docker-compose">Run with Docker Compose</a></li><li class="toc-level-2"><a href="#run-with-tilt">Run with Tilt</a></li><li class="toc-level-2"><a href="#optional-object-storage">Optional object storage</a></li><li class="toc-level-2"><a href="#read-local-logs">Read local logs</a></li><li class="toc-level-2"><a href="#keep-file-logs-with-tilt-or-compose">Keep file logs with Tilt or Compose</a></li><li class="toc-level-2"><a href="#run-separate-processes">Run separate processes</a></li><li class="toc-level-2"><a href="#optional-brokers">Optional brokers</a></li><li class="toc-level-2"><a href="#stop-development-services">Stop development services</a></li><li class="toc-level-2"><a href="#diagnose-startup-problems">Diagnose startup problems</a></li></ol></nav></details>
+<article><h1 id="local-development">Local development</h1>
+<p>Choose one environment, use one configuration profile consistently, and run the
+same module contracts in HTTP, CLI and workers. This guide covers the day-to-day
+loop after <a href="index.html">installation</a>.</p>
+<h2 id="choose-your-setup">Choose your setup<a class="heading-link" href="#choose-your-setup" aria-label="Link to Choose your setup">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Setup</th>
+<th>Best fit</th>
+<th>Infrastructure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host Go process</td>
+<td>Fast edit/restart and debugger use</td>
+<td>Tutorial PostgreSQL/Redis containers</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>A containerized app and retained local data</td>
+<td>Services in <code>deployments/compose.yaml</code></td>
+</tr>
+<tr>
+<td>Tilt</td>
+<td>Kubernetes development and resource inspection</td>
+<td>Local cluster, Docker and Tilt</td>
+</tr>
+</tbody>
+</table>
+<p>Compose and Tilt publish overlapping host ports. Stop one before starting the
+other. Redis is required for tasks; the application has no memory queue driver.
+Events remain process-local in every setup.</p>
+<h2 id="run-on-the-host">Run on the host<a class="heading-link" href="#run-on-the-host" aria-label="Link to Run on the host">#</a></h2>
+<p>Start the <a href="index.html#start-local-dependencies">tutorial dependencies</a>, then select
+the same profile for migrations, HTTP and commands:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env.quickstart.example
+go run ./cmd/cli migrate up
+go run ./cmd/app
+</code></pre>
+<p>After editing Go code, stop the app with Ctrl+C and rerun it. These entry points do
+not watch source files. In a second terminal:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/cli route list
+</code></pre>
+<p>Expect a route table, with no new HTTP listener or workers. After configuring
+Identity and creating an account, inspect it with:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env go run ./cmd/cli identity show &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p>Use the profile that created the account; <code>.env</code> here represents your configured
+local profile, not a requirement to rename it.</p>
+<h2 id="run-with-docker-compose">Run with Docker Compose<a class="heading-link" href="#run-with-docker-compose" aria-label="Link to Run with Docker Compose">#</a></h2>
+<pre><code class="language-sh">docker compose -f deployments/compose.yaml up --build -d
+docker compose -f deployments/compose.yaml logs -f api
+</code></pre>
+<p>Compose runs migrations before the app and retains service data in named volumes.
+It rewrites infrastructure addresses for communication between containers. Check
+the <a href="deployment.html">deployment guide</a> for credentials and all exposed ports.</p>
+<p>Host and container addresses differ:</p>
+<table>
+<thead>
+<tr>
+<th>Caller</th>
+<th>PostgreSQL example</th>
+<th>Redis example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host quickstart</td>
+<td><code>127.0.0.1:55432</code></td>
+<td><code>127.0.0.1:56379</code></td>
+</tr>
+<tr>
+<td>App inside Compose</td>
+<td><code>postgres:5432</code></td>
+<td><code>redis:6379</code></td>
+</tr>
+</tbody>
+</table>
+<p>Do not copy a container-only hostname into a host app&#39;s connection URL.</p>
+<h2 id="run-with-tilt">Run with Tilt<a class="heading-link" href="#run-with-tilt" aria-label="Link to Run with Tilt">#</a></h2>
+<pre><code class="language-sh">tilt up
+</code></pre>
+<p>Tilt builds the app for the local cluster and starts MinIO and observability by
+default. Configure the local application Secret before running enabled providers.
+The public ConfigMap and Secret have separate responsibilities; see
+<a href="deployment.html">deployment</a>.</p>
+<p>To omit optional stacks:</p>
+<pre><code class="language-sh">tilt up -- --storage=false --observability=false
+</code></pre>
+<p>Use the Tilt dashboard to inspect build failures, migration completion and app
+logs. This is the Kubernetes workflow; a successful image build alone does not
+prove that migrations or dependency connections succeeded.</p>
+<h2 id="optional-object-storage">Optional object storage<a class="heading-link" href="#optional-object-storage" aria-label="Link to Optional object storage">#</a></h2>
+<p>For Compose, enable the MinIO profile and select its disk together:</p>
+<pre><code class="language-sh">FILESYSTEM_DISK=minio docker compose -f deployments/compose.yaml --profile storage up --build -d
+</code></pre>
+<p>The bucket initialization service runs before the app in this profile. Tilt does
+the equivalent by default. <code>FILESYSTEM_DISK</code> from an existing <code>.env</code> can affect
+Compose&#39;s selected disk. To explicitly run without storage:</p>
+<pre><code class="language-sh">FILESYSTEM_DISK=disabled docker compose -f deployments/compose.yaml up --build -d
+</code></pre>
+<p>Disabling storage preserves existing objects and volumes. See
+<a href="filesystems.html">file storage</a> for connections and <a href="media.html">Media</a> for upload
+metadata, visibility and URLs. A public asset&#39;s direct URL also requires an
+appropriate bucket policy and a client-reachable address.</p>
+<h2 id="read-local-logs">Read local logs<a class="heading-link" href="#read-local-logs" aria-label="Link to Read local logs">#</a></h2>
+<pre><code class="language-dotenv">LOG_CHANNELS=stderr
+</code></pre>
+<p>This uses readable terminal output. Select <code>stderr,file</code> to also write files, or
+include <code>observability</code> to export structured logs directly over OTLP. File
+collection is not needed for Loki.</p>
+<p>The current file channel writes warnings and errors to
+<code>storage/logs/app-YYYY-MM-DD.log</code>, using the UTC date and retaining 14 days.
+Formats, levels, single/daily mode and retention are configured in
+<code>internal/app/config/observability.go</code>; see
+<a href="logging.html#single-or-daily-files">single or daily files</a>.</p>
+<h2 id="keep-file-logs-with-tilt-or-compose">Keep file logs with Tilt or Compose<a class="heading-link" href="#keep-file-logs-with-tilt-or-compose" aria-label="Link to Keep file logs with Tilt or Compose">#</a></h2>
+<p>Tilt&#39;s Docker Desktop kubeadm setup mounts the checkout&#39;s <code>storage/logs</code> at
+<code>/app/storage/logs</code>. Apply through Tilt so the path and UID/GID are set correctly.
+The Kind provisioner does not expose Mac folders through the same <code>hostPath</code>
+arrangement. Compose instead shares the named <code>app-storage</code> volume; copy logs out
+when needed:</p>
+<pre><code class="language-sh">mkdir -p storage/logs
+docker compose -f deployments/compose.yaml cp api:/app/storage/logs/. storage/logs/
+</code></pre>
+<p>For request-to-trace correlation and Grafana, follow
+<a href="observability.html">observability</a>.</p>
+<h2 id="run-separate-processes">Run separate processes<a class="heading-link" href="#run-separate-processes" aria-label="Link to Run separate processes">#</a></h2>
+<p>First change the selection in <code>cmd/app/main.go</code> to <code>app.Processes{HTTP: true}</code>.
+Then use the same database and queue settings in each terminal:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/app
+</code></pre>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/worker
+</code></pre>
+<p>The HTTP process must keep its own subscribers: GoChannel cannot move an event to
+the worker process. Redis tasks can cross that boundary. Enable recurring
+schedules with one <code>cmd/scheduler</code> process; the dedicated worker
+never starts a scheduler. When metrics are enabled on several host processes,
+assign each listener a different port.</p>
+<p>See <a href="entry-points.html">entry points</a> for explicit process selections and
+<a href="queues.html">queues</a> for task routing.</p>
+<h2 id="optional-brokers">Optional brokers<a class="heading-link" href="#optional-brokers" aria-label="Link to Optional brokers">#</a></h2>
+<p>RabbitMQ and NATS are opt-in infrastructure experiments. Starting them does not
+install an application driver or change local event guarantees:</p>
+<pre><code class="language-sh">docker compose -f deployments/compose.yaml --profile extra-brokers up --build -d
+tilt up -- --extra-brokers=true
+</code></pre>
+<p>Use one of these commands for your selected environment, not both. Default
+launches omit these brokers.</p>
+<h2 id="stop-development-services">Stop development services<a class="heading-link" href="#stop-development-services" aria-label="Link to Stop development services">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ctrl+C in a host app</td>
+<td>Drain that process, then close its clients</td>
+</tr>
+<tr>
+<td><code>docker compose -f deployments/compose.yaml stop</code></td>
+<td>Stop containers and retain volumes</td>
+</tr>
+<tr>
+<td>Compose <code>down</code></td>
+<td>Remove the stack&#39;s containers/networks; retain named volumes</td>
+</tr>
+<tr>
+<td>Compose <code>down --volumes</code></td>
+<td>Also delete volume data</td>
+</tr>
+<tr>
+<td>Stop the Tilt process</td>
+<td>Leave Kubernetes resources running</td>
+</tr>
+<tr>
+<td><code>tilt down</code></td>
+<td>Remove managed resources; namespace/volume cleanup can delete development data</td>
+</tr>
+</tbody>
+</table>
+<p>Host-mounted logs survive Pod removal. Database, broker and object-store data have
+their own volumes and backup needs. Do not use destructive cleanup to fix a
+configuration error in data you want to retain.</p>
+<h2 id="diagnose-startup-problems">Diagnose startup problems<a class="heading-link" href="#diagnose-startup-problems" aria-label="Link to Diagnose startup problems">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis connection refused</td>
+<td>Selected profile, host/container address and port</td>
+</tr>
+<tr>
+<td>Unexpected dependency opens</td>
+<td>Shell overrides and enabled features</td>
+</tr>
+<tr>
+<td>Address already in use</td>
+<td>Another host process or development stack</td>
+</tr>
+<tr>
+<td>Enqueue succeeds but nothing runs</td>
+<td>Worker queue names and Redis database</td>
+</tr>
+<tr>
+<td>Local event never arrives</td>
+<td>Handler registered and subscribers running in the producer process</td>
+</tr>
+<tr>
+<td>No file entries after an INFO request</td>
+<td>The default file channel records WARN and ERROR</td>
+</tr>
+<tr>
+<td>Grafana has no data</td>
+<td>Collector/export settings as well as the dashboard</td>
+</tr>
+</tbody>
+</table>
+<p>Continue with <a href="troubleshooting.html">troubleshooting</a> for detailed diagnosis,
+<a href="testing.html">testing</a> for disposable test services, or
+<a href="modules.html">your first module</a> to add application behavior.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="modules.html"><small>← Previous</small>Your first module</a>
+<a href="troubleshooting.html"><small>Next →</small>Troubleshooting</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-your-setup">Choose your setup</a></li><li class="toc-level-2"><a href="#run-on-the-host">Run on the host</a></li><li class="toc-level-2"><a href="#run-with-docker-compose">Run with Docker Compose</a></li><li class="toc-level-2"><a href="#run-with-tilt">Run with Tilt</a></li><li class="toc-level-2"><a href="#optional-object-storage">Optional object storage</a></li><li class="toc-level-2"><a href="#read-local-logs">Read local logs</a></li><li class="toc-level-2"><a href="#keep-file-logs-with-tilt-or-compose">Keep file logs with Tilt or Compose</a></li><li class="toc-level-2"><a href="#run-separate-processes">Run separate processes</a></li><li class="toc-level-2"><a href="#optional-brokers">Optional brokers</a></li><li class="toc-level-2"><a href="#stop-development-services">Stop development services</a></li><li class="toc-level-2"><a href="#diagnose-startup-problems">Diagnose startup problems</a></li></ol></nav><a class="source-link" href="markdown/local-development.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

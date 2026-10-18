@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Transactions — Practical guides and Go examples for Labena.">
+<title>Transactions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/database-transactions.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a class="selected" aria-current="page" href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Database and state</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#execute-an-atomic-operation">Execute an atomic operation</a></li><li class="toc-level-2"><a href="#resolve-the-transaction-in-repositories">Resolve the transaction in repositories</a></li><li class="toc-level-2"><a href="#nested-calls-join-the-transaction">Nested calls join the transaction</a></li><li class="toc-level-2"><a href="#configure-isolation">Configure isolation</a></li><li class="toc-level-2"><a href="#use-a-savepoint-for-recoverable-child-work">Use a savepoint for recoverable child work</a></li><li class="toc-level-2"><a href="#couple-writes-with-publication">Couple writes with publication</a></li><li class="toc-level-2"><a href="#deadlines-and-uncertain-commits">Deadlines and uncertain commits</a></li><li class="toc-level-2"><a href="#preserve-owned-security-transactions">Preserve owned security transactions</a></li><li class="toc-level-2"><a href="#verify-the-commit-boundary">Verify the commit boundary</a></li></ol></nav></details>
+<article><h1 id="transactions">Transactions</h1>
+<p>Use a transaction when several database changes must succeed together. App assembly supplies <code>Resources.Transactions</code>, backed by the same Bun pool as <code>Resources.DB</code>.</p>
+<p>For a single independent write, the database statement may already provide the
+atomicity you need. Add an explicit transaction when several writes or a
+read-modify-write invariant must share a commit boundary.</p>
+<table>
+<thead>
+<tr>
+<th>Work</th>
+<th>Can join the SQL transaction?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositories using <code>database.Executor</code> and the same pool</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Database cache with the same pool</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Notification <code>Enqueue</code> using the same pool</td>
+<td>Yes; it persists delivery intent</td>
+</tr>
+<tr>
+<td>Redis cache, raw queue submission, local event publication</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Mail delivery, push delivery, blob storage</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h2 id="execute-an-atomic-operation">Execute an atomic operation<a class="heading-link" href="#execute-an-atomic-operation" aria-label="Link to Execute an atomic operation">#</a></h2>
+<p>Accept the existing <code>*database.TxManager</code> from construction. Repositories use the
+executor carried by the callback context and share its database pool. Business
+services do not import the dependency bundle or redeclare the transaction contract.</p>
+<p>Inside an operation with the borrowed transaction manager:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">s</span><span class="go-punctuation">.</span>transactions<span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">Create</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> product<span class="go-bracket-2">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-2">}</span>
+    <span class="go-keyword">return</span> <span class="go-package">s</span><span class="go-punctuation">.</span>audit<span class="go-punctuation">.</span><span class="go-function">Record</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-package">product</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-2">)</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This is a workflow fragment: <code>s.products</code> and <code>s.audit</code> are service dependencies you implement. Both must use <code>database.Executor(ctx, db)</code> with the same database. Audit in this example means a database write, not an external logging or network operation.</p>
+<p>Returning nil commits the outer transaction. Returning an error or cancellation rolls it back. Panics also trigger rollback and are rethrown. Do not commit or roll back manually inside <code>Execute</code>; it owns completion.</p>
+<h2 id="resolve-the-transaction-in-repositories">Resolve the transaction in repositories<a class="heading-link" href="#resolve-the-transaction-in-repositories" aria-label="Link to Resolve the transaction in repositories">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes">executor<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Executor</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> r<span class="go-punctuation">.</span>db<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> executor<span class="go-punctuation">.</span><span class="go-function">NewInsert</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Model</span><span class="go-bracket-0">(</span>product<span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Exec</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> err
+</code></pre>
+<p>Without a transaction, the executor is the pool. Within a scope, it is the active Bun transaction. Passing the original parent context instead of the callback context loses that scope. Using the raw pool bypasses it too; the package cannot intercept those calls.</p>
+<p>A context containing a transaction for another database is rejected with <code>database.ErrDifferentDatabase</code>. Keep the transaction manager and repository pool paired.</p>
+<h2 id="nested-calls-join-the-transaction">Nested calls join the transaction<a class="heading-link" href="#nested-calls-join-the-transaction" aria-label="Link to Nested calls join the transaction">#</a></h2>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: Nested Execute has one commit boundary
+    accDescr: Inner Execute calls share the outer transaction. An inner error marks the whole scope rollback-only, even when the caller ignores that error. Only the outer Execute can commit.
+    Outer[Outer Execute opens a transaction] --&gt; Inner[Inner Execute joins it]
+    Inner --&gt;|Returns nil| Continue[Continue outer work]
+    Inner --&gt;|Returns an error| Failed[Mark shared scope rollback-only]
+    Failed --&gt;|Even if caller ignores the error| Rollback[Outer Execute rolls back]
+    Continue --&gt;|All work succeeds| Commit[Outer Execute commits]
+    Continue --&gt;|Error, cancellation or panic| Rollback
+</code></pre>
+<p>An inner <code>Execute</code> joins the existing scope. It does not commit independently or create a savepoint. If an inner operation fails, the outer scope becomes rollback-only even when a caller ignores the error.</p>
+<pre><code class="language-go" data-highlighted="yes">err <span class="go-operator">:=</span> <span class="go-package">transactions</span><span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+    _ <span class="go-operator">=</span> <span class="go-package">transactions</span><span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-3">(</span><span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-3">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-3">{</span>
+        <span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-4">(</span><span class="go-string">&#34;required write failed&#34;</span><span class="go-bracket-4">)</span>
+    <span class="go-bracket-3">}</span><span class="go-bracket-2">)</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-comment">// err remains non-nil: the outer transaction cannot commit.</span>
+</code></pre>
+<p>Use ordinary error propagation in application code; the ignored error above only demonstrates the protection. Transaction contexts must not escape their scope or be used concurrently by goroutines. The manager itself can be shared across requests.</p>
+<h2 id="configure-isolation">Configure isolation<a class="heading-link" href="#configure-isolation" aria-label="Link to Configure isolation">#</a></h2>
+<p>When a workflow needs explicit transaction options, construct a manager with the same pool:</p>
+<pre><code class="language-go" data-highlighted="yes">transactions<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">NewTxManager</span><span class="go-bracket-0">(</span>db<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span><span class="go-type">sql</span><span class="go-punctuation">.</span><span class="go-type">TxOptions</span><span class="go-bracket-1">{</span>
+    Isolation<span class="go-punctuation">:</span> <span class="go-package">sql</span><span class="go-punctuation">.</span>LevelSerializable<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>database/sql</code>. Handle the constructor error and inject the manager into the relevant service. Options are copied. Nil options inherit an active scope; explicit nested options must match the outer options or the call fails.</p>
+<p>Choose isolation for the operation&#39;s invariants and supported backend. Serialization or deadlock failures may require retrying a whole operation, but the package does not retry automatically. First establish which errors and effects are safe to repeat.</p>
+<h2 id="use-a-savepoint-for-recoverable-child-work">Use a savepoint for recoverable child work<a class="heading-link" href="#use-a-savepoint-for-recoverable-child-work" aria-label="Link to Use a savepoint for recoverable child work">#</a></h2>
+<p><code>Savepoint</code> is available on the same <code>*database.TxManager</code> supplied by app assembly. It requires an active transaction:</p>
+<pre><code class="language-go" data-highlighted="yes">err <span class="go-operator">:=</span> <span class="go-package">manager</span><span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+    childErr <span class="go-operator">:=</span> <span class="go-package">manager</span><span class="go-punctuation">.</span><span class="go-function">Savepoint</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-3">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-3">{</span>
+        <span class="go-keyword">return</span> <span class="go-function">optionalWrite</span><span class="go-bracket-4">(</span><span class="go-parameter">ctx</span><span class="go-bracket-4">)</span>
+    <span class="go-bracket-3">}</span><span class="go-bracket-2">)</span>
+    <span class="go-keyword">if</span> childErr <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> childErr
+    <span class="go-bracket-2">}</span>
+    <span class="go-keyword">return</span> <span class="go-function">requiredWrite</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-bracket-2">)</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Here <code>optionalWrite</code> and <code>requiredWrite</code> are functions supplied by the workflow. To continue after a child error, inspect it and deliberately handle an expected failure. Savepoint errors undo child writes; successful child writes still depend on the outer commit. Cleanup failure marks the parent rollback-only. A child panic is rolled back and rethrown.</p>
+<p>Ordinary service workflows usually need only <code>Execute</code>. Do not replace it with savepoints just to avoid returning errors.</p>
+<h2 id="couple-writes-with-publication">Couple writes with publication<a class="heading-link" href="#couple-writes-with-publication" aria-label="Link to Couple writes with publication">#</a></h2>
+<p>Redis tasks and GoChannel events do not join Bun transactions. A commit followed
+by publication can fail between those actions; publishing inside the transaction
+can expose work before a rollback. Neither sequence makes both actions atomic.</p>
+<p><code>Notifier.Enqueue</code> persists channel intent in the caller&#39;s SQL transaction.
+Its <a href="notifications.html">delivery ledger</a> supplies a focused outbox for notifications.
+Other durable publications need their own deliberate outbox or compatible publisher.
+Keep remote effects outside retryable transactions and tolerate duplicate delivery.
+<code>database.RequireNoTransaction</code> guards Mailer sends/enqueues, immediate notification
+delivery/dispatch, media mutation, framework Publisher calls and app queue enqueue
+calls. These reject transaction-scoped or already canceled contexts before effects.
+Standalone Asynq clients can opt into <code>middleware.RequireNoTransaction()</code> as the
+outermost client middleware; raw native clients bypass this policy. The guard
+does not make publication after commit atomic.</p>
+<p>For a complete compiled transaction workflow, see
+<a href="transactional-notifications.html">Profile update with notification intent</a> and
+<code>examples/module/profile/update.go</code>.</p>
+<section class="walkthrough" aria-label="Step-by-step explanation"><h3>Keep a write and its notification together</h3><p>Use this sequence when the notification intent must survive with the business
+change. The notification ledger is the boundary between SQL and external work.</p>
+<ol>
+<li>
+<p><strong>Begin one scope.</strong> Execute supplies a transaction-bearing callback context.
+Pass that same context to each participating repository and to Enqueue.</p>
+<p>All participants must use the same database pool.</p>
+</li>
+<li>
+<p><strong>Write both records.</strong> Save the business change and the notification intent
+through the transaction&#39;s executor.</p>
+<p>Do not send mail or enqueue a raw Redis task inside this scope.</p>
+</li>
+<li>
+<p><strong>Commit or roll back.</strong> If the operation returns nil, the outer Execute
+attempts commit. An operation error rolls back both sets of writes.</p>
+<p>A commit error can have an uncertain outcome; do not blindly rerun the callback.</p>
+</li>
+<li>
+<p><strong>Deliver after commit.</strong> The dispatcher sees committed notification intent
+and queues it for channel workers.</p>
+<p>External delivery is retryable work. Consumers still need duplicate tolerance.</p>
+</li>
+</ol>
+</section>
+<h2 id="deadlines-and-uncertain-commits">Deadlines and uncertain commits<a class="heading-link" href="#deadlines-and-uncertain-commits" aria-label="Link to Deadlines and uncertain commits">#</a></h2>
+<p>Use a bounded operation context and keep transactions short. A failed commit may have an uncertain outcome; do not automatically rerun the callback. Preserve errors for diagnosis while keeping sensitive driver details out of responses.</p>
+<p><code>Begin</code>, <code>Commit</code>, and <code>Rollback</code> are available for explicit ownership, but require careful cleanup on every exit path. Prefer <code>Execute</code> for business operations. <code>TxFromContext</code> exposes the native transaction to adapters without transferring commit ownership.</p>
+<h2 id="preserve-owned-security-transactions">Preserve owned security transactions<a class="heading-link" href="#preserve-owned-security-transactions" aria-label="Link to Preserve owned security transactions">#</a></h2>
+<p>Identity&#39;s failed-proof counters and refresh-token reuse revocation can need to
+commit even when authentication is denied. Those operations deliberately own their
+security transactions. Do not wrap them mechanically in an outer transaction that
+rolls back on every returned authentication error. See <a href="identity.html">Identity</a>
+for the operation&#39;s behavior before composing it into another workflow.</p>
+<h2 id="verify-the-commit-boundary">Verify the commit boundary<a class="heading-link" href="#verify-the-commit-boundary" aria-label="Link to Verify the commit boundary">#</a></h2>
+<p>Use database integration tests for the invariants that matter:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Two writes, callback succeeds</td>
+<td>Both persist</td>
+</tr>
+<tr>
+<td>Second write fails</td>
+<td>Neither persists</td>
+</tr>
+<tr>
+<td>Nested Execute fails and caller ignores it</td>
+<td>Outer transaction still rolls back</td>
+</tr>
+<tr>
+<td>Repository uses another pool</td>
+<td><code>ErrDifferentDatabase</code>; no cross-pool atomicity</td>
+</tr>
+<tr>
+<td>Remote effect attempted with transaction context</td>
+<td>Framework guard rejects it before the effect</td>
+</tr>
+<tr>
+<td>Savepoint child fails and expected error is handled</td>
+<td>Child writes are undone; parent can continue</td>
+</tr>
+</tbody>
+</table>
+<p>The disposable PostgreSQL tests in <code>pkg/database</code> cover manager behavior. Business
+workflow coverage belongs in <code>tests/&lt;module&gt;</code> and should observe persisted state,
+not merely that callbacks were invoked. Continue with
+<a href="transactional-notifications.html">transactional notifications</a> and
+<a href="testing-database.html">database testing</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="database-queries.html"><small>← Previous</small>Entities and queries</a>
+<a href="migrations.html"><small>Next →</small>Migrations</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#execute-an-atomic-operation">Execute an atomic operation</a></li><li class="toc-level-2"><a href="#resolve-the-transaction-in-repositories">Resolve the transaction in repositories</a></li><li class="toc-level-2"><a href="#nested-calls-join-the-transaction">Nested calls join the transaction</a></li><li class="toc-level-2"><a href="#configure-isolation">Configure isolation</a></li><li class="toc-level-2"><a href="#use-a-savepoint-for-recoverable-child-work">Use a savepoint for recoverable child work</a></li><li class="toc-level-2"><a href="#couple-writes-with-publication">Couple writes with publication</a></li><li class="toc-level-2"><a href="#deadlines-and-uncertain-commits">Deadlines and uncertain commits</a></li><li class="toc-level-2"><a href="#preserve-owned-security-transactions">Preserve owned security transactions</a></li><li class="toc-level-2"><a href="#verify-the-commit-boundary">Verify the commit boundary</a></li></ol></nav><a class="source-link" href="markdown/database-transactions.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

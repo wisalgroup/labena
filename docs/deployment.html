@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Deployment — Practical guides and Go examples for Labena.">
+<title>Deployment — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/deployment.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a class="selected" aria-current="page" href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Operations</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-the-process-shape">Choose the process shape</a></li><li class="toc-level-2"><a href="#ingress-and-readiness">Ingress and readiness</a></li><li class="toc-level-2"><a href="#retention-for-version-01">Retention for version 0.1</a></li><li class="toc-level-2"><a href="#build-identity">Build identity</a></li><li class="toc-level-2"><a href="#environment-loading">Environment loading</a></li><li class="toc-level-2"><a href="#optional-cache">Optional cache</a></li><li class="toc-level-2"><a href="#working-directory-for-binary-and-ide-launches">Working directory for binary and IDE launches</a></li><li class="toc-level-2"><a href="#persistent-application-storage">Persistent application storage</a></li><li class="toc-level-2"><a href="#run-the-application-with-docker-compose">Run the application with Docker Compose</a></li><li class="toc-level-2"><a href="#optional-observability-stack">Optional observability stack</a></li><li class="toc-level-2"><a href="#authentication-and-api-rate-limits">Authentication and API rate limits</a></li><li class="toc-level-2"><a href="#experimental-brokers">Experimental brokers</a></li><li class="toc-level-2"><a href="#optional-object-storage">Optional object storage</a></li><li class="toc-level-2"><a href="#optional-push">Optional push</a></li><li class="toc-level-2"><a href="#recovery-and-retained-state">Recovery and retained state</a></li><li class="toc-level-2"><a href="#plan-rollout-and-termination">Plan rollout and termination</a></li><li class="toc-level-2"><a href="#verify-the-deployment-you-operate">Verify the deployment you operate</a></li></ol></nav></details>
+<article><h1 id="deployment-and-recovery">Deployment and recovery</h1>
+<p>Tilt, Compose and release verification share <code>deployments/Dockerfile</code>.
+For release bundles, fixed build inputs and recorded operational checks, see
+<a href="release-readiness.html">release readiness</a>. Development manifests and sample
+credentials remain development-only; they are not a production deployment preset.</p>
+<p>Run <code>go run ./cmd/app</code> for HTTP, Asynq workers and local event subscribers.
+Run <code>go run ./cmd/scheduler</code> separately for recurring schedules.
+Run <code>go run ./cmd/cli migrate up</code> explicitly before serving. The supplied Compose
+migration service and Tilt init containers do this before starting application processes.
+Both deployments run the scheduler separately with one replica.</p>
+<h2 id="choose-the-process-shape">Choose the process shape<a class="heading-link" href="#choose-the-process-shape" aria-label="Link to Choose the process shape">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Process</th>
+<th>Runs</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cmd/app</code></td>
+<td>HTTP, workers and local event consumers</td>
+<td>Application service deployment</td>
+</tr>
+<tr>
+<td><code>cmd/worker</code></td>
+<td>Queue workers and local subscribers; no cron scheduler</td>
+<td>Dedicated background execution</td>
+</tr>
+<tr>
+<td><code>cmd/scheduler</code></td>
+<td>Central recurring schedules</td>
+<td>One deployment per schedule set</td>
+</tr>
+<tr>
+<td><code>cmd/cli &lt;command&gt;</code></td>
+<td>One command after application construction</td>
+<td>Migration, inspection, maintenance</td>
+</tr>
+<tr>
+<td><code>cmd/cli serve</code></td>
+<td>Explicit HTTP and workers selection in main</td>
+<td>Serving through the command tree</td>
+</tr>
+</tbody>
+</table>
+<p>HTTP producers need their local subscribers in the same process. A different
+worker process cannot receive another process&#39;s GoChannel events. Run exactly one
+scheduler for a schedule set; ordinary workers and the notification dispatcher do
+not require cron scheduling. See <a href="application-lifecycle.html">lifecycle</a>.</p>
+<h2 id="ingress-and-readiness">Ingress and readiness<a class="heading-link" href="#ingress-and-readiness" aria-label="Link to Ingress and readiness">#</a></h2>
+<p>Set <code>HTTP_READINESS_DEPENDENCIES=true</code> in deployed applications. The supplied
+Compose environment, Kubernetes profile and full <code>.env.example</code> enable it
+explicitly. <code>/readyz</code> then checks configured database and Redis dependencies;
+<code>/healthz</code> remains independent of downstream availability. Keep readiness timeouts
+below the probe timeout and use readiness, not liveness, to remove an unhealthy
+instance from service.</p>
+<p>For direct connections, leave <code>HTTP_TRUSTED_PROXIES</code> empty. Behind a controlled
+ingress, set its actual source CIDRs and restrict backend access accordingly:</p>
+<pre><code class="language-dotenv"># Documentation example only: replace with the actual ingress addresses.
+HTTP_TRUSTED_PROXIES=192.0.2.10/32,2001:db8::10/128
+</code></pre>
+<p>The first ingress strips client-supplied <code>X-Forwarded-For</code> and writes the observed
+client address. Every additional trusted proxy appends its observed peer. Verify
+the complete path, including alternate maintenance access, before enabling trust.
+The application uses the first untrusted address before that trusted suffix for
+client rate limits. With no trust configured, clients behind a proxy share its
+budget. <code>api.PeerIP</code> remains the transport peer; <code>api.ClientIP</code> exposes the accepted
+client address. Neither value establishes an authenticated principal.</p>
+<p>Both administrative dashboards require HTTPS and a preserved external Host.
+Business CORS never grants access to <code>/admin</code>; cross-origin reads, preflights and
+mutations are rejected even when the browser has cached valid Basic Auth.</p>
+<h2 id="retention-for-version-01">Retention for version 0.1<a class="heading-link" href="#retention-for-version-01" aria-label="Link to Retention for version 0.1">#</a></h2>
+<p>Version 0.1 retains notification delivery records and media tombstones until the
+application owner performs an explicit data-retention migration. There is no
+automatic age-based purge. Delivery records retain occurrence-key deduplication;
+media tombstones retain repeated-delete behavior. Subscription pruning disables
+stale destinations without deleting delivery history. File logs keep their
+separately configured rotation policy, and the viewer&#39;s live buffer is bounded.</p>
+<p>Monitor retained table size and include these records in backup/restore tests.
+Before introducing a finite retention window, define the longest supported
+business retry/replay window and privacy requirements. Preserve deduplication
+keys and necessary tombstone identifiers for that window, and scrub sensitive
+payloads separately only after terminal delivery and receipt processing. A purge
+must exclude pending/in-flight work and document how older replays and repeated
+deletes behave. Account-erasure requirements need an owner-specific migration;
+they are not satisfied by the generic maintenance schedule.</p>
+<h2 id="build-identity">Build identity<a class="heading-link" href="#build-identity" aria-label="Link to Build identity">#</a></h2>
+<p>Source runs report <code>dev</code>; OpenAPI uses the same application version as the CLI
+and startup logs. <code>go run ./cmd/cli --version</code> also reports the VCS revision when
+Go records it. CLI version inspection follows normal application construction.
+Release images receive <code>VERSION</code> and <code>REVISION</code> build arguments from
+<code>scripts/build-release.sh</code>; build from a clean, tagged commit. The API contract
+header stays <code>X-API-Version: v1</code>, independently of the application release.</p>
+<h2 id="environment-loading">Environment loading<a class="heading-link" href="#environment-loading" aria-label="Link to Environment loading">#</a></h2>
+<p><code>.env.example</code> is the full local feature profile. Copy it to the ignored <code>.env</code>
+and fill its credential fields before running the app. <code>app-config.yaml</code> is the
+corresponding Kubernetes profile, with cluster endpoints and no private credentials.
+Both use Go defaults for routine tuning; see the complete
+<a href="configuration-reference.html">configuration reference</a>.</p>
+<p>Tilt loads the ignored <code>.env.mail.yaml</code> as the <code>app-mail</code> Secret. This existing file
+holds local application credentials, including settings added beyond SMTP:</p>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Secret
+metadata:
+  name: app-mail
+  namespace: go-modular-dev
+type: Opaque
+stringData:
+  MAIL_HOST: sandbox.smtp.mailtrap.io
+  MAIL_PORT: &#34;2525&#34;
+  MAIL_USERNAME: &#34;&#34;
+  MAIL_PASSWORD: &#34;&#34;
+  AUTH_VERIFICATION_KEY: &#34;&#34;
+  AUTH_ACCESS_TOKEN_KEY: &#34;&#34;
+  AUTH_GOOGLE_CLIENT_ID: &#34;&#34;
+  QUEUE_DASHBOARD_USERNAME: operator
+  QUEUE_DASHBOARD_PASSWORD: &#34;&#34;
+  PUSH_EXPO_PROJECT_ID: &#34;&#34;
+  PUSH_EXPO_ACCESS_TOKEN: &#34;&#34;
+</code></pre>
+<p>Fill the blank values with your own credentials. Generate each Identity key
+independently with <code>openssl rand -base64 32</code>, and retain the same keys across
+replicas and restarts. Feature switches belong in <code>app-config.yaml</code>, so the Secret
+does not silently override them. The checked-in <code>app-secrets</code> contains only the
+development database/Redis connections and MinIO fixtures. Keep real credentials
+out of tracked files. CLI help and migrations also validate the full profile.</p>
+<p>Jobs use Asynq and Redis through the native Asynq integration. Local events use Watermill GoChannel.
+See the <a href="queues.html">queue guide</a> for configuration, registration,
+startup, delivery guarantees, retries and observability.</p>
+<h2 id="optional-cache">Optional cache<a class="heading-link" href="#optional-cache" aria-label="Link to Optional cache">#</a></h2>
+<p>CACHE_DRIVER defaults to disabled. Select memory, database or redis independently
+of the queue and pubsub drivers. Database cache shares the configured Bun connection
+and uses its own central cache_entries migration. CACHE_REDIS_URL is provided through
+the development app Secret; CACHE_NAMESPACE and limits use Go defaults unless overridden. Defaults
+and operational details are in <a href="configuration-reference.html#optional-cache">configuration</a>.</p>
+<p>Memory cache uses <code>CACHE_MEMORY_MAX_BYTES=67108864</code> (64 MiB) by default in addition
+to entry count and per-entry limits. This replaces the previous effective budget
+of entry count multiplied by entry size. Raise the byte budget deliberately for
+existing larger caches and leave process/container headroom for metadata and
+in-flight copies. Full caches reject writes rather than evict live entries.</p>
+<h2 id="working-directory-for-binary-and-ide-launches">Working directory for binary and IDE launches<a class="heading-link" href="#working-directory-for-binary-and-ide-launches" aria-label="Link to Working directory for binary and IDE launches">#</a></h2>
+<p>Use the application root as the working directory, regardless of where the binary
+lives. Logging fixes relative file paths against that directory at construction;
+there is no go.mod discovery or executable-path fallback.</p>
+<p>For an installed binary, run <code>cd /opt/myapp</code> followed by <code>./bin/app</code>. A systemd unit
+makes the same contract explicit:</p>
+<pre><code class="language-ini">[Service]
+WorkingDirectory=/opt/myapp
+ExecStart=/opt/myapp/bin/app
+</code></pre>
+<p>In an IDE, set its launch working directory to the repository root. For VS Code&#39;s
+Go launch configuration, use <code>&#34;cwd&#34;: &#34;${workspaceFolder}&#34;</code>. Tilt uses the Docker
+image&#39;s /app directory. Use stdout/stderr or direct OTLP for read-only container deployments;
+file logging requires writable /app/storage/logs, and local file storage requires
+writable /app/storage/app (or FILESYSTEM_LOCAL_ROOT).</p>
+<h2 id="persistent-application-storage">Persistent application storage<a class="heading-link" href="#persistent-application-storage" aria-label="Link to Persistent application storage">#</a></h2>
+<p>Use one Docker Desktop cluster with the <strong>kubeadm</strong> provisioner. In Docker Desktop,
+open Kubernetes → Edit cluster → Kubeadm → Save changes. Switching provisioners
+resets all Kubernetes workloads and volume data, including other projects. Do
+this only when you intend to discard that data. Keep the checkout available in
+Docker Desktop&#39;s Resources → File Sharing settings.</p>
+<pre><code class="language-sh">tilt up --context docker-desktop
+tail -f &#34;storage/logs/app-$(date -u +%F).log&#34;
+</code></pre>
+<p>Tilt creates <code>storage/logs</code> and <code>storage/app</code>, resolves the absolute <code>storage</code> path,
+and mounts it at <code>/app/storage</code> in both the app and migration containers. Writes go to the
+same local daily file, <code>app-YYYY-MM-DD.log</code> in UTC; no copying service or polling
+interval is involved. Rerun the tail command after the UTC date changes. Filesystem
+buffering and editor reload behavior can affect when a reader displays new records.
+Tilt uses your host UID/GID so the app and your editor can both write the files.
+The container root filesystem remains read-only; the shared storage directory
+contains logs and local uploaded objects.</p>
+<p>Each project uses its own checkout folder and namespace on the same cluster.
+Database and broker data still use their own PVCs. Local logs and uploaded objects
+survive Pod and cluster deletion; deleting the local files removes them. The
+storage mount has no quota. The application file channel rotates daily and retains
+14 days by default; that limits age, not total disk usage. Runtime logs and default
+local uploads are ignored by Git and Docker builds. This is a local development setup; production should use deployment-owned persistent storage and a deliberate logging
+policy such as standard output or direct OTLP. Apply the app through Tilt: it replaces the
+manifest&#39;s placeholder host path and default container identity.</p>
+<p>Docker Desktop&#39;s Kind provisioner currently does not expose the required Mac
+host paths. A missing host folder fails the mount instead of silently creating
+an unrelated node directory. No separate cluster or NFS server is needed with
+kubeadm. Re-run Tilt if you move the checkout.</p>
+<h2 id="run-the-application-with-docker-compose">Run the application with Docker Compose<a class="heading-link" href="#run-the-application-with-docker-compose" aria-label="Link to Run the application with Docker Compose">#</a></h2>
+<p>The single <code>deployments/compose.yaml</code> contains the app, migrations, infrastructure,
+and persistent volumes. Run the complete stack:</p>
+<pre><code class="language-sh">docker compose -f deployments/compose.yaml up --build -d
+</code></pre>
+<p>Use this instead of Tilt or the host app because their default ports overlap.
+The app waits for PostgreSQL migrations and Redis health. With the optional
+storage profile it also waits for MinIO bucket setup. All application containers
+share the named <code>app-storage</code> volume mounted at <code>/app/storage</code>, use <code>/app</code> as their
+working directory, and log to stderr and file. Fresh volumes inherit the image&#39;s
+UID/GID 10001 ownership. Existing volumes must already permit that user to write;
+the image does not recursively change existing data ownership at startup.</p>
+<p>The named volume is stored by Docker and survives container replacement and
+ordinary <code>down</code>. It is not your local project&#39;s storage directory. Export a snapshot:</p>
+<pre><code class="language-sh">mkdir -p storage/logs
+docker compose -f deployments/compose.yaml cp api:/app/storage/logs/. storage/logs/
+</code></pre>
+<p>To stop while retaining volumes:</p>
+<pre><code class="language-sh">docker compose -f deployments/compose.yaml down
+</code></pre>
+<p>Adding <code>--volumes</code> destroys these volumes, including database data. These are local
+development manifests with sample credentials; production needs deployment-specific
+credentials, storage backups, and log retention. Rotation belongs to the configured
+logging channel; adding a volume alone does not configure it.</p>
+<h2 id="optional-observability-stack">Optional observability stack<a class="heading-link" href="#optional-observability-stack" aria-label="Link to Optional observability stack">#</a></h2>
+<p>Tilt starts the stack by default with <code>tilt up</code>. Disable it with
+<code>tilt up -- --observability=false</code>; this also disables app tracing and metrics and
+the direct OTLP observability log channel. Alloy receives logs and spans over
+HTTP; it does not mount or collect application log files. Existing explicit Tilt arguments still take precedence.
+Compose continues to use its observability environment profile. Both share backend
+configs and provision Grafana at localhost:3000. Tilt also forwards Alloy at
+localhost:4318 for a host application&#39;s trace and log exporters.
+See <a href="observability.html">setup and operational limits</a>.</p>
+<h2 id="authentication-and-api-rate-limits">Authentication and API rate limits<a class="heading-link" href="#authentication-and-api-rate-limits" aria-label="Link to Authentication and API rate limits">#</a></h2>
+<p>Identity uses Redis admission limits whenever <code>AUTH_ENABLED</code> is enabled. Set <code>RATE_LIMIT_REDIS_URL</code> (default <code>redis://127.0.0.1:6379/2</code>) and
+<code>RATE_LIMIT_NAMESPACE</code> consistently across replicas. This is separate from cache
+and queue databases. Redis unavailability returns 503 instead of bypassing limits.
+<code>API_RATE_LIMIT_ENABLED=true</code> adds broad admission to <code>/api/v1</code>; common health routes
+are exempt. Defaults: <code>API_RATE_LIMIT_REQUESTS=120</code>, <code>API_RATE_LIMIT_BURST=120</code>,
+<code>API_RATE_LIMIT_PERIOD=1m</code>. Authentication applies stricter service-level policies.
+Budgets replenish gradually and survive application restarts while Redis retains them.
+Do not flush limiter keys with cache data; budget loss resets abuse protection.</p>
+<p>Identity uses a pre-release PostgreSQL baseline. Older development schemas may
+need a deliberate forward migration or a disposable reset; startup never rewrites
+them. Do not reset a database containing required data. Clients use direct JSON
+Google ID-token exchange.
+See <a href="identity.html">Identity behavior and rollout</a> for details.</p>
+<p>The full development profiles enable <code>HTTP_READINESS_DEPENDENCIES=true</code>.
+Code defaults and the quickstart keep it disabled.
+<code>HTTP_READINESS_TIMEOUT=1s</code> is the shared deadline for configured database,
+queue Redis and rate-limit Redis checks. Set the deployment readiness probe timeout
+above this budget. <code>/healthz</code> never probes dependencies. Cache, mail and telemetry
+backends do not gate readiness. A shared dependency outage may remove every replica
+from traffic; enable this policy only when that behavior matches your deployment.</p>
+<h2 id="experimental-brokers">Experimental brokers<a class="heading-link" href="#experimental-brokers" aria-label="Link to Experimental brokers">#</a></h2>
+<p>RabbitMQ and NATS are not used by the current app. Compose starts them only with
+<code>--profile extra-brokers</code>; Tilt starts them only with <code>-- --extra-brokers=true</code>.
+They are not app startup prerequisites. These switches provide infrastructure for
+experiments, not supported application messaging drivers. Existing volumes remain
+unmodified when the profile is disabled.</p>
+<h2 id="optional-object-storage">Optional object storage<a class="heading-link" href="#optional-object-storage" aria-label="Link to Optional object storage">#</a></h2>
+<p>Tilt enables MinIO and its disk by default; use <code>-- --storage=false</code> to omit both.
+For Compose, enable the storage profile and disk together:</p>
+<pre><code class="language-sh">FILESYSTEM_DISK=minio docker compose -f deployments/compose.yaml --profile storage up --build -d
+</code></pre>
+<p>Compose waits for bucket initialization before starting the API when the storage
+profile is selected. Tilt includes the MinIO resource and bucket initialization
+unless the storage option is explicitly false. The full application configuration,
+including provider credentials, must be valid before its migration command runs.</p>
+<p>Compose respects an explicitly configured <code>FILESYSTEM_DISK</code>, including values in
+an existing <code>.env</code>. For a minimal stack regardless of that file, run:</p>
+<pre><code class="language-sh">FILESYSTEM_DISK=disabled docker compose -f deployments/compose.yaml up --build -d
+</code></pre>
+<p>Disabling storage does not delete existing objects or volumes. These commands
+configure local infrastructure; they do not add upload processing to Media.</p>
+<h2 id="optional-push">Optional push<a class="heading-link" href="#optional-push" aria-label="Link to Optional push">#</a></h2>
+<p>Push uses Expo Push Service externally; no local push container is required. Supply
+<code>PUSH_EXPO_PROJECT_ID</code> and <code>PUSH_EXPO_ACCESS_TOKEN</code> (when enhanced push security is
+enabled). Compose forwards these settings to application processes; no Firebase
+service-account credential mount is needed. Worker processes dispatch notification
+intents every second without requiring the cron scheduler.</p>
+<p>The development notification baseline schema now includes subscriptions and new
+channel/destination fields. Existing databases created from the previous baseline
+need an explicit schema migration or a deliberate disposable-development reset;
+application startup does not rewrite or reset existing tables.</p>
+<h2 id="recovery-and-retained-state">Recovery and retained state<a class="heading-link" href="#recovery-and-retained-state" aria-label="Link to Recovery and retained state">#</a></h2>
+<p>Deployment backup policy must cover each source of retained state:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Recovery requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Preserve accounts, sessions, notification intent/read state, media metadata and Goose history</td>
+</tr>
+<tr>
+<td>Queue Redis</td>
+<td>Configure persistence and backup for the accepted task backlog; ordinary jobs and queued mail have no SQL outbox</td>
+</tr>
+<tr>
+<td>Rate-limit Redis</td>
+<td>Preserve budgets separately from cache and queue administration; resetting them resets abuse controls</td>
+</tr>
+<tr>
+<td>Object storage or local asset volume</td>
+<td>Restore compatible object versions alongside media metadata; metadata alone cannot restore bytes</td>
+</tr>
+<tr>
+<td>Secrets and configuration</td>
+<td>Restore the matching keys, stable disk names and connection settings through protected deployment configuration</td>
+</tr>
+<tr>
+<td>Cache and telemetry</td>
+<td>Treat cache as reconstructible state; manage logs/traces under their own retention policy</td>
+</tr>
+</tbody>
+</table>
+<p>Rehearse recovery in an isolated deployment before claiming a recovery target:</p>
+<ol>
+<li>Record the source revision, migration version, queue configuration and backup
+timestamps. Quiesce producers/consumers when required by the chosen consistent
+backup procedure; a database and Redis snapshot are not one atomic snapshot.</li>
+<li>Restore to isolated databases, Redis and storage. Keep workers, schedulers,
+SMTP and push stopped or directed to test destinations so replay cannot send
+real messages during validation. Every CLI invocation still opens its configured
+resources, so use a dedicated recovery profile.</li>
+<li>Inspect <code>migrate status</code> and representative account, notification and asset
+records. Validate object contents as well as metadata; run ordinary schema
+upgrades only according to the source revision&#39;s migration plan.</li>
+<li>Inspect pending/retry/archived tasks and the notification ledger. SQL intent
+can be redispatched if Redis was lost; an ordinary task lost from Redis cannot
+be reconstructed automatically. Restoring an older ledger can repeat a provider
+effect that happened after the backup.</li>
+<li>Exercise authorized reads, a new write, rollback, an idempotent task and asset
+download in that isolated environment. Media recovery cleans known interrupted
+rows; it does not reconcile unknown bucket objects after mismatched backups.</li>
+<li>Record actual data loss and recovery time, then plan the cutover and controlled
+backlog replay. Start only one scheduler per schedule set and monitor the drain.</li>
+</ol>
+<p>These are recovery requirements, not a completed deployment rehearsal. Native
+backup commands, retention and restoration guarantees depend on the selected
+deployment. Record a new rehearsal for the source and target you will publish. For current failures,
+start with <a href="troubleshooting.html">troubleshooting</a>.</p>
+<h2 id="plan-rollout-and-termination">Plan rollout and termination<a class="heading-link" href="#plan-rollout-and-termination" aria-label="Link to Plan rollout and termination">#</a></h2>
+<p>A release deployment should make the sequence explicit:</p>
+<ol>
+<li>Build an immutable image from the intended source revision.</li>
+<li>Apply compatible migrations through one controlled migration execution.</li>
+<li>Start application processes with the matching configuration, keys, and task handlers.</li>
+<li>Wait for startup/readiness before routing traffic.</li>
+<li>On replacement, send termination to the application process and allow its drain
+and cleanup budgets before forcibly stopping the container.</li>
+</ol>
+<p><code>APP_SHUTDOWN_TIMEOUT</code> defaults to 45 seconds and cleanup has a separate 10-second
+budget. Choose a platform termination grace period with room for both and its own
+signal/routing overhead. Queue shutdown must fit inside the application drain
+budget. Increasing a timeout does not fix work that ignores cancellation.</p>
+<p>For rolling changes, account for old and new workers sharing queues and old/new
+processes using one schema. Preserve task names and payload compatibility until
+accepted work is drained or deliberately migrated. Do the same for public event
+contracts and stable storage disk names. Do not use <code>migrate refresh</code> during rollout.</p>
+<h2 id="verify-the-deployment-you-operate">Verify the deployment you operate<a class="heading-link" href="#verify-the-deployment-you-operate" aria-label="Link to Verify the deployment you operate">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Exercise</th>
+<th>Observe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fresh install</td>
+<td>Registered migrations, an authorized read/write, and required capability outputs</td>
+</tr>
+<tr>
+<td>Dependency outage</td>
+<td>Expected readiness and safe operation failures, then recovery</td>
+</tr>
+<tr>
+<td>Active-work shutdown</td>
+<td>Admission stops, work exits within bounds, dependencies close afterward</td>
+</tr>
+<tr>
+<td>Backup restore</td>
+<td>Representative rows, pending work, and asset bytes agree in an isolated target</td>
+</tr>
+<tr>
+<td>Optional provider</td>
+<td>Actual credential and delivery behavior for your provider/account</td>
+</tr>
+<tr>
+<td>Telemetry outage</td>
+<td>Business operations remain independent; export loss is visible</td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="release-readiness.html">release readiness</a> page distinguishes historical
+checks from evidence still needed for a release. The supplied local manifests do
+not establish production availability, recovery targets, or provider support.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="observability.html"><small>← Previous</small>Observability</a>
+<a href="testing.html"><small>Next →</small>Testing basics</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-the-process-shape">Choose the process shape</a></li><li class="toc-level-2"><a href="#ingress-and-readiness">Ingress and readiness</a></li><li class="toc-level-2"><a href="#retention-for-version-01">Retention for version 0.1</a></li><li class="toc-level-2"><a href="#build-identity">Build identity</a></li><li class="toc-level-2"><a href="#environment-loading">Environment loading</a></li><li class="toc-level-2"><a href="#optional-cache">Optional cache</a></li><li class="toc-level-2"><a href="#working-directory-for-binary-and-ide-launches">Working directory for binary and IDE launches</a></li><li class="toc-level-2"><a href="#persistent-application-storage">Persistent application storage</a></li><li class="toc-level-2"><a href="#run-the-application-with-docker-compose">Run the application with Docker Compose</a></li><li class="toc-level-2"><a href="#optional-observability-stack">Optional observability stack</a></li><li class="toc-level-2"><a href="#authentication-and-api-rate-limits">Authentication and API rate limits</a></li><li class="toc-level-2"><a href="#experimental-brokers">Experimental brokers</a></li><li class="toc-level-2"><a href="#optional-object-storage">Optional object storage</a></li><li class="toc-level-2"><a href="#optional-push">Optional push</a></li><li class="toc-level-2"><a href="#recovery-and-retained-state">Recovery and retained state</a></li><li class="toc-level-2"><a href="#plan-rollout-and-termination">Plan rollout and termination</a></li><li class="toc-level-2"><a href="#verify-the-deployment-you-operate">Verify the deployment you operate</a></li></ol></nav><a class="source-link" href="markdown/deployment.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

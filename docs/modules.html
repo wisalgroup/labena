@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Your first module — Practical guides and Go examples for Labena.">
+<title>Your first module — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/modules.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a class="selected" aria-current="page" href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Getting started</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#create-the-module">Create the module</a></li><li class="toc-level-2"><a href="#understand-registration">Understand registration</a></li><li class="toc-level-2"><a href="#register-it-with-the-app">Register it with the app</a></li><li class="toc-level-2"><a href="#run-your-route">Run your route</a></li><li class="toc-level-2"><a href="#add-business-behavior-when-needed">Add business behavior when needed</a></li><li class="toc-level-2"><a href="#keep-the-pattern-as-it-grows">Keep the pattern as it grows</a></li><li class="toc-level-2"><a href="#keep-large-use-cases-on-the-same-service">Keep large use cases on the same service</a></li><li class="toc-level-2"><a href="#learn-from-an-existing-operation">Learn from an existing operation</a></li><li class="toc-level-2"><a href="#check-your-changes">Check your changes</a></li></ol></nav></details>
+<article><h1 id="your-first-module">Your first module</h1>
+<p>Create a greeting endpoint in one file, register it in the app, and call it.
+Then learn where services, repositories and additional transports fit as the
+module grows. Start small: the greeting needs no database or worker of its own.</p>
+<h2 id="create-the-module">Create the module<a class="heading-link" href="#create-the-module" aria-label="Link to Create the module">#</a></h2>
+<p>The supplied Catalog starter is compiled by the normal test suite. Try it without
+configuration or infrastructure:</p>
+<pre><code class="language-sh">go test ./tests/modules -run TestFirstModule -count=1
+</code></pre>
+<p>The test registers the module with an in-process HTTP server and verifies
+<code>Hello, Ada</code>. Copy its source to begin an application module:</p>
+<pre><code class="language-sh">mkdir -p internal/modules/catalog
+cp examples/module/catalog/register.go internal/modules/catalog/register.go
+</code></pre>
+<p>Complete <code>internal/modules/catalog/register.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> catalog
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/danielgtaylor/huma/</span><span class="go-import-name">v2</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/api/</span><span class="go-import-name">response</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">dependencies</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">type</span> <span class="go-type">GreetingRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	Name <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;name&#34; minLength:&#34;1&#34;`</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">type</span> <span class="go-type">GreetingResponse</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	Message <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;message&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// Register installs the greeting route without opening resources.</span>
+<span class="go-keyword">func</span> <span class="go-function">Register</span><span class="go-bracket-0">(</span><span class="go-parameter">_</span> <span class="go-type">dependencies</span><span class="go-punctuation">.</span><span class="go-type">Resources</span><span class="go-punctuation">,</span> <span class="go-parameter">targets</span> <span class="go-type">dependencies</span><span class="go-punctuation">.</span><span class="go-type">Targets</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">if</span> <span class="go-parameter">targets</span><span class="go-punctuation">.</span>HTTP <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-parameter">targets</span><span class="go-punctuation">.</span>HTTP<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-2">{</span>Method<span class="go-punctuation">:</span> <span class="go-string">&#34;GET&#34;</span><span class="go-punctuation">,</span> Path<span class="go-punctuation">:</span> <span class="go-string">&#34;/catalog/hello/{name}&#34;</span><span class="go-punctuation">,</span> Summary<span class="go-punctuation">:</span> <span class="go-string">&#34;Greet a visitor&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		<span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">input</span> <span class="go-operator">*</span><span class="go-type">GreetingRequest</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-3">[</span><span class="go-type">GreetingResponse</span><span class="go-bracket-3">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+			<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-3">(</span><span class="go-type">GreetingResponse</span><span class="go-bracket-4">{</span>Message<span class="go-punctuation">:</span> <span class="go-string">&#34;Hello, &#34;</span> <span class="go-operator">+</span> <span class="go-parameter">input</span><span class="go-punctuation">.</span>Name<span class="go-bracket-4">}</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+		<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The <code>github.com/wisalgroup/labena</code> import prefix matches <code>go.mod</code>; change imports if you rename the
+Go module.</p>
+<h2 id="understand-registration">Understand registration<a class="heading-link" href="#understand-registration" aria-label="Link to Understand registration">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Register(resources, targets)</code></td>
+<td>Construct collaborators and attach routes, commands, tasks, events and migrations</td>
+</tr>
+<tr>
+<td><code>GreetingRequest</code></td>
+<td>Describe a path input and its Huma validation</td>
+</tr>
+<tr>
+<td><code>GreetingResponse</code></td>
+<td>Select the public output fields</td>
+</tr>
+<tr>
+<td><code>response.OK(...)</code></td>
+<td>Return the shared success envelope</td>
+</tr>
+</tbody>
+</table>
+<p>The unused Resources argument leaves room for this module&#39;s collaborators. An
+absent HTTP target skips HTTP registration. Register performs no I/O and starts
+no background work. There is no module instance to retain or initialize.</p>
+<h2 id="register-it-with-the-app">Register it with the app<a class="heading-link" href="#register-it-with-the-app" aria-label="Link to Register it with the app">#</a></h2>
+<p>In <code>internal/app/modules.go</code>, add the import:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-string">&#34;github.com/wisalgroup/labena/internal/modules/catalog&#34;</span>
+</code></pre>
+<p>In the application&#39;s <code>registerModules</code> method, add one call after Identity&#39;s registration:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">catalog</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span><span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">,</span> <span class="go-package">a</span><span class="go-punctuation">.</span>targets<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Errorf</span><span class="go-bracket-1">(</span><span class="go-string">&#34;register catalog: %w&#34;</span><span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Future routes, commands and migrations belong in Catalog&#39;s Register function;
+they need no other application list. Pass business services and settings as
+explicit arguments only when this module needs them. Do not import app config
+or add business services to Resources.</p>
+<h2 id="run-your-route">Run your route<a class="heading-link" href="#run-your-route" aria-label="Link to Run your route">#</a></h2>
+<p>Start the <a href="index.html#start-local-dependencies">tutorial database and Redis</a>, apply
+migrations, and restart the full app:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/app
+</code></pre>
+<p>In another terminal:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/catalog/hello/Ada
+</code></pre>
+<p>Expect <strong>200</strong> and an envelope like this; field order is not significant:</p>
+<pre><code class="language-json">{
+  &#34;data&#34;: {&#34;message&#34;: &#34;Hello, Ada&#34;}
+}
+</code></pre>
+<p>Open <a href="http://127.0.0.1:8080/docs">the running API docs</a> to see the new operation and
+its schema. Registration drives both routing and OpenAPI. No separate annotation
+or generation step is required.</p>
+<p>The isolated starter test needs no infrastructure; the full installed application
+still constructs its configured PostgreSQL and Redis dependencies.</p>
+<h2 id="add-business-behavior-when-needed">Add business behavior when needed<a class="heading-link" href="#add-business-behavior-when-needed" aria-label="Link to Add business behavior when needed">#</a></h2>
+<p>Move an operation into <code>service</code> when it has business rules or several callers.
+Construct module-local services once inside <code>Register</code> and pass them to HTTP,
+CLI and task handlers. Services needed before registration are constructed by app
+and passed explicitly, as with Identity authentication:</p>
+<pre><code class="language-text">internal/modules/catalog/
+  register.go
+  service/
+    service.go       Public business interface
+    product.go       Private implementation and constructor
+  repository/
+    repository.go    Persistence interface
+    product.go       Queries, implementation and constructor
+  delivery/
+    http/            Requests, responses, handlers and registration
+</code></pre>
+<p>This is a <strong>growth map</strong>, not a scaffold to create in advance. Business entities
+belong in <code>internal/modules/shared/entities</code>; module-owned migrations define their schema.
+See the <a href="persistent-workflow.html">persisted operation</a> for a real service shared
+by HTTP and CLI.</p>
+<h2 id="keep-the-pattern-as-it-grows">Keep the pattern as it grows<a class="heading-link" href="#keep-the-pattern-as-it-grows" aria-label="Link to Keep the pattern as it grows">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Add</th>
+<th>Register</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business rules reused by several callers</td>
+<td>One cohesive service</td>
+<td>Its transport handlers</td>
+</tr>
+<tr>
+<td>Persistent state</td>
+<td>Shared entity, repository and module migration</td>
+<td>SQL through <code>Targets.Migrations</code></td>
+</tr>
+<tr>
+<td>Deferred work</td>
+<td><code>jobs</code> definition and <code>delivery/jobs</code> handler</td>
+<td>Handler through <code>Targets.TaskRouter</code></td>
+</tr>
+<tr>
+<td>Business reaction</td>
+<td>Shared event contract and consuming <code>delivery/events</code> handler</td>
+<td>Handler through event targets</td>
+</tr>
+<tr>
+<td>A console operation</td>
+<td>Native Cobra constructor in <code>delivery/cli</code></td>
+<td>Group through <code>Targets.RootCommand</code></td>
+</tr>
+<tr>
+<td>Notification content</td>
+<td>A named constructor in <code>notifications</code></td>
+<td>Reuse the existing notifier</td>
+</tr>
+<tr>
+<td>Recurring work</td>
+<td>An existing task or command factory</td>
+<td><strong>Central timing</strong> in <code>app/schedules.go</code></td>
+</tr>
+</tbody>
+</table>
+<p>Scheduling is the intentional centralized exception. Modules own executable
+handlers; app owns when recurring work runs. Details are in
+<a href="module-registration.html">module registration</a> and <a href="scheduling.html">scheduling</a>.</p>
+<h2 id="keep-large-use-cases-on-the-same-service">Keep large use cases on the same service<a class="heading-link" href="#keep-large-use-cases-on-the-same-service" aria-label="Link to Keep large use cases on the same service">#</a></h2>
+<p>A substantial method can move to a separate file without creating a new service:</p>
+<pre><code class="language-text">service/
+  service.go        ProductService interface
+  product.go        productService and NewProductService
+  import.go         Import method on *productService
+</code></pre>
+<p>Constructors stay beside implementations. Contracts stay with their owners in
+<code>service/service.go</code> and <code>repository/repository.go</code>. Consumers import those
+contracts rather than redefining them or using a global contracts directory.</p>
+<p>Services receive narrow dependencies; only module assembly receives the complete
+Resources bundle. See <a href="dependency-injection.html">dependency injection</a>.</p>
+<h2 id="learn-from-an-existing-operation">Learn from an existing operation<a class="heading-link" href="#learn-from-an-existing-operation" aria-label="Link to Learn from an existing operation">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>What it demonstrates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="persistent-workflow.html">Persisted account workflow</a></td>
+<td>HTTP input → service → repository → CLI read</td>
+</tr>
+<tr>
+<td><a href="onboarding.html">Account onboarding</a></td>
+<td>Event → task → notification → channel delivery</td>
+</tr>
+<tr>
+<td><a href="transactional-notifications.html">SQL and notification intent</a></td>
+<td>Atomic business change and persisted delivery intent</td>
+</tr>
+<tr>
+<td><a href="media.html">Media</a></td>
+<td>A platform capability with owner-local types and an integration package</td>
+</tr>
+</tbody>
+</table>
+<p>Identity&#39;s authentication transactions enforce special security rules. Read their
+explanation before copying them into normal CRUD operations.</p>
+<h2 id="check-your-changes">Check your changes<a class="heading-link" href="#check-your-changes" aria-label="Link to Check your changes">#</a></h2>
+<pre><code class="language-sh">gofmt -w internal/modules/catalog/register.go internal/app/modules.go
+go test ./internal/modules/catalog ./tests/app ./tests/architecture
+</code></pre>
+<p>Place business service and repository tests in <code>tests/catalog</code>, following
+<code>tests/identity</code>. Keep app tests in <code>tests/app</code>. Architecture checks enforce import
+direction and test placement; behavior tests still verify authorization, errors
+and persistence.</p>
+<p>Before merging application changes, run the <a href="testing.html">full verification workflow</a>.
+External-driver tests require disposable services; a skip is not an integration
+success.</p>
+<p>Continue with <a href="structure.html">directory structure</a> for a code map,
+<a href="module-registration.html">module registration</a> for the complete assembly flow,
+or <a href="routing.html">routing</a> to develop the new endpoint.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="configuration.html"><small>← Previous</small>Configuration</a>
+<a href="local-development.html"><small>Next →</small>Local development</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#create-the-module">Create the module</a></li><li class="toc-level-2"><a href="#understand-registration">Understand registration</a></li><li class="toc-level-2"><a href="#register-it-with-the-app">Register it with the app</a></li><li class="toc-level-2"><a href="#run-your-route">Run your route</a></li><li class="toc-level-2"><a href="#add-business-behavior-when-needed">Add business behavior when needed</a></li><li class="toc-level-2"><a href="#keep-the-pattern-as-it-grows">Keep the pattern as it grows</a></li><li class="toc-level-2"><a href="#keep-large-use-cases-on-the-same-service">Keep large use cases on the same service</a></li><li class="toc-level-2"><a href="#learn-from-an-existing-operation">Learn from an existing operation</a></li><li class="toc-level-2"><a href="#check-your-changes">Check your changes</a></li></ol></nav><a class="source-link" href="markdown/modules.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

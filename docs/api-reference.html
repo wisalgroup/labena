@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="API reference — Practical guides and Go examples for Labena.">
+<title>API reference — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/api-reference.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a class="selected" aria-current="page" href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Reference</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-and-try-an-operation">Find and try an operation</a></li><li class="toc-level-2"><a href="#enable-capabilities">Enable capabilities</a></li><li class="toc-level-2"><a href="#change-an-endpoint">Change an endpoint</a></li><li class="toc-level-2"><a href="#keep-runtime-and-openapi-aligned">Keep runtime and OpenAPI aligned</a></li><li class="toc-level-2"><a href="#export-a-deployment-snapshot">Export a deployment snapshot</a></li><li class="toc-level-2"><a href="#troubleshoot-the-reference">Troubleshoot the reference</a></li></ol></nav></details>
+<article><h1 id="api-reference">API reference</h1>
+<p>Run the application and open <a href="http://localhost:8080/docs">the live API docs</a>.
+<a href="http://localhost:8080/openapi.json">OpenAPI JSON</a> comes from the same registered
+Huma operations and Go types that handle requests. Use your application&#39;s host
+and port when they differ from localhost:8080.</p>
+<p>There is no generation command or checked-in specification to maintain. After
+editing a route or request/response type, rebuild/restart the application and
+refresh the page. The document reflects that instance&#39;s enabled routes.
+<code>HTTP_DOCS_ENABLED=false</code> disables both URLs. The JSON endpoint is self-contained;
+the interactive page loads a pinned Scalar viewer from a CDN and needs network access.</p>
+<h2 id="find-and-try-an-operation">Find and try an operation<a class="heading-link" href="#find-and-try-an-operation" aria-label="Link to Find and try an operation">#</a></h2>
+<ol>
+<li>Start the application with the capabilities and dependencies you need.</li>
+<li>Open <code>/docs</code> on that same instance and choose a tagged operation.</li>
+<li>Inspect required fields, accepted values, successful statuses, and problem responses.</li>
+<li>For a protected operation, supply your access token through the viewer&#39;s bearer authentication control.</li>
+<li>Send the request, then copy its <code>X-Request-ID</code> response header when investigating the result.</li>
+</ol>
+<p>Use a local or intended development instance when trying operations that write
+data. The viewer sends real requests; it is not a simulator. A docs page does not
+bypass authentication or enable a disabled capability.</p>
+<p>To inspect the document without the interactive viewer:</p>
+<pre><code class="language-sh">curl --fail http://localhost:8080/openapi.json
+</code></pre>
+<h2 id="enable-capabilities">Enable capabilities<a class="heading-link" href="#enable-capabilities" aria-label="Link to Enable capabilities">#</a></h2>
+<p>Business paths include the <code>/api/v1</code> prefix.</p>
+<table>
+<thead>
+<tr>
+<th>Endpoints</th>
+<th>Availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/auth/otp/*</code>, refresh, sessions, logout</td>
+<td><code>AUTH_ENABLED=true</code></td>
+</tr>
+<tr>
+<td><code>/auth/social/{provider}</code></td>
+<td>Authentication and <code>AUTH_GOOGLE_ENABLED=true</code></td>
+</tr>
+<tr>
+<td>User reads, Media and Notifications</td>
+<td>Protected; fail closed when authentication is disabled</td>
+</tr>
+</tbody>
+</table>
+<p>Authentication also requires valid keys, mail and rate-limiter dependencies.
+Configuration validation reports missing requirements. Phone verification, Apple
+sign-in and SMS delivery are not implemented. Expo push is optional.</p>
+<p>Use <code>Authorization: Bearer &lt;access_token&gt;</code> on protected operations. Send refresh
+tokens in the refresh body. User reads are self-service, notifications are
+recipient-scoped, and Media management authorizes the owner. Content reads require public visibility or
+a valid temporary link. Uploads default to public visibility.
+A successful registration does not guarantee completion of best-effort local
+welcome-event reactions. Email OTP sends return 202 for all addresses. OTP and
+social verification return 201 for a newly created account, or 200 for an existing
+account, with tokens and <code>data.user</code>. After either status, use
+<code>data.user.profile_complete</code> to decide whether to prompt for the name. Update it
+through <code>PATCH /users/me</code>; <code>GET /users/me</code> exposes the same completion state.</p>
+<h2 id="change-an-endpoint">Change an endpoint<a class="heading-link" href="#change-an-endpoint" aria-label="Link to Change an endpoint">#</a></h2>
+<ol>
+<li>Edit the Go input/output types and their Huma schema tags.</li>
+<li>Register the typed handler once with <code>huma.Register</code> and <code>huma.Operation</code>.</li>
+<li>Return <code>response.OK</code>, <code>Created</code> or <code>Accepted</code> with a typed result, or <code>response.Error(ctx, err)</code> for a service failure. Declare non-200 success statuses on the operation too. Rebuild/restart and refresh <code>/docs</code>.</li>
+</ol>
+<p>Method, path, security, validation and schemas come from those registrations.
+Use explicit stable operation IDs when clients depend on them. Tests in this
+package exercise the live document, authentication, response schemas and concurrent
+first requests without application configuration or infrastructure.</p>
+<p>Application success bodies contain typed <code>data</code> and optional operation-specific
+<code>meta</code>. Problems keep Huma&#39;s top-level error fields, <code>errors</code> list and optional
+<code>meta</code>. Use <code>apperror.InvalidFields</code> for multiple application validation messages.
+The generated body schemas contain neither <code>request_id</code> nor <code>api_version</code>;
+read <code>X-Request-ID</code> and <code>X-API-Version</code> response headers instead. Both headers
+also accompany 204 responses and file streams, which retain their native semantics.</p>
+<p>For a deployment-specific snapshot, download <code>/openapi.json</code> with your preferred
+HTTP client. Health, metrics and the optional queue dashboard are standard HTTP
+infrastructure handlers outside the business OpenAPI document.</p>
+<p>See <a href="handlers.html">handlers</a>, <a href="requests.html">requests</a> and
+<a href="responses.html">responses</a> for the common patterns.</p>
+<h2 id="keep-runtime-and-openapi-aligned">Keep runtime and OpenAPI aligned<a class="heading-link" href="#keep-runtime-and-openapi-aligned" aria-label="Link to Keep runtime and OpenAPI aligned">#</a></h2>
+<p>The usual route change has one source of truth:</p>
+<pre><code class="language-text">Go request/response types + huma.Operation → route + validation + live OpenAPI
+</code></pre>
+<p>A few explicit declarations still matter:</p>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Update</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A new accepted field or constraint</td>
+<td>The input type and its Huma tags</td>
+</tr>
+<tr>
+<td>A new public output field</td>
+<td>The response type and conversion</td>
+</tr>
+<tr>
+<td>Fixed 201/202 result</td>
+<td>Both the status constructor and <code>Operation.DefaultStatus</code></td>
+</tr>
+<tr>
+<td>Conditional 200/201 result</td>
+<td>The operation&#39;s documented responses for both statuses</td>
+</tr>
+<tr>
+<td>Protected route</td>
+<td>Register on the authenticated API so enforcement and security match</td>
+</tr>
+<tr>
+<td>File upload/download</td>
+<td>The multipart or binary media-type declaration</td>
+</tr>
+<tr>
+<td>Operation rename</td>
+<td>Preserve its public <code>OperationID</code> unless intentionally changing the client contract</td>
+</tr>
+</tbody>
+</table>
+<p>A runtime response constructor cannot change the startup-time specification. Test
+both sides when adding status variants, streams, or custom headers. The
+<a href="responses.html">response guide</a> shows each shape.</p>
+<h2 id="export-a-deployment-snapshot">Export a deployment snapshot<a class="heading-link" href="#export-a-deployment-snapshot" aria-label="Link to Export a deployment snapshot">#</a></h2>
+<p>For client generation or a reviewed release artifact:</p>
+<pre><code class="language-sh">curl --fail http://localhost:8080/openapi.json -o /tmp/go-modular-openapi.json
+</code></pre>
+<p>That file describes the instance you queried, including its enabled routes. It is
+an export, not a new hand-maintained source. Generating a client from it is a
+separate tool choice; the framework does not ship an automatic client pipeline.</p>
+<h2 id="troubleshoot-the-reference">Troubleshoot the reference<a class="heading-link" href="#troubleshoot-the-reference" aria-label="Link to Troubleshoot the reference">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/docs</code> and <code>/openapi.json</code> both return 404</td>
+<td><code>HTTP_DOCS_ENABLED</code> on the running process</td>
+</tr>
+<tr>
+<td>JSON works but interactive page does not</td>
+<td>Network access to the pinned Scalar CDN and deployment content policies</td>
+</tr>
+<tr>
+<td>Missing endpoint</td>
+<td>Feature settings, module registration, and whether the process was rebuilt/restarted</td>
+</tr>
+<tr>
+<td>Unexpected response schema</td>
+<td>The concrete output type, response helper, and operation status declarations</td>
+</tr>
+<tr>
+<td>Docs under a deployment prefix cannot load JSON</td>
+<td>Proxy path rewriting; preserve the page&#39;s relative <code>openapi.json</code> request</td>
+</tr>
+</tbody>
+</table>
+<p>The developer documentation website and <code>/docs</code> are different surfaces: this site
+explains how to use the framework; the live viewer describes HTTP operations
+registered by your running application. Continue with <a href="routing.html">routing</a>
+and <a href="testing-http.html">HTTP tests</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="configuration-reference.html"><small>← Previous</small>Configuration reference</a>
+<a href="support.html"><small>Next →</small>Support and compatibility</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-and-try-an-operation">Find and try an operation</a></li><li class="toc-level-2"><a href="#enable-capabilities">Enable capabilities</a></li><li class="toc-level-2"><a href="#change-an-endpoint">Change an endpoint</a></li><li class="toc-level-2"><a href="#keep-runtime-and-openapi-aligned">Keep runtime and OpenAPI aligned</a></li><li class="toc-level-2"><a href="#export-a-deployment-snapshot">Export a deployment snapshot</a></li><li class="toc-level-2"><a href="#troubleshoot-the-reference">Troubleshoot the reference</a></li></ol></nav><a class="source-link" href="markdown/api-reference.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

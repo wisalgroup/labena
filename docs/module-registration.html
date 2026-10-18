@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Module registration — Practical guides and Go examples for Labena.">
+<title>Module registration — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/module-registration.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a class="selected" aria-current="page" href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-the-assembly-sequence">Read the assembly sequence</a></li><li class="toc-level-2"><a href="#application-composition">Application composition</a></li><li class="toc-level-2"><a href="#business-modules">Business modules</a></li><li class="toc-level-2"><a href="#choose-the-correct-target">Choose the correct target</a></li><li class="toc-level-2"><a href="#required-and-optional-targets">Required and optional targets</a></li><li class="toc-level-2"><a href="#commands-and-migrations">Commands and migrations</a></li><li class="toc-level-2"><a href="#keep-recurring-timing-centralized">Keep recurring timing centralized</a></li><li class="toc-level-2"><a href="#where-a-new-feature-changes-code">Where a new feature changes code</a></li></ol></nav></details>
+<article><h1 id="module-registration">Module registration</h1>
+<p>Each business module exposes a package-level <code>Register</code> function. It constructs
+its local collaborators and installs transports once during startup. Services
+needed before registration are constructed by app and passed explicitly. Follow
+<a href="modules.html">your first module</a> for the smallest example.</p>
+<h2 id="read-the-assembly-sequence">Read the assembly sequence<a class="heading-link" href="#read-the-assembly-sequence" aria-label="Link to Read the assembly sequence">#</a></h2>
+<pre><code class="language-text">App opens resources
+  → constructs Mail, Notifier and Media
+  → constructs the authentication service
+  → builds authenticated HTTP targets
+  → registers business modules and capability transports
+  → validates commands and migration sources
+  → installs central schedules
+  → starts selected processes
+</code></pre>
+<p>App selects the order because dependencies are explicit. There is no discovery,
+reflection, provider catalog or Module struct to implement.</p>
+<h2 id="application-composition">Application composition<a class="heading-link" href="#application-composition" aria-label="Link to Application composition">#</a></h2>
+<p><code>internal/app/modules.go</code> lists business registrations on the private application
+and passes their explicit collaborators. This is the complete compiled file:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> app
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">fmt</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/</span><span class="go-import-name">identity</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">service</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// registerModules lists business registrations in dependency order.</span>
+<span class="go-comment">// App translates settings and passes business collaborators explicitly.</span>
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>a <span class="go-operator">*</span><span class="go-type">application</span><span class="go-bracket-0">)</span> <span class="go-function">registerModules</span><span class="go-bracket-0">(</span><span class="go-parameter">authentication</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">AuthService</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">identity</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span>a<span class="go-punctuation">.</span>resources<span class="go-punctuation">,</span> a<span class="go-punctuation">.</span>targets<span class="go-punctuation">,</span> <span class="go-parameter">authentication</span><span class="go-punctuation">,</span> a<span class="go-punctuation">.</span>cfg<span class="go-punctuation">.</span>Auth<span class="go-punctuation">.</span>GoogleEnabled<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Errorf</span><span class="go-bracket-2">(</span><span class="go-string">&#34;register identity: %w&#34;</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>infrastructure.go</code> opens clients and constructs Mail, Notifier and Media. <code>auth.go</code>
+constructs one Identity AuthService from <code>cfg.Auth</code>, using existing repositories,
+provider integrations, AuthOptions and domain policies. <code>open.go</code> passes that
+service to the API&#39;s existing Authenticator interface and to Identity&#39;s Register.</p>
+<p>The application stores clients in <code>a.resources</code> and registries in <code>a.targets</code>.
+Infrastructure setup creates the native job and event registries there, and
+workers consume those same instances. Console execution uses <code>a.targets.RootCommand</code>.
+Modules borrow these two bundles; they never receive the application itself.</p>
+<p>Identity registers user media, notification and push-subscription HTTP routes
+using the available Media and Notifier resources. Its push handler calls the
+supplied AuthService&#39;s SubscribePush operation directly, preserving the session
+transaction and lock. Disabled authentication supplies a nil authenticator, so
+protected routes fail closed; a missing AuthService also rejects subscription
+registration. There is no HTTP fallback to standalone notifier registration.
+App still supplies notification delivery&#39;s active-session check.</p>
+<p>Platform registration installs generic media content serving, commands, tasks and
+migrations. It does not register user-specific HTTP routes or import business
+definitions. The principal contract lives in <code>internal/platform/auth</code>.</p>
+<p>Environment fields, decoding and configuration validation live in <code>app/config</code>.
+There is no duplicate Identity Config or <code>cfg.Identity()</code> conversion. The domain
+owns session policies, and services validate their collaborators. Business modules
+never import app configuration; app passes values or constructed services.</p>
+<h2 id="business-modules">Business modules<a class="heading-link" href="#business-modules" aria-label="Link to Business modules">#</a></h2>
+<p>Identity accepts authentication and the Google route selection explicitly:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-function">Register</span><span class="go-bracket-0">(</span><span class="go-parameter">resources</span> <span class="go-type">dependencies</span><span class="go-punctuation">.</span><span class="go-type">Resources</span><span class="go-punctuation">,</span> <span class="go-parameter">targets</span> <span class="go-type">dependencies</span><span class="go-punctuation">.</span><span class="go-type">Targets</span><span class="go-punctuation">,</span>
+    <span class="go-parameter">authentication</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">AuthService</span><span class="go-punctuation">,</span> <span class="go-parameter">googleEnabled</span> <span class="go-builtin-type">bool</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span>
+</code></pre>
+<p>This is the function signature; the implementation is in
+<code>internal/modules/identity/register.go</code>. It constructs the account collaborators
+as local variables:</p>
+<pre><code class="language-go" data-highlighted="yes">users<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">service</span><span class="go-punctuation">.</span><span class="go-function">NewUserService</span><span class="go-bracket-0">(</span><span class="go-package">repository</span><span class="go-punctuation">.</span><span class="go-function">NewUserRepository</span><span class="go-bracket-1">(</span><span class="go-package">resources</span><span class="go-punctuation">.</span><span class="go-number">DB</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>function-body fragment</strong> uses Identity&#39;s repository/service imports. The
+repository borrows the app database; the service borrows the repository. Neither
+owns the pool&#39;s lifetime. Registered handlers retain the same service instance;
+a Module struct is unnecessary.</p>
+<p>Attach available transports with those local variables:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>RootCommand <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">targets</span><span class="go-punctuation">.</span>RootCommand<span class="go-punctuation">.</span><span class="go-function">AddCommand</span><span class="go-bracket-1">(</span><span class="go-package">modulecli</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span>users<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Migrations <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Migrations<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-string">&#34;internal/modules/identity/migrations&#34;</span><span class="go-punctuation">,</span> <span class="go-package">migrations</span><span class="go-punctuation">.</span>Files<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This is an <strong>illustrative registration excerpt</strong>. Identity&#39;s full function also
+registers welcome handlers, authentication routes and maintenance commands.</p>
+<h2 id="choose-the-correct-target">Choose the correct target<a class="heading-link" href="#choose-the-correct-target" aria-label="Link to Choose the correct target">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>You are registering…</th>
+<th>Target</th>
+<th>Native action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public HTTP operation</td>
+<td><code>HTTP</code></td>
+<td><code>huma.Register</code></td>
+</tr>
+<tr>
+<td>Session-protected operation</td>
+<td><code>AuthenticatedHTTP</code></td>
+<td><code>huma.Register</code></td>
+</tr>
+<tr>
+<td>CLI group</td>
+<td><code>RootCommand</code></td>
+<td><code>AddCommand</code></td>
+</tr>
+<tr>
+<td>Task handler</td>
+<td><code>TaskRouter</code></td>
+<td>Asynq <code>Handle</code> or <code>HandleFunc</code></td>
+</tr>
+<tr>
+<td>Event handler</td>
+<td><code>EventRouter</code> and <code>EventSubscriber</code></td>
+<td>Watermill <code>AddConsumerHandler</code></td>
+</tr>
+<tr>
+<td>Embedded SQL</td>
+<td><code>Migrations</code></td>
+<td><code>Register(source, files)</code></td>
+</tr>
+<tr>
+<td>Named seed operation</td>
+<td><code>Seeders</code></td>
+<td><code>Register</code></td>
+</tr>
+<tr>
+<td>Schedulable CLI action</td>
+<td><code>ScheduledCommands</code></td>
+<td>Register a fresh command factory</td>
+</tr>
+</tbody>
+</table>
+<p>Targets are borrowed startup registries, not dependencies looked up by services.
+For clients and collaborators, use <a href="dependency-injection.html">Resources</a>.</p>
+<h2 id="required-and-optional-targets">Required and optional targets<a class="heading-link" href="#required-and-optional-targets" aria-label="Link to Required and optional targets">#</a></h2>
+<p>A nil target means <strong>omit that transport</strong>. It does not mean disable validation for
+an enabled transport. For example, a registered event consumer needs both its
+subscriber and the queue client used by its handler.</p>
+<ol>
+<li>Validate required collaborators before mutating any registry.</li>
+<li>Register sequentially, before runners start.</li>
+<li>Return the original error with useful context.</li>
+<li>Discard the partial application if registration fails.</li>
+</ol>
+<p>Do not retry <code>Register</code> against partly mutated targets. Native routers can reject
+duplicate handlers or conflicting paths, and registration is not transactional.</p>
+<h2 id="commands-and-migrations">Commands and migrations<a class="heading-link" href="#commands-and-migrations" aria-label="Link to Commands and migrations">#</a></h2>
+<p>Register commands with already constructed services. Use <code>cmd.Context()</code> during
+execution; do not construct a second app from a command callback. Help intentionally
+constructs the same app. See <a href="console.html">console commands</a>.</p>
+<p>Register embedded SQL; execute it later through <code>migrate up</code>. Registration never
+runs DDL. Module and platform SQL share one Goose history, so versions must be
+globally unique. See <a href="migrations.html">migrations</a>.</p>
+<h2 id="keep-recurring-timing-centralized">Keep recurring timing centralized<a class="heading-link" href="#keep-recurring-timing-centralized" aria-label="Link to Keep recurring timing centralized">#</a></h2>
+<p>A module owns task handlers and command factories. App owns recurring timing,
+feature conditions and enqueue options in <code>internal/app/schedules.go</code>.
+Schedules are installed after registration so their destinations exist.</p>
+<p>Adding a task does not schedule it. Adding a schedule does not start its scheduler;
+that process is selected separately. See <a href="scheduling.html">scheduling</a>.</p>
+<h2 id="where-a-new-feature-changes-code">Where a new feature changes code<a class="heading-link" href="#where-a-new-feature-changes-code" aria-label="Link to Where a new feature changes code">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Required assembly edits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add an endpoint to an existing module</td>
+<td>Its HTTP registration and handler</td>
+</tr>
+<tr>
+<td>Add a command or job</td>
+<td>Its delivery package and module <code>Register</code></td>
+</tr>
+<tr>
+<td>Add a business module</td>
+<td>Its <code>Register</code> function, plus one app composition entry</td>
+</tr>
+<tr>
+<td>Add recurring maintenance</td>
+<td>Register its handler locally; add timing centrally</td>
+</tr>
+<tr>
+<td>Add infrastructure</td>
+<td>Typed config, app acquisition/cleanup, explicit consumer wiring</td>
+</tr>
+</tbody>
+</table>
+<p>Registration starts no network work, listeners or business operations. App keeps
+resources alive until consumers drain. Continue with
+<a href="dependency-injection.html">dependency injection</a> and
+<a href="application-lifecycle.html">application lifecycle</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="entry-points.html"><small>← Previous</small>Entry points</a>
+<a href="dependency-injection.html"><small>Next →</small>Dependency injection</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-the-assembly-sequence">Read the assembly sequence</a></li><li class="toc-level-2"><a href="#application-composition">Application composition</a></li><li class="toc-level-2"><a href="#business-modules">Business modules</a></li><li class="toc-level-2"><a href="#choose-the-correct-target">Choose the correct target</a></li><li class="toc-level-2"><a href="#required-and-optional-targets">Required and optional targets</a></li><li class="toc-level-2"><a href="#commands-and-migrations">Commands and migrations</a></li><li class="toc-level-2"><a href="#keep-recurring-timing-centralized">Keep recurring timing centralized</a></li><li class="toc-level-2"><a href="#where-a-new-feature-changes-code">Where a new feature changes code</a></li></ol></nav><a class="source-link" href="markdown/module-registration.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,278 @@
+# Local application and infrastructure. Run from the repository root:
+# docker compose -f deployments/compose.yaml up --build -d
+x-app: &app
+  image: go-modular-app:local
+  build:
+    context: ..
+    dockerfile: deployments/Dockerfile
+  working_dir: /app
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp]
+  volumes:
+  - app-storage:/app/storage
+  environment:
+    QUEUE_DEFAULT: default
+    QUEUE_DEFAULT_PRIORITY: "1"
+    QUEUE_HIGH_PRIORITY: "3"
+    QUEUE_CONCURRENCY: "4"
+    QUEUE_REDIS_URL: "redis://redis:6379/1"
+    EVENTS_DRIVER: gochannel
+    APP_ENV_FILE: ""
+    HTTP_READINESS_DEPENDENCIES: "${HTTP_READINESS_DEPENDENCIES:-true}"
+    HTTP_TRUSTED_PROXIES: "${HTTP_TRUSTED_PROXIES:-}"
+    FILESYSTEM_DISK: "${FILESYSTEM_DISK:-disabled}"
+    MEDIA_BASE_URL: "${MEDIA_BASE_URL:-http://localhost:8080/api/v1/media}"
+    MEDIA_SIGNING_KEY: "${MEDIA_SIGNING_KEY:-}"
+    FILESYSTEM_LOCAL_ROOT: /app/storage/app
+    FILESYSTEM_MINIO_VISIBILITY: "${FILESYSTEM_MINIO_VISIBILITY:-public}"
+    FILESYSTEM_MINIO_URL_MODE: "${FILESYSTEM_MINIO_URL_MODE:-internal}"
+    FILESYSTEM_MINIO_PUBLIC_URL: "${FILESYSTEM_MINIO_PUBLIC_URL:-http://localhost:9000/uploads}"
+    FILESYSTEM_MINIO_BUCKET: uploads
+    FILESYSTEM_MINIO_ENDPOINT: http://minio:9000
+    FILESYSTEM_MINIO_ACCESS_KEY_ID: demo
+    FILESYSTEM_MINIO_SECRET_ACCESS_KEY: local-demo-minio
+    LOG_CHANNELS: "${LOG_CHANNELS:-stderr,file}"
+    METRICS_ENABLED: "${METRICS_ENABLED:-false}"
+    METRICS_ADDRESS: "${METRICS_ADDRESS:-127.0.0.1:9090}"
+    TRACING_ENABLED: "${TRACING_ENABLED:-false}"
+    TRACING_TRUST_INCOMING: "false"
+    APP_NAME: "labena"
+    OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:-http://alloy:4318/v1/logs}"
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://localhost:4318/v1/traces}"
+    TRACING_SAMPLE_RATIO: "${TRACING_SAMPLE_RATIO:-0.1}"
+    TRACING_EXPORT_TIMEOUT: "5s"
+    TRACING_SHUTDOWN_TIMEOUT: "3s"
+    PUSH_ENABLED: "${PUSH_ENABLED:-false}"
+    PUSH_EXPO_PROJECT_ID: "${PUSH_EXPO_PROJECT_ID:-}"
+    PUSH_EXPO_ACCESS_TOKEN: "${PUSH_EXPO_ACCESS_TOKEN:-}"
+    DATABASE_DRIVER: postgres
+    DATABASE_URL: postgres://demo:local-demo@postgres:5432/go_modular?sslmode=disable
+
+
+services:
+  minio:
+    profiles: [storage]
+    image: go-modular-minio:local
+    build:
+      context: ..
+      dockerfile: deployments/development/docker/minio.Dockerfile
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: demo
+      MINIO_ROOT_PASSWORD: local-demo-minio
+    ports:
+      - 127.0.0.1:9000:9000
+      - 127.0.0.1:9001:9001
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:9000/minio/health/ready]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  minio-init:
+    profiles: [storage]
+    image: go-modular-minio:local
+    build:
+      context: ..
+      dockerfile: deployments/development/docker/minio.Dockerfile
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        mc --config-dir /tmp/mc alias set dev http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc --config-dir /tmp/mc mb --ignore-existing dev/uploads
+    environment:
+      MINIO_ROOT_USER: demo
+      MINIO_ROOT_PASSWORD: local-demo-minio
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+  migrate:
+    <<: *app
+    entrypoint: [/app/cli]
+    command: [migrate, up]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    <<: *app
+    entrypoint: [/app/app]
+    restart: unless-stopped
+    stop_grace_period: 70s
+    ports:
+    - 127.0.0.1:8080:8080
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+        required: false
+  # One scheduler per schedule set; API replicas already include queue workers.
+  scheduler:
+    <<: *app
+    entrypoint: [/app/scheduler]
+    restart: unless-stopped
+    stop_grace_period: 70s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+        required: false
+  redis:
+    image: redis:7.4.2-alpine
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
+    ports:
+    - 127.0.0.1:6379:6379
+    volumes:
+    - redis-data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  rabbitmq:
+    profiles: [extra-brokers]
+    image: rabbitmq:4.1.0-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: demo
+      RABBITMQ_DEFAULT_PASS: local-demo
+    ports:
+    - 127.0.0.1:5672:5672
+    - 127.0.0.1:15672:15672
+    volumes:
+    - rabbit-data:/var/lib/rabbitmq
+    healthcheck:
+      test:
+      - CMD
+      - rabbitmq-diagnostics
+      - -q
+      - ping
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: go_modular
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: local-demo
+    ports:
+    - 127.0.0.1:5442:5432
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U demo -d go_modular
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  nats:
+    profiles: [extra-brokers]
+    image: nats:2.11.9-alpine
+    command:
+    - -js
+    - -sd
+    - /data
+    ports:
+    - 127.0.0.1:4222:4222
+    volumes:
+    - nats-data:/data
+
+  # Optional local observability; no application dependency on these services.
+  grafana:
+    image: grafana/grafana:13.2.2
+    profiles: [observability]
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      GOMEMLIMIT: 700MiB
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_SECURITY_ADMIN_PASSWORD: local-development-only
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_PLUGINS_PREINSTALL_AUTO_UPDATE: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    profiles: [observability]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --storage.tsdb.retention.size=1GB
+    volumes:
+      - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+  tempo:
+    image: grafana/tempo:2.10.8
+    profiles: [observability]
+    restart: unless-stopped
+    mem_limit: 2g
+    environment:
+      GOMEMLIMIT: 1600MiB
+    cpus: 1
+    command: [-config.file=/etc/tempo.yaml]
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+  loki:
+    image: grafana/loki:3.7.8
+    profiles: [observability]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+    command: [-config.file=/etc/loki.yaml]
+    volumes:
+      - ./observability/loki.yaml:/etc/loki.yaml:ro
+      - loki-data:/loki
+  alloy:
+    image: grafana/alloy:v1.20.1
+    profiles: [observability]
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1
+    ports: ["127.0.0.1:4318:4318"]
+    command: [run, --server.http.listen-addr=0.0.0.0:12345, --storage.path=/var/lib/alloy, /etc/alloy/config.alloy]
+    volumes:
+      - ./observability/alloy.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy
+
+volumes:
+  minio-data: null
+  app-storage: null
+  redis-data: null
+  rabbit-data: null
+  postgres-data: null
+  nats-data: null
+  grafana-data: null
+  prometheus-data: null
+  tempo-data: null
+  loki-data: null
+  alloy-data: null

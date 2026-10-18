@@ -1,0 +1,17 @@
+{{.Brand.Name}}
+
+{{.Email.Title}}
+{{range .Email.Paragraphs}}
+{{.}}
+{{end}}{{with .Email.Code}}
+{{.Label}}: {{.Value}}
+{{.Hint}}
+{{end}}{{with .Email.Action}}
+{{.Label}}: {{.URL}}
+{{end}}{{if .Email.Note}}
+{{.Email.Note}}
+{{end}}
+---
+{{.Brand.Name}} — {{.Brand.WebsiteURL}}
+{{if .Brand.SupportEmail}}Support: {{.Brand.SupportEmail}}
+{{end}}{{.Brand.Footer}}

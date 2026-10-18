@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+/api
+/cli
+/build
+
+/storage/logs
+/storage/app
+
+# Local OAuth client credentials
+/client_secret_*.json

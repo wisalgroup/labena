@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Events and subscriptions — Practical guides and Go examples for Labena.">
+<title>Events and subscriptions — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/events.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a class="selected" aria-current="page" href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Background work</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#signup-flow">Signup flow</a></li><li class="toc-level-2"><a href="#terms-and-ownership">Terms and ownership</a></li><li class="toc-level-2"><a href="#publish-an-event">Publish an event</a></li><li class="toc-level-2"><a href="#define-an-event-contract">Define an event contract</a></li><li class="toc-level-2"><a href="#adding-a-contract-or-extracting-a-service">Adding a contract or extracting a service</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#notifications-and-tasks">Notifications and tasks</a></li><li class="toc-level-2"><a href="#independent-construction">Independent construction</a></li><li class="toc-level-2"><a href="#lifecycle-and-failure-handling">Lifecycle and failure handling</a></li><li class="toc-level-2"><a href="#test-and-diagnose-a-reaction">Test and diagnose a reaction</a></li><li class="toc-level-2"><a href="#development-schema">Development schema</a></li></ol></nav></details>
+<article><h1 id="events-and-pubsub">Events and pub/sub</h1>
+<p>An event announces a fact that already happened. Other modules can react without
+the publisher knowing their implementations. This application uses <strong>Watermill
+GoChannel only</strong>: a process-local, in-memory pub/sub bus.</p>
+<h2 id="signup-flow">Signup flow<a class="heading-link" href="#signup-flow" aria-label="Link to Signup flow">#</a></h2>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: From signup to a welcome notification
+    accDescr: The local event is best-effort. Redis only protects a task after enqueue; the notification ledger only protects intent after it is committed.
+    subgraph Local[Publishing process]
+        Account[Account committed] -. best-effort event .-&gt; Bus[GoChannel: UserRegistered]
+    end
+    Bus --&gt;|Identity event handler enqueues| Job[(Welcome task in Redis)]
+    Job --&gt;|Worker reloads account| Intents[(Channel intents in PostgreSQL)]
+    Intents --&gt;|Dispatcher and delivery workers| Database[Database notification]
+    Intents --&gt;|Verified address and mailer available| Email[Welcome email]
+</code></pre>
+<p>Account creation completes before publication. Identity owns the welcome content
+and subscribes through <code>identity/register.go</code>. Signing in to an existing account publishes no registration event.</p>
+<p>These reactions are <strong>best-effort</strong>. A successful publish does not mean a subscriber
+completed its work. Events can be lost when no subscriber is running, during a
+restart, or after a process failure. GoChannel does not replay missed events and
+cannot communicate between API and worker processes or between replicas.</p>
+<h2 id="terms-and-ownership">Terms and ownership<a class="heading-link" href="#terms-and-ownership" aria-label="Link to Terms and ownership">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Event</td>
+<td>A fact, such as a user being registered</td>
+</tr>
+<tr>
+<td>Topic</td>
+<td>The string used to route that event</td>
+</tr>
+<tr>
+<td>Publisher</td>
+<td>Sends an occurrence to a topic</td>
+</tr>
+<tr>
+<td>Subscriber</td>
+<td>Receives occurrences in the same process</td>
+</tr>
+<tr>
+<td>Handler name</td>
+<td>Unique router identity used for registration and diagnostics</td>
+</tr>
+<tr>
+<td>Payload</td>
+<td>The typed data encoded as JSON</td>
+</tr>
+</tbody>
+</table>
+<p>Published business event definitions and common occurrence metadata live in
+<code>internal/modules/shared/events</code>. Identity owns the meaning and version of <code>UserRegistered</code>;
+handlers belong to consuming modules in <code>delivery/events</code>. App assembly owns the
+bus, middleware, router startup and shutdown; modules borrow the publisher and
+registration targets.
+Handler names are not durable consumer groups or broker queues.</p>
+<p><code>events.Event</code> exposes <code>ID</code>, <code>Type</code> and <code>OccurredAt</code>, serialized as <code>event_id</code>, <code>event_type</code>
+and <code>occurred_at</code>. It has no embedded interface, event buffer or dispatch hooks.
+<code>UserRegistered</code> embeds this metadata and adds <code>user_id</code>; its topic remains
+<code>identity.user_registered.v1</code>.</p>
+<p>Keep this package small: payload structs, topic constants, occurrence metadata and
+<code>New…</code> constructors. Use IDs and event-specific values, without importing business
+entities, services, repositories, platform capabilities, config or transport types.
+Constructors describe occurrences; they do not publish or register handlers.
+Producers own schema compatibility and introduce a new topic version for an
+incompatible contract. Consumers can learn the contract without importing the
+producer&#39;s implementation.</p>
+<h2 id="publish-an-event">Publish an event<a class="heading-link" href="#publish-an-event" aria-label="Link to Publish an event">#</a></h2>
+<p>Publish after a successful operation, outside a database transaction. Here <code>events</code>
+is <code>github.com/wisalgroup/labena/internal/modules/shared/events</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">event <span class="go-operator">:=</span> <span class="go-package">events</span><span class="go-punctuation">.</span><span class="go-function">NewUserRegistered</span><span class="go-bracket-0">(</span><span class="go-package">user</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">publisher</span><span class="go-punctuation">.</span><span class="go-function">PublishWithID</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-package">events</span><span class="go-punctuation">.</span>UserRegisteredType<span class="go-punctuation">,</span> event<span class="go-punctuation">.</span>ID<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span> event<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-comment">// The business commit already succeeded. Report this optional reaction failure.</span>
+    <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span>ctx<span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">ErrorContext</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;registration event publication failed&#34;</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This fragment assumes an already committed <code>user</code>, the caller&#39;s <code>ctx</code> and a borrowed
+<code>messaging.Publisher</code>. It imports <code>github.com/wisalgroup/labena/pkg/logging</code> for the safe failure log.
+Do not log the whole event or return an error that implies the committed account was
+rolled back. Required follow-up work needs a persisted intent, not this local event.</p>
+<p>Identity performs this for OTP signup and first social login. It logs publication
+failure without returning a signup error:
+the account is already committed, so retrying signup would be misleading.
+Repositories perform persistence only; they do not publish events.</p>
+<h2 id="define-an-event-contract">Define an event contract<a class="heading-link" href="#define-an-event-contract" aria-label="Link to Define an event contract">#</a></h2>
+<p><strong>File:</strong> <code>internal/modules/shared/events/user_registered.go</code> (the existing contract):</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> events
+
+<span class="go-keyword">import</span> <span class="go-string">&#34;</span><span class="go-import-path">github.com/google/</span><span class="go-import-name">uuid</span><span class="go-string">&#34;</span>
+
+<span class="go-comment">// UserRegisteredType is the topic for Identity account creation.</span>
+<span class="go-keyword">const</span> <span class="go-number">UserRegisteredType</span> <span class="go-operator">=</span> <span class="go-string">&#34;identity.user_registered.v1&#34;</span>
+
+<span class="go-comment">// UserRegistered records an account created by Identity after its transaction</span>
+<span class="go-comment">// commits. Consuming modules own their reactions.</span>
+<span class="go-keyword">type</span> <span class="go-type">UserRegistered</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	<span class="go-type">Event</span>
+	UserID <span class="go-type">uuid</span><span class="go-punctuation">.</span><span class="go-number">UUID</span> <span class="go-string">`json:&#34;user_id&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">NewUserRegistered</span><span class="go-bracket-0">(</span><span class="go-parameter">userID</span> <span class="go-type">uuid</span><span class="go-punctuation">.</span><span class="go-number">UUID</span><span class="go-bracket-0">)</span> <span class="go-type">UserRegistered</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">return</span> <span class="go-type">UserRegistered</span><span class="go-bracket-1">{</span>Event<span class="go-punctuation">:</span> <span class="go-function">NewEvent</span><span class="go-bracket-2">(</span><span class="go-number">UserRegisteredType</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> UserID<span class="go-punctuation">:</span> <span class="go-parameter">userID</span><span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>NewEvent</code> supplies a fresh UUID and UTC occurrence time. Creating this value has no
+network effects. Reuse the occurrence ID when retrying publication of the same fact;
+creating a new event each retry would describe several occurrences.</p>
+<p>Keep payloads small and versioned. Avoid embedding a user entity: future fields may
+expose private data, and consumers rarely need the producer&#39;s full database shape.</p>
+<h2 id="adding-a-contract-or-extracting-a-service">Adding a contract or extracting a service<a class="heading-link" href="#adding-a-contract-or-extracting-a-service" aria-label="Link to Adding a contract or extracting a service">#</a></h2>
+<p>Add a definition and <code>New…</code> constructor to <code>internal/modules/shared/events</code>, publish it
+after the producer&#39;s successful operation, then register reactions in the
+consuming modules. Keep payloads limited to what consumers need. Handlers and
+their registration stay out of the shared package.</p>
+<p>This location provides a common contract inside the application. Go&#39;s <code>internal</code>
+boundary still restricts imports from separate projects. If a service is later
+extracted, publish only the required versioned schemas or a small contract module;
+do not export the whole shared directory. Keep domain errors with their owners,
+reuse <code>pkg/apperror</code> locally, and transmit stable error codes across boundaries.</p>
+<p>Moving definitions does not change delivery: the current GoChannel bus is local
+and best-effort. Cross-process delivery requires a separate transport decision
+and explicit durability guarantees.</p>
+<h2 id="register-a-handler">Register a handler<a class="heading-link" href="#register-a-handler" aria-label="Link to Register a handler">#</a></h2>
+<p>Modules register handlers before the router starts:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">router</span><span class="go-punctuation">.</span><span class="go-function">AddConsumerHandler</span><span class="go-bracket-0">(</span>
+    <span class="go-string">&#34;identity.welcome&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-package">events</span><span class="go-punctuation">.</span>UserRegisteredType<span class="go-punctuation">,</span>
+    subscriber<span class="go-punctuation">,</span>
+    <span class="go-type">eventhandlers</span><span class="go-punctuation">.</span><span class="go-type">UserRegistered</span><span class="go-bracket-1">{</span>Queue<span class="go-punctuation">:</span> queue<span class="go-bracket-1">}</span><span class="go-punctuation">.</span>Handle<span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Here <code>subscriber</code> is the app-owned GoChannel bus, <code>queue</code> is the borrowed Asynq
+client, and <code>eventhandlers</code> imports <code>internal/modules/identity/delivery/events</code>. The handler
+decodes the event and enqueues a task containing the required user ID. The job reloads the
+account and persists eligible welcome channels through the Notifier. All Identity
+registrations are in <code>internal/modules/identity/register.go</code>.</p>
+<p>Handlers tolerate duplicates. Database notification uniqueness is enforced per
+<code>(recipient_type, recipient_id, key)</code>, and delivery intents additionally include the
+channel and destination (a subscription ID for push). This protects repeated database effects; it does not establish exactly-once
+email.</p>
+<h2 id="notifications-and-tasks">Notifications and tasks<a class="heading-link" href="#notifications-and-tasks" aria-label="Link to Notifications and tasks">#</a></h2>
+<p>Pub/sub distributes facts; <a href="notifications.html">Notifications</a> implements JSON database notifications,
+email and durable channel delivery. Business modules supply content and recipients.
+Identity&#39;s <code>identity welcome USER_ID</code> command enqueues the existing
+<code>identity.welcome.v1</code> task, defined in <code>internal/modules/identity/jobs</code>. Its handler in
+<code>delivery/jobs</code> saves the same welcome occurrence as automatic registration. It
+requests a database notification and, for verified addresses when a mailer is available, an email.
+The platform dispatcher and delivery worker carry out those channel intents.
+Workers dispatch pending intents every second; the cron scheduler is not required.</p>
+<p>GoChannel publication remains ephemeral. Enqueueing from a local event handler
+cannot recover an event lost before that handler ran. When notification intent
+must commit with a business change, call Notifier.Enqueue in the same SQL
+transaction. Its PostgreSQL delivery ledger is dispatched to Asynq after commit.
+Framework Publisher and app queue calls reject an active framework SQL transaction
+before serialization or publication. Raw native clients bypass this guard and
+still do not join SQL transactions; post-commit publication remains best-effort.</p>
+<p>OTP policy, expiry and validation remain Identity responsibilities. <a href="push.html">Expo push</a>
+is available independently and through Notifications. SMS and WhatsApp are not implemented.</p>
+<h2 id="independent-construction">Independent construction<a class="heading-link" href="#independent-construction" aria-label="Link to Independent construction">#</a></h2>
+<p><code>messaging.NewPublisher(nativePublisher)</code> returns <code>(Publisher, error)</code> and borrows
+the transport. It performs no I/O and rejects a missing publisher immediately.
+The caller retains responsibility for transport cleanup.</p>
+<p><code>messaging.RegisterRunner(router)</code> returns <code>(*Runner, error)</code>. It installs the
+lifecycle middleware on a non-nil native Watermill router, so register it once
+before other middleware and handlers. It starts no work. The runner&#39;s <code>Run(ctx)</code>
+then owns router execution and shutdown, joining admitted calls before it returns.
+The bus and other borrowed clients stay open until all their users finish.</p>
+<h2 id="lifecycle-and-failure-handling">Lifecycle and failure handling<a class="heading-link" href="#lifecycle-and-failure-handling" aria-label="Link to Lifecycle and failure handling">#</a></h2>
+<p><code>EVENTS_DRIVER=gochannel</code> is the supported setting. Run event subscribers in every
+process that publishes local events; a separate worker cannot receive API events.
+App registration is sequential, and router readiness precedes normal serving.
+The app explicitly closes the router and joins admitted handler calls before
+releasing borrowed resources. A native router timeout cannot close dependencies
+under a handler. With no registered subscriptions, no native delivery loop starts.</p>
+<p>The app&#39;s <code>messaging.LocalBus</code> retains native GoChannel and adds admission limits:
+128 outstanding events, 8 MiB of retained message data, and 64 KiB per event
+(including payload, metadata, ID and topic). Publication rejects a full or oversized
+batch before copying it; successful return means in-memory admission. Serialization
+and Go object overhead are additional. Subscriptions are installed before serving;
+fanout copies and handler work depend on that fixed subscription set. Event ordering
+is not an application guarantee.</p>
+<p>At most 16 handler retry cycles execute concurrently across topics. Middleware
+supplies tracing, metrics, safe failure logging, recovery and a 20-second handler
+context budget once a cycle starts. Each delivery attempts the handler once plus
+up to three retries with backoff. An exhausted cycle is logged, acknowledged and
+discarded, releasing admission capacity; it does not begin another GoChannel
+redelivery cycle. Each attempt has its own span. Oversized/capacity rejections are
+reported as publication errors and logged without payloads. Handlers must respect
+cancellation and remain idempotent. There is no persistent dead-letter store or
+restart recovery. A bare native GoChannel used independently retains its own Nack
+redelivery behavior; use LocalBus with its DeliveryMiddleware for these limits.</p>
+<p><code>EVENTS_SHUTDOWN_TIMEOUT</code> bounds router shutdown. In-flight events can still be
+lost when shutdown times out. Logs/traces carry correlation identifiers; metric
+labels must remain bounded.</p>
+<h2 id="test-and-diagnose-a-reaction">Test and diagnose a reaction<a class="heading-link" href="#test-and-diagnose-a-reaction" aria-label="Link to Test and diagnose a reaction">#</a></h2>
+<p>A handler test should check valid payloads, invalid payloads, downstream failures
+and repeated delivery. Identity&#39;s handler is shown in the <a href="onboarding.html#react-to-the-event">onboarding walkthrough</a>.
+Use a fake queue client for its unit behavior and the real router in integration tests.</p>
+<pre><code class="language-sh">go test ./internal/modules/identity/delivery/events/... ./internal/platform/messaging/...
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely boundary</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Signup succeeded but welcome did not enqueue</td>
+<td>Optional post-commit publication</td>
+<td>Safe publication failure log and local subscribers</td>
+</tr>
+<tr>
+<td>A worker process receives no API event</td>
+<td>GoChannel cannot cross processes</td>
+<td>Subscribers in the publishing process</td>
+</tr>
+<tr>
+<td>Handler keeps failing</td>
+<td>Payload or downstream service</td>
+<td>Trace each attempt, then fix the handler/dependency; no durable failed-event queue exists</td>
+</tr>
+<tr>
+<td>One reaction succeeds and another fails</td>
+<td>Handlers are independent</td>
+<td>Reconcile the failed operation; successful reactions are not rolled back</td>
+</tr>
+<tr>
+<td>Task exists but email does not</td>
+<td>Notification delivery happens later</td>
+<td>Follow task ID → delivery IDs → <a href="notifications.html#delivery-lifecycle">notification status</a></td>
+</tr>
+</tbody>
+</table>
+<p>A successful publish is not an acknowledgement from every consumer. Test durable
+outcomes at their own boundary; do not assert eventual email receipt from event
+publication alone. See <a href="testing-async.html">testing asynchronous work</a>.</p>
+<h2 id="development-schema">Development schema<a class="heading-link" href="#development-schema" aria-label="Link to Development schema">#</a></h2>
+<p>The shipped bus needs no SQL event/offset tables. PostgreSQL notification intent
+starts only when <code>Notifier.Enqueue</code> persists a channel snapshot. Apply the normal
+<a href="migrations.html">module migrations</a> for that capability; a running event router
+does not create or migrate tables.</p>
+<p>Continue with <a href="queues.html">queues</a> for work across processes, <a href="transactional-notifications.html">transactional
+notifications</a> for intent committed with SQL, or
+<a href="onboarding.html">the complete signup reaction</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="queues.html"><small>← Previous</small>Queues and tasks</a>
+<a href="scheduling.html"><small>Next →</small>Recurring schedules</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#signup-flow">Signup flow</a></li><li class="toc-level-2"><a href="#terms-and-ownership">Terms and ownership</a></li><li class="toc-level-2"><a href="#publish-an-event">Publish an event</a></li><li class="toc-level-2"><a href="#define-an-event-contract">Define an event contract</a></li><li class="toc-level-2"><a href="#adding-a-contract-or-extracting-a-service">Adding a contract or extracting a service</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#notifications-and-tasks">Notifications and tasks</a></li><li class="toc-level-2"><a href="#independent-construction">Independent construction</a></li><li class="toc-level-2"><a href="#lifecycle-and-failure-handling">Lifecycle and failure handling</a></li><li class="toc-level-2"><a href="#test-and-diagnose-a-reaction">Test and diagnose a reaction</a></li><li class="toc-level-2"><a href="#development-schema">Development schema</a></li></ol></nav><a class="source-link" href="markdown/events.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

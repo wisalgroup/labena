@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Entry points — Practical guides and Go examples for Labena.">
+<title>Entry points — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/entry-points.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a class="selected" aria-current="page" href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#select-a-process">Select a process</a></li><li class="toc-level-2"><a href="#define-a-server-entry-point">Define a server entry point</a></li><li class="toc-level-2"><a href="#keep-process-responsibilities-distinct">Keep process responsibilities distinct</a></li><li class="toc-level-2"><a href="#handle-stop-signals">Handle stop signals</a></li></ol></nav></details>
+<article><h1 id="entry-points">Entry points</h1>
+<p>All executables load the same typed settings and use one application assembly
+path. Each main chooses its processes explicitly in Go.</p>
+<h2 id="select-a-process">Select a process<a class="heading-link" href="#select-a-process" aria-label="Link to Select a process">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Entry point</th>
+<th>Runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>go run ./cmd/app</code></td>
+<td>HTTP, queue workers, notification dispatch and local event consumers</td>
+</tr>
+<tr>
+<td><code>go run ./cmd/worker</code></td>
+<td>Queue workers, notification dispatch and local event consumers</td>
+</tr>
+<tr>
+<td><code>go run ./cmd/scheduler</code></td>
+<td>Central recurring schedules; workers may run elsewhere</td>
+</tr>
+<tr>
+<td><code>go run ./cmd/cli &lt;command&gt;</code></td>
+<td>One command, then cleanup</td>
+</tr>
+<tr>
+<td><code>go run ./cmd/cli serve</code></td>
+<td>HTTP and workers, as selected in <code>cmd/cli/main.go</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/app
+</code></pre>
+<p>For recurring maintenance, run a separate terminal with the same settings:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./cmd/scheduler
+</code></pre>
+<p>Run exactly one scheduler per schedule set. Asynq scheduling has no distributed
+leader election. Ordinary app and worker replicas do not start schedules.</p>
+<h2 id="define-a-server-entry-point">Define a server entry point<a class="heading-link" href="#define-a-server-entry-point" aria-label="Link to Define a server entry point">#</a></h2>
+<p>This is the complete <code>cmd/app/main.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> main
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">fmt</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">os</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">os/</span><span class="go-import-name">signal</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">syscall</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/</span><span class="go-import-name">app</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/app/</span><span class="go-import-name">config</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">main</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	ctx<span class="go-punctuation">,</span> stop <span class="go-operator">:=</span> <span class="go-package">signal</span><span class="go-punctuation">.</span><span class="go-function">NotifyContext</span><span class="go-bracket-1">(</span><span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">Background</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-package">os</span><span class="go-punctuation">.</span>Interrupt<span class="go-punctuation">,</span> <span class="go-package">syscall</span><span class="go-punctuation">.</span><span class="go-number">SIGTERM</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> <span class="go-callable">stop</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-function">run</span><span class="go-bracket-1">(</span>ctx<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Fprintln</span><span class="go-bracket-2">(</span><span class="go-package">os</span><span class="go-punctuation">.</span>Stderr<span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+		<span class="go-package">os</span><span class="go-punctuation">.</span><span class="go-function">Exit</span><span class="go-bracket-2">(</span><span class="go-number">1</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">run</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	cfg<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">config</span><span class="go-punctuation">.</span><span class="go-function">Load</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-package">app</span><span class="go-punctuation">.</span><span class="go-function">Serve</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> cfg<span class="go-punctuation">,</span> <span class="go-type">app</span><span class="go-punctuation">.</span><span class="go-type">Processes</span><span class="go-bracket-2">{</span>HTTP<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span> Workers<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The executable owns configuration loading, signal handling and exit status.
+Serve validates, assembles, runs and cleans up before returning. To make this
+executable HTTP-only, change its explicit selection to:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">app</span><span class="go-punctuation">.</span><span class="go-function">Serve</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> cfg<span class="go-punctuation">,</span> <span class="go-type">app</span><span class="go-punctuation">.</span><span class="go-type">Processes</span><span class="go-bracket-1">{</span>HTTP<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Then run <code>cmd/worker</code> separately against the same queue Redis. HTTP and workers
+include local event consumers automatically. GoChannel does not share events
+between processes; each producing process keeps its own consumers.</p>
+<p>A zero Processes value is an error for serving. Environment settings cannot change
+the selection. Existing deployments should remove <code>APP_ROLES</code>, <code>QUEUE_SCHEDULER_ENABLED</code> and
+<code>QUEUE_COMMAND_SCHEDULING_ENABLED</code>, then choose the appropriate executable or
+explicit Processes value. Scheduled-command handling is always registered.</p>
+<h2 id="keep-process-responsibilities-distinct">Keep process responsibilities distinct<a class="heading-link" href="#keep-process-responsibilities-distinct" aria-label="Link to Keep process responsibilities distinct">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Work</th>
+<th>HTTP selection</th>
+<th>Workers selection</th>
+<th>Scheduler selection</th>
+<th>Ordinary CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serve HTTP</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Consume local events</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Consume queued tasks</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Dispatch notification intents</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td>Explicit command only</td>
+</tr>
+<tr>
+<td>Enqueue recurring work</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Construct configured dependencies and register modules</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>Process selection controls execution. The module graph and command registrations
+remain complete for all executables.</p>
+<h2 id="handle-stop-signals">Handle stop signals<a class="heading-link" href="#handle-stop-signals" aria-label="Link to Handle stop signals">#</a></h2>
+<p>Interrupt and SIGTERM cancel the invocation context. App stops admission, drains
+work and releases clients. Do not call os.Exit in a service or handler. The main
+reports errors and chooses the exit code after app has completed cleanup.</p>
+<p>See <a href="console.html">console</a>, <a href="scheduling.html">scheduling</a> and
+<a href="application-lifecycle.html">application lifecycle</a> for execution details.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="conventions.html"><small>← Previous</small>Project conventions</a>
+<a href="module-registration.html"><small>Next →</small>Module registration</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#select-a-process">Select a process</a></li><li class="toc-level-2"><a href="#define-a-server-entry-point">Define a server entry point</a></li><li class="toc-level-2"><a href="#keep-process-responsibilities-distinct">Keep process responsibilities distinct</a></li><li class="toc-level-2"><a href="#handle-stop-signals">Handle stop signals</a></li></ol></nav><a class="source-link" href="markdown/entry-points.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

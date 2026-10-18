@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Migrations — Practical guides and Go examples for Labena.">
+<title>Migrations — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/migrations.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a class="selected" aria-current="page" href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Database and state</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#follow-a-schema-change-from-source-to-database">Follow a schema change from source to database</a></li><li class="toc-level-2"><a href="#choose-where-sql-belongs">Choose where SQL belongs</a></li><li class="toc-level-2"><a href="#write-a-business-migration">Write a business migration</a></li><li class="toc-level-2"><a href="#embed-and-register-module-sql">Embed and register module SQL</a></li><li class="toc-level-2"><a href="#apply-and-roll-back">Apply and roll back</a></li><li class="toc-level-2"><a href="#maintain-one-history">Maintain one history</a></li><li class="toc-level-2"><a href="#existing-development-databases">Existing development databases</a></li><li class="toc-level-2"><a href="#rebuild-a-development-database">Rebuild a development database</a></li><li class="toc-level-2"><a href="#development-baselines-for-platform-capabilities">Development baselines for platform capabilities</a></li><li class="toc-level-2"><a href="#inspect-a-failed-migration">Inspect a failed migration</a></li></ol></nav></details>
+<article><h1 id="migrations">Migrations</h1>
+<p>Goose applies shared and module SQL as one timestamp-ordered history. Run migrations explicitly through the console; application startup never changes schema.</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate status
+go run ./cmd/cli migrate up
+go run ./cmd/cli migrate version
+</code></pre>
+<p>Set <code>DATABASE_DRIVER</code> and <code>DATABASE_URL</code> first. An empty history needs a business migration or published infrastructure tables before Goose can run it.</p>
+<h2 id="follow-a-schema-change-from-source-to-database">Follow a schema change from source to database<a class="heading-link" href="#follow-a-schema-change-from-source-to-database" aria-label="Link to Follow a schema change from source to database">#</a></h2>
+<pre><code class="language-text">SQL file → embedded module filesystem → module registration → combined Goose history → migrate up
+</code></pre>
+<p>Adding a table does not require another application registry. Add its SQL in the
+owning module, keep its directory registered, rebuild the binary, and run the
+migration command. Startup itself does not apply pending schema changes.</p>
+<h2 id="choose-where-sql-belongs">Choose where SQL belongs<a class="heading-link" href="#choose-where-sql-belongs" aria-label="Link to Choose where SQL belongs">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal/modules/shared/migrations</code></td>
+<td>Global schema and published infrastructure SQL</td>
+</tr>
+<tr>
+<td><code>internal/modules/catalog/migrations</code></td>
+<td>Catalog-owned schema, once that module is added</td>
+</tr>
+<tr>
+<td><code>internal/modules/identity/migrations</code></td>
+<td>Account and authentication schema</td>
+</tr>
+<tr>
+<td><code>internal/platform/notification/migrations</code></td>
+<td>One baseline: polymorphic JSON notifications and delivery ledger</td>
+</tr>
+<tr>
+<td><code>internal/platform/media/migrations</code></td>
+<td>Baseline metadata for polymorphic assets; collections are an asset attribute</td>
+</tr>
+</tbody>
+</table>
+<p>Files sit directly in each directory. The registry combines explicitly registered directories; it does not select SQL by driver automatically. Write SQL for the selected engine.</p>
+<p>Use UTC <code>YYYYMMDDHHMMSS_description.sql</code> filenames. Versions must be unique across every registered directory. The order is global timestamp order, not module registration order.</p>
+<h2 id="write-a-business-migration">Write a business migration<a class="heading-link" href="#write-a-business-migration" aria-label="Link to Write a business migration">#</a></h2>
+<p>For the proposed Product model, add a new file such as <code>20260928090000_create_products.sql</code> in <code>internal/modules/catalog/migrations</code>. Choose a fresh timestamp after relevant existing migrations; this name is illustrative.</p>
+<p>For PostgreSQL:</p>
+<pre><code class="language-sql">-- +goose Up
+CREATE TABLE products (
+    id VARCHAR(200) PRIMARY KEY,
+    name VARCHAR(200) NOT NULL
+);
+
+-- +goose Down
+DROP TABLE products;
+</code></pre>
+<p>The shipped modules require PostgreSQL. The generic migration package also supports
+MySQL, but adopting it for the application requires porting module SQL. For a separate
+MySQL application, use the same columns with InnoDB and mark the file as nontransactional:</p>
+<pre><code class="language-sql">-- +goose NO TRANSACTION
+-- +goose Up
+CREATE TABLE products (
+    id VARCHAR(200) PRIMARY KEY,
+    name VARCHAR(200) NOT NULL
+) ENGINE=InnoDB;
+
+-- +goose Down
+DROP TABLE products;
+</code></pre>
+<p>Choose one version, not both. MySQL DDL commits implicitly; a failure can leave partial changes. The Down operation deletes the table and its data.</p>
+<p>The optional Goose CLI can generate timestamped files:</p>
+<pre><code class="language-sh">go install github.com/pressly/goose/v3/cmd/goose@v3.28.0
+TZ=UTC goose -dir internal/modules/catalog/migrations create create_products sql
+</code></pre>
+<p>Create the directory first and use the CLI version matching <code>go.mod</code>. The application console does not require the CLI and has no <code>migrate create</code> subcommand. You may create timestamped files manually instead.</p>
+<h2 id="embed-and-register-module-sql">Embed and register module SQL<a class="heading-link" href="#embed-and-register-module-sql" aria-label="Link to Embed and register module SQL">#</a></h2>
+<p>Add <code>internal/modules/catalog/migrations/files.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> migrations
+
+<span class="go-keyword">import</span> <span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">embed</span><span class="go-string">&#34;</span>
+
+<span class="go-comment">//go:embed *.sql</span>
+<span class="go-keyword">var</span> Files <span class="go-type">embed</span><span class="go-punctuation">.</span><span class="go-number">FS</span>
+</code></pre>
+<p>This pattern requires at least one SQL file. Add real module SQL before registering
+an embedded migration source; do not add empty histories merely to mirror a layout.</p>
+<p>Register the source in your module&#39;s Register function, importing its migrations
+package. The registry is supplied through dependencies.Targets:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Migrations <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Migrations<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-string">&#34;internal/modules/catalog/migrations&#34;</span><span class="go-punctuation">,</span> <span class="go-package">migrations</span><span class="go-punctuation">.</span>Files<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>App calls the module&#39;s Register function once for all its handlers and SQL. There is
+no additional migration catalog to edit in app. New SQL files included by the embed
+pattern need no registration edit.</p>
+<p>Registering files executes no SQL. App validates the combined history during construction. It includes direct SQL files only; nested directories are not discovered automatically. Shared migrations are already registered by app assembly.</p>
+<h2 id="apply-and-roll-back">Apply and roll back<a class="heading-link" href="#apply-and-roll-back" aria-label="Link to Apply and roll back">#</a></h2>
+<pre><code class="language-sh">go run ./cmd/cli migrate up --timeout=10m
+go run ./cmd/cli migrate down
+</code></pre>
+<p><code>MIGRATION_TIMEOUT</code> defaults to five minutes. <code>--timeout</code> overrides the migration and lock deadline. <code>down</code> rolls back the latest applied migration across all sources; it is not a module-specific rollback and can destroy data.</p>
+<p>Migration commands construct the application before execution, just like other
+commands. Configured resources must be available and the registered SQL history
+must match DATABASE_DRIVER. The shipped business migrations target PostgreSQL;
+using another dialect requires replacing that history and its repositories.
+Migration execution opens a dedicated database pool for its lock/session contract.
+It starts no application runners and closes all acquired resources on return.</p>
+<p>Publish or add SQL before building a release binary or image. SQL is embedded at build time. <code>go run</code> rebuilds; an existing console binary needs rebuilding to see new files.</p>
+<h2 id="maintain-one-history">Maintain one history<a class="heading-link" href="#maintain-one-history" aria-label="Link to Maintain one history">#</a></h2>
+<p>All sources use one <code>goose_db_version</code> table and one migration lock. Do not execute a single module directory independently against that history. Keep applied migrations registered even when a module&#39;s workers are disabled.</p>
+<p>PostgreSQL uses session advisory locks; MySQL uses database-scoped <code>GET_LOCK</code>. Use direct connections or session pooling for migration execution. Transaction-mode PgBouncer does not preserve the required session ownership. External migration tools must coordinate with the same lock.</p>
+<p>Never edit or rename applied migrations. Add a new migration for changes and plan compatible schema transitions for rolling deployments. Inspect status and actual schema after failure, particularly for MySQL&#39;s nontransactional DDL.</p>
+<p>Publishing files does not inspect or repair database state. If interrupted publication leaves <code>.publish.lock</code>, verify the publisher has stopped before removing it. Existing files remain intact; rerun to publish any remaining files.</p>
+<p>Seeders are separate operations with no Goose history. See <a href="seeders.html">Seeders</a>.</p>
+<h2 id="existing-development-databases">Existing development databases<a class="heading-link" href="#existing-development-databases" aria-label="Link to Existing development databases">#</a></h2>
+<p>Historical async and Watermill queue migrations remain immutable. Asynq now stores
+jobs in Redis and requires no SQL queue tables. This runtime does not consume or
+convert historical pending rows. Drain or export old work using the previous runtime
+before cutover. Do not delete migration history or assume a mixed deployment shares jobs.</p>
+<h2 id="rebuild-a-development-database">Rebuild a development database<a class="heading-link" href="#rebuild-a-development-database" aria-label="Link to Rebuild a development database">#</a></h2>
+<pre><code class="language-sh">go run ./cmd/cli migrate refresh --force
+</code></pre>
+<p><strong>This permanently deletes data and database objects</strong>, including objects not
+listed in migrations, then applies all registered shared and module migrations
+from the beginning. It does not call Down migrations, run seeders, or reset
+external Redis/broker data. Unlike truncating rows, it rebuilds changed columns
+and clears Goose&#39;s version history.</p>
+<p>Stop other application processes before running it. The migration session lock
+covers both reset and migration replay, but does not stop HTTP requests or workers.
+<code>MIGRATION_TIMEOUT</code> applies to the whole operation; override it with
+<code>migrate refresh --force --timeout=2m</code>. The command runs immediately without an interactive
+confirmation. Use it only when the selected data may be discarded.</p>
+<ul>
+<li>PostgreSQL: recreates <code>current_schema()</code> from the connection&#39;s search path,
+preserving its owner. <code>DROP SCHEMA ... CASCADE</code> also removes dependent objects,
+potentially including dependencies in other schemas. Schema-specific grants
+and settings must be recreated by migrations or provisioning.</li>
+<li>MySQL: recreates the selected database, preserving its default character set
+and collation. The account needs DROP and CREATE database privileges.</li>
+</ul>
+<p>System schemas/databases are rejected. Invalid or empty migration histories are
+rejected before deletion, but invalid SQL can still fail during replay. Refresh
+is not atomic end-to-end: MySQL DDL commits implicitly, and migration replay can
+leave an empty or partially rebuilt database after a failure. Fix the cause and
+rerun refresh only when discarding the remaining state is intentional.</p>
+<p>This resets only the configured target; it never recreates the database server.
+Rebuild deployed binaries after editing embedded migration files.</p>
+<p>Refresh requires <code>--force</code> and <code>APP_ENV=development</code> or <code>test</code>. Staging and
+production refuse it even with the flag. It deletes all schema data; take a backup
+and stop other processes first. This command is not an upgrade or rollback.</p>
+<h2 id="development-baselines-for-platform-capabilities">Development baselines for platform capabilities<a class="heading-link" href="#development-baselines-for-platform-capabilities" aria-label="Link to Development baselines for platform capabilities">#</a></h2>
+<p>Notifications and Media now have one initial PostgreSQL migration each. The former
+creates <code>notifications</code> and <code>notification_deliveries</code>; the latter creates only
+<code>media_assets</code>. Earlier user-only tables and alteration chains are removed.</p>
+<p>Use a new development database or explicitly recreate the old schema and its
+migration history before applying these baselines. Merely running migrate up on
+an existing database will not transform an already-applied migration. No startup
+path resets a database automatically. Once a release has consumers, preserve
+applied baselines and use new forward migrations.</p>
+<h2 id="inspect-a-failed-migration">Inspect a failed migration<a class="heading-link" href="#inspect-a-failed-migration" aria-label="Link to Inspect a failed migration">#</a></h2>
+<p>Start with read-only inspection:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate status
+go run ./cmd/cli migrate version
+</code></pre>
+<p>Check the selected database and actual schema before deciding how to recover.
+A failed DDL statement may not have the same rollback behavior on every engine.
+Do not repair a shared database by deleting version rows or editing previously
+applied files without a deliberate recovery procedure.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New SQL is absent from status</td>
+<td>Direct file location, embed pattern, source registration, and binary rebuild</td>
+</tr>
+<tr>
+<td>Duplicate version</td>
+<td>Timestamps must be unique across every registered source</td>
+</tr>
+<tr>
+<td>Dialect validation failure</td>
+<td>Installed PostgreSQL history cannot be run as MySQL</td>
+</tr>
+<tr>
+<td>Waiting on migration lock</td>
+<td>Another migrator and the command deadline; use session-compatible connections</td>
+</tr>
+<tr>
+<td>Published tables exist as files but not in DB</td>
+<td>Publishing and applying are separate steps</td>
+</tr>
+<tr>
+<td>Refresh refused</td>
+<td>It requires both <code>--force</code> and development/test environment</td>
+</tr>
+</tbody>
+</table>
+<p>For a release, test the complete fresh history and an upgrade from the previous
+supported schema using disposable databases. Rehearse restore procedures for data
+changes whose Down migration cannot recover lost information. Continue with
+<a href="seeders.html">seeders</a>, <a href="testing-database.html">database testing</a>, and
+<a href="deployment.html">deployment</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="database-transactions.html"><small>← Previous</small>Transactions</a>
+<a href="seeders.html"><small>Next →</small>Seeders</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#follow-a-schema-change-from-source-to-database">Follow a schema change from source to database</a></li><li class="toc-level-2"><a href="#choose-where-sql-belongs">Choose where SQL belongs</a></li><li class="toc-level-2"><a href="#write-a-business-migration">Write a business migration</a></li><li class="toc-level-2"><a href="#embed-and-register-module-sql">Embed and register module SQL</a></li><li class="toc-level-2"><a href="#apply-and-roll-back">Apply and roll back</a></li><li class="toc-level-2"><a href="#maintain-one-history">Maintain one history</a></li><li class="toc-level-2"><a href="#existing-development-databases">Existing development databases</a></li><li class="toc-level-2"><a href="#rebuild-a-development-database">Rebuild a development database</a></li><li class="toc-level-2"><a href="#development-baselines-for-platform-capabilities">Development baselines for platform capabilities</a></li><li class="toc-level-2"><a href="#inspect-a-failed-migration">Inspect a failed migration</a></li></ol></nav><a class="source-link" href="markdown/migrations.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

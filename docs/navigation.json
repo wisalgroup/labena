@@ -1,0 +1,351 @@
+[
+  {
+    "title": "Getting started",
+    "pages": [
+      {
+        "title": "Installation",
+        "slug": "index",
+        "source": "docs/getting-started.md"
+      },
+      {
+        "title": "Adoption and updates",
+        "slug": "upgrading",
+        "source": "docs/upgrading.md"
+      },
+      {
+        "title": "Configuration",
+        "slug": "configuration",
+        "source": "docs/configuration.md"
+      },
+      {
+        "title": "Your first module",
+        "slug": "modules",
+        "source": "docs/modules.md"
+      },
+      {
+        "title": "Local development",
+        "slug": "local-development",
+        "source": "docs/local-development.md"
+      },
+      {
+        "title": "Troubleshooting",
+        "slug": "troubleshooting",
+        "source": "docs/troubleshooting.md"
+      }
+    ]
+  },
+  {
+    "title": "Architecture",
+    "pages": [
+      {
+        "title": "Directory structure",
+        "slug": "structure",
+        "source": "docs/structure.md"
+      },
+      {
+        "title": "Project conventions",
+        "slug": "conventions",
+        "source": "docs/conventions.md"
+      },
+      {
+        "title": "Entry points",
+        "slug": "entry-points",
+        "source": "docs/entry-points.md"
+      },
+      {
+        "title": "Module registration",
+        "slug": "module-registration",
+        "source": "docs/module-registration.md"
+      },
+      {
+        "title": "Dependency injection",
+        "slug": "dependency-injection",
+        "source": "docs/dependency-injection.md"
+      },
+      {
+        "title": "Application lifecycle",
+        "slug": "application-lifecycle",
+        "source": "docs/application-lifecycle.md"
+      },
+      {
+        "title": "Shared types",
+        "slug": "shared-types",
+        "source": "docs/shared-types.md"
+      },
+      {
+        "title": "Console commands",
+        "slug": "console",
+        "source": "docs/console.md"
+      },
+      {
+        "title": "Application errors",
+        "slug": "errors",
+        "source": "docs/errors.md"
+      }
+    ]
+  },
+  {
+    "title": "HTTP APIs",
+    "pages": [
+      {
+        "title": "Routing",
+        "slug": "routing",
+        "source": "docs/routing.md"
+      },
+      {
+        "title": "Handlers",
+        "slug": "handlers",
+        "source": "docs/handlers.md"
+      },
+      {
+        "title": "Requests & validation",
+        "slug": "requests",
+        "source": "docs/requests.md"
+      },
+      {
+        "title": "Responses",
+        "slug": "responses",
+        "source": "docs/responses.md"
+      },
+      {
+        "title": "Middleware",
+        "slug": "middleware",
+        "source": "docs/middleware.md"
+      },
+      {
+        "title": "HTTP client",
+        "slug": "http-client",
+        "source": "pkg/httpclient/README.md"
+      }
+    ]
+  },
+  {
+    "title": "Database and state",
+    "pages": [
+      {
+        "title": "Connections",
+        "slug": "database",
+        "source": "docs/database.md"
+      },
+      {
+        "title": "Entities and queries",
+        "slug": "database-queries",
+        "source": "docs/database-queries.md"
+      },
+      {
+        "title": "Transactions",
+        "slug": "database-transactions",
+        "source": "docs/database-transactions.md"
+      },
+      {
+        "title": "Migrations",
+        "slug": "migrations",
+        "source": "docs/migrations.md"
+      },
+      {
+        "title": "Seeders",
+        "slug": "seeders",
+        "source": "docs/seeders.md"
+      },
+      {
+        "title": "Cache",
+        "slug": "cache",
+        "source": "docs/cache.md"
+      }
+    ]
+  },
+  {
+    "title": "Authentication",
+    "pages": [
+      {
+        "title": "Authentication and sessions",
+        "slug": "identity",
+        "source": "internal/modules/identity/README.md"
+      }
+    ]
+  },
+  {
+    "title": "Background work",
+    "pages": [
+      {
+        "title": "Queues and tasks",
+        "slug": "queues",
+        "source": "docs/queues.md"
+      },
+      {
+        "title": "Events and subscriptions",
+        "slug": "events",
+        "source": "docs/events.md"
+      },
+      {
+        "title": "Recurring schedules",
+        "slug": "scheduling",
+        "source": "docs/scheduling.md"
+      },
+      {
+        "title": "Writing tasks",
+        "slug": "queue-jobs",
+        "source": "docs/queue-jobs.md",
+        "hidden": true
+      },
+      {
+        "title": "Workers",
+        "slug": "workers",
+        "source": "docs/workers.md",
+        "hidden": true
+      },
+      {
+        "title": "Failures and retries",
+        "slug": "failed-jobs",
+        "source": "docs/failed-jobs.md",
+        "hidden": true
+      }
+    ]
+  },
+  {
+    "title": "Communication",
+    "pages": [
+      {
+        "title": "Mail and mail views",
+        "slug": "mail",
+        "source": "docs/mail.md"
+      },
+      {
+        "title": "Notifications",
+        "slug": "notifications",
+        "source": "internal/platform/notification/README.md"
+      },
+      {
+        "title": "Push",
+        "slug": "push",
+        "source": "pkg/push/README.md"
+      },
+      {
+        "title": "Templates",
+        "slug": "templates",
+        "source": "docs/templates.md",
+        "hidden": true
+      }
+    ]
+  },
+  {
+    "title": "Files and media",
+    "pages": [
+      {
+        "title": "File storage",
+        "slug": "filesystems",
+        "source": "docs/filesystems.md"
+      },
+      {
+        "title": "Media assets",
+        "slug": "media",
+        "source": "internal/platform/media/README.md"
+      }
+    ]
+  },
+  {
+    "title": "Workflows",
+    "pages": [
+      {
+        "title": "A persisted HTTP and CLI operation",
+        "slug": "persistent-workflow",
+        "source": "docs/persistent-workflow.md"
+      },
+      {
+        "title": "SQL and notification intent",
+        "slug": "transactional-notifications",
+        "source": "docs/transactional-notifications.md"
+      },
+      {
+        "title": "Account onboarding reactions",
+        "slug": "onboarding",
+        "source": "docs/onboarding.md"
+      }
+    ]
+  },
+  {
+    "title": "Operations",
+    "pages": [
+      {
+        "title": "Logging",
+        "slug": "logging",
+        "source": "docs/logging.md"
+      },
+      {
+        "title": "Observability",
+        "slug": "observability",
+        "source": "docs/observability.md"
+      },
+      {
+        "title": "Deployment",
+        "slug": "deployment",
+        "source": "deployments/README.md"
+      }
+    ]
+  },
+  {
+    "title": "Testing",
+    "pages": [
+      {
+        "title": "Testing basics",
+        "slug": "testing",
+        "source": "docs/testing.md"
+      },
+      {
+        "title": "HTTP and modules",
+        "slug": "testing-http",
+        "source": "docs/testing-http.md"
+      },
+      {
+        "title": "Databases and transactions",
+        "slug": "testing-database",
+        "source": "docs/testing-database.md"
+      },
+      {
+        "title": "Tasks and events",
+        "slug": "testing-async",
+        "source": "docs/testing-async.md"
+      }
+    ]
+  },
+  {
+    "title": "Reference",
+    "pages": [
+      {
+        "title": "Configuration reference",
+        "slug": "configuration-reference",
+        "source": "deployments/configuration.md"
+      },
+      {
+        "title": "API reference",
+        "slug": "api-reference",
+        "source": "docs/api/README.md"
+      },
+      {
+        "title": "Support and compatibility",
+        "slug": "support",
+        "source": "SUPPORT.md"
+      },
+      {
+        "title": "Security reporting",
+        "slug": "security",
+        "source": "SECURITY.md"
+      },
+      {
+        "title": "Release readiness",
+        "slug": "release-readiness",
+        "source": "docs/release-readiness.md"
+      }
+    ]
+  },
+  {
+    "title": "Extensions",
+    "pages": [
+      {
+        "title": "WebSockets",
+        "slug": "websockets",
+        "source": "docs/websockets.md"
+      }
+    ]
+  }
+]

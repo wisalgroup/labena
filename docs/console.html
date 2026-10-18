@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Console commands — Practical guides and Go examples for Labena.">
+<title>Console commands — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/console.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a class="selected" aria-current="page" href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#use-an-existing-command">Use an existing command</a></li><li class="toc-level-2"><a href="#command-reference">Command reference</a></li><li class="toc-level-2"><a href="#register-commands-explicitly">Register commands explicitly</a></li><li class="toc-level-2"><a href="#arguments-and-flags">Arguments and flags</a></li><li class="toc-level-2"><a href="#output-and-errors">Output and errors</a></li><li class="toc-level-2"><a href="#startup-and-execution">Startup and execution</a></li></ol></nav></details>
+<article><h1 id="console-commands">Console commands</h1>
+<p>Cobra commands expose operations to trusted operators. They borrow the same
+services as HTTP and task handlers; they do not own infrastructure cleanup.</p>
+<p>Commands use a native Cobra group and action: <code>route list</code>, <code>cache tables</code>,
+<code>migrate up</code>, <code>identity show</code> and <code>queue list</code>. Table publication
+only writes migration files; <code>migrate up</code> applies them separately.</p>
+<h2 id="use-an-existing-command">Use an existing command<a class="heading-link" href="#use-an-existing-command" aria-label="Link to Use an existing command">#</a></h2>
+<p>After following <a href="index.html">installation</a>, inspect the registered commands and routes:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env.quickstart.example
+go run ./cmd/cli --help
+go run ./cmd/cli route list
+go run ./cmd/cli identity --help
+</code></pre>
+<p>The quickstart does not create an account. To use account commands, complete
+<a href="identity.html#email-otp-configuration-and-security">Identity setup</a>, sign in, and
+select the same custom environment file used by that running application. Replace
+the placeholder below with the returned user ID:</p>
+<pre><code class="language-sh">go run ./cmd/cli identity show &#39;&lt;user-id&gt;&#39;
+go run ./cmd/cli identity welcome &#39;&lt;user-id&gt;&#39;
+go run ./cmd/cli notifications list user &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p><code>go run ./cmd/cli help</code>, <code>--help</code>, and invocation without arguments list every
+available command, including full nested paths such as <code>identity show</code>,
+<code>notifications dispatch</code> and <code>completion bash</code>. Module additions appear
+automatically. Hidden and deprecated branches stay hidden. Use
+<code>go run ./cmd/cli help identity show</code> or <code>identity show --help</code> for arguments,
+examples and flags specific to that command.</p>
+<p><code>identity show</code> and <code>notifications list</code> read the database immediately. <code>identity welcome</code> submits an Asynq task; a running worker must process
+it and persist channel intents. The worker dispatcher submits channel delivery work every second;
+<code>notifications dispatch</code> is also available for manual operation. Listing immediately may
+precede either stage. These are operator commands,
+not publicly authenticated endpoints. Restrict access to the executable and credentials.</p>
+<h2 id="command-reference">Command reference<a class="heading-link" href="#command-reference" aria-label="Link to Command reference">#</a></h2>
+<p>Run each command after <code>go run ./cmd/cli</code>. All groups share eager construction;
+operator access is trusted and is not scoped by an HTTP bearer token. Placeholders
+such as <code>USER_ID</code> and <code>DELIVERY_ID</code> must be replaced with actual IDs.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Availability and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>serve</code></td>
+<td>Run the explicit Processes selection in cmd/cli/main.go</td>
+</tr>
+<tr>
+<td><code>route list</code></td>
+<td>Read the complete registered HTTP route list without serving</td>
+</tr>
+<tr>
+<td><code>migrate status</code>, <code>migrate version</code></td>
+<td>Read the configured database&#39;s Goose history</td>
+</tr>
+<tr>
+<td><code>migrate up</code>, <code>migrate down</code></td>
+<td>Apply pending SQL or roll back the latest migration; <code>--timeout</code> overrides MIGRATION_TIMEOUT</td>
+</tr>
+<tr>
+<td><code>migrate refresh --force</code></td>
+<td>Delete the configured schema/database contents and rerun migrations; development/test only; never a recovery shortcut</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>List registered seeders; none are selected implicitly</td>
+</tr>
+<tr>
+<td><code>seed NAME...</code></td>
+<td>Execute named seeders in order; <code>--timeout</code> defaults to 5m</td>
+</tr>
+<tr>
+<td><code>cache tables</code></td>
+<td>Publish cache migration source; <code>--dir</code> defaults to internal/modules/shared/migrations; does not apply SQL</td>
+</tr>
+<tr>
+<td><code>identity show USER_ID</code></td>
+<td>Read an account through its service</td>
+</tr>
+<tr>
+<td><code>identity welcome USER_ID</code></td>
+<td>Enqueue the stable welcome task; requires a worker for completion</td>
+</tr>
+<tr>
+<td><code>identity prune-verification</code></td>
+<td>Delete a bounded batch of expired challenges; available when challenge support is enabled</td>
+</tr>
+<tr>
+<td><code>identity prune-sessions</code></td>
+<td>Delete bounded expired/revoked session history; available when auth is enabled</td>
+</tr>
+<tr>
+<td><code>notifications list TYPE ID</code>, <code>notifications unread TYPE ID</code></td>
+<td>Read a recipient&#39;s stored records or unread count</td>
+</tr>
+<tr>
+<td><code>notifications read TYPE ID NOTIFICATION_ID</code></td>
+<td>Mark one recipient-owned record read</td>
+</tr>
+<tr>
+<td><code>notifications deliveries</code></td>
+<td>Inspect ledger metadata; <code>--status</code> defaults to failed, empty means all; <code>--page</code> defaults to 1</td>
+</tr>
+<tr>
+<td><code>notifications delivery DELIVERY_ID</code></td>
+<td>Inspect one delivery&#39;s metadata</td>
+</tr>
+<tr>
+<td><code>notifications dispatch</code></td>
+<td>Submit due persisted delivery IDs to Redis; does not synchronously deliver</td>
+</tr>
+<tr>
+<td><code>notifications retry DELIVERY_ID</code></td>
+<td>Reset a terminal failed delivery for retry; external effects can repeat</td>
+</tr>
+<tr>
+<td><code>notifications prune-subscriptions</code></td>
+<td>Disable a bounded batch of inactive push registrations; app schedules pruning when push and its scheduler are enabled</td>
+</tr>
+<tr>
+<td><code>media upload TYPE ID FILE</code></td>
+<td>Upload up to 20 MiB using disk visibility; optional <code>--collection</code> and <code>--visibility</code></td>
+</tr>
+<tr>
+<td><code>media list TYPE ID</code></td>
+<td>List ready assets; optional <code>--collection</code> filter</td>
+</tr>
+<tr>
+<td><code>media delete TYPE ID ASSET_ID</code></td>
+<td>Record deletion intent and delete the owned object</td>
+</tr>
+<tr>
+<td><code>media recover</code></td>
+<td>Run a bounded interrupted-upload/deletion recovery batch</td>
+</tr>
+<tr>
+<td><code>queue list</code>, <code>queue inspect QUEUE ID</code></td>
+<td>Read queue names or task state/payload</td>
+</tr>
+<tr>
+<td><code>queue replay QUEUE ID</code></td>
+<td>Move eligible work to pending without resetting retries; effects can repeat</td>
+</tr>
+<tr>
+<td><code>queue archive QUEUE ID</code>, <code>queue delete QUEUE ID</code></td>
+<td>Archive/delete non-active work; delete is permanent</td>
+</tr>
+<tr>
+<td><code>queue pause QUEUE</code>, <code>queue resume QUEUE</code></td>
+<td>Stop/resume new admission; active work continues</td>
+</tr>
+<tr>
+<td><code>queue cancel ID</code></td>
+<td>Request cooperative cancellation of active work</td>
+</tr>
+<tr>
+<td><code>completion SHELL</code></td>
+<td>Generate Cobra completion for bash, zsh, fish or powershell</td>
+</tr>
+</tbody>
+</table>
+<p>Queue commands are always registered. Capability commands may
+be present even when an operation&#39;s storage or provider is unavailable; execution
+reports the missing dependency. Use <code>COMMAND --help</code> for current arguments and
+flags. Task payload inspection may expose private content.</p>
+<p>See <a href="migrations.html">migrations</a>, <a href="failed-jobs.html">failures and retries</a>,
+<a href="notifications.html">notifications</a> and
+<a href="media.html">Media</a> before operations that change state.</p>
+<h2 id="register-commands-explicitly">Register commands explicitly<a class="heading-link" href="#register-commands-explicitly" aria-label="Link to Register commands explicitly">#</a></h2>
+<p>Keep native constructors under <code>internal/modules/&lt;module&gt;/delivery/cli</code>. Each constructor
+receives its service directly, for example <code>New(users service.UserService)</code>.
+The owning module&#39;s Register function adds its group to the supplied Cobra root:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>RootCommand <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">targets</span><span class="go-punctuation">.</span>RootCommand<span class="go-punctuation">.</span><span class="go-function">AddCommand</span><span class="go-bracket-1">(</span><span class="go-package">modulecli</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span>users<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>App calls the module Register function once with borrowed resources and targets.
+There is no separate command list in app. Each command validates input, calls its
+service with cmd.Context(), and writes output. App supplies logging/tracing and
+owns resource cleanup. Adding a command only changes its owning module.</p>
+<h2 id="arguments-and-flags">Arguments and flags<a class="heading-link" href="#arguments-and-flags" aria-label="Link to Arguments and flags">#</a></h2>
+<p>Cobra validates arguments and binds flags directly. This complete standalone greeting command demonstrates both:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> cli
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">fmt</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/spf13/</span><span class="go-import-name">cobra</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">NewGreet</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-operator">*</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">var</span> name <span class="go-builtin-type">string</span>
+	command <span class="go-operator">:=</span> <span class="go-operator">&amp;</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span><span class="go-bracket-1">{</span>
+		Use<span class="go-punctuation">:</span>   <span class="go-string">&#34;greet&#34;</span><span class="go-punctuation">,</span>
+		Short<span class="go-punctuation">:</span> <span class="go-string">&#34;Print a greeting&#34;</span><span class="go-punctuation">,</span>
+		Args<span class="go-punctuation">:</span>  <span class="go-package">cobra</span><span class="go-punctuation">.</span>NoArgs<span class="go-punctuation">,</span>
+		RunE<span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">cmd</span> <span class="go-operator">*</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span><span class="go-punctuation">,</span> <span class="go-parameter">_</span> <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-2">{</span>
+			_<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Fprintf</span><span class="go-bracket-3">(</span><span class="go-parameter">cmd</span><span class="go-punctuation">.</span><span class="go-function">OutOrStdout</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span><span class="go-punctuation">,</span> <span class="go-string">&#34;Hello, %s!\n&#34;</span><span class="go-punctuation">,</span> name<span class="go-bracket-3">)</span>
+			<span class="go-keyword">return</span> err
+		<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-1">}</span>
+	command<span class="go-punctuation">.</span><span class="go-function">Flags</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">StringVar</span><span class="go-bracket-1">(</span><span class="go-operator">&amp;</span>name<span class="go-punctuation">,</span> <span class="go-string">&#34;name&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;world&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;Name to greet&#34;</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> command
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Add <code>cli.NewGreet()</code> to your module’s group in its Register function to expose the greeting beneath that group. For positional inputs, select an appropriate Cobra argument validator and validate business values inside the service too.</p>
+<p>Only <code>cmd/cli</code> parses application commands and flags. Other entry points select their services in code. See <a href="entry-points.html">Entry points</a>.</p>
+<h2 id="output-and-errors">Output and errors<a class="heading-link" href="#output-and-errors" aria-label="Link to Output and errors">#</a></h2>
+<p>Use <code>cmd.OutOrStdout()</code> for results, <code>cmd.ErrOrStderr()</code> for diagnostics, and
+<code>cmd.InOrStdin()</code> for input. Return errors from <code>RunE</code>; do not call <code>os.Exit</code> or
+<code>log.Fatal</code>. Pass cmd.Context() into operations; it includes app logging and tracing. App cleans up after success or
+failure, rather than relying on Cobra post-run hooks.</p>
+<p>Commands contain mutable flag state. Return fresh trees and do not execute one
+tree concurrently. Constructors and registration describe behavior without I/O.
+The app checks names, aliases and ownership before execution.</p>
+<h2 id="startup-and-execution">Startup and execution<a class="heading-link" href="#startup-and-execution" aria-label="Link to Startup and execution">#</a></h2>
+<p>All commands use one startup path: load and validate configuration, open resources,
+construct authentication, register modules and validate commands/migrations, then execute Cobra.
+Help and completion also require successful application construction. Bad settings,
+unavailable configured resources or incompatible SQL sources can prevent execution.
+Input validation happens after construction, before business operations.</p>
+<p><code>serve</code> starts processes selected in <code>cmd/cli/main.go</code>; other commands start no HTTP or
+metrics listeners, queue workers, local event consumers, notification dispatcher
+or scheduler, even when those processes are selected in main. Migrations use a dedicated database pool
+for their lock/session contract and run only when explicitly selected.</p>
+<p>The configured resource clients still open normally and close after the command.
+Connection maintenance and telemetry export are distinct from processing business
+work. Watermill registration and cleanup messages are debug diagnostics; normal
+help and completion are quiet at the default info level. Startup, command and
+cleanup errors remain visible.</p>
+<p>A command must join its work before returning. Use Redis tasks to hand work to
+another process. GoChannel publication in a CLI process does not reach another
+process&#39;s subscribers. See <a href="entry-points.html">entry points</a> and
+<a href="scheduling.html">scheduling</a> for distinct execution boundaries.</p>
+<pre><code class="language-sh">go run ./examples/cli greet --name Ada
+go run ./cmd/cli completion bash
+</code></pre>
+<p>The standalone example uses native Cobra through the platform CLI setup. Each app.Execute call owns an independent invocation.</p>
+<p>Platform capabilities put native command definitions in their <code>integration</code>
+packages. Notifications commands accept <code>RECIPIENT_TYPE RECIPIENT_ID</code>; media commands
+accept <code>OWNER_TYPE OWNER_ID</code>. Media upload/list support <code>--collection</code>. Both use
+already constructed package instances, with no application invocation callbacks.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="shared-types.html"><small>← Previous</small>Shared types</a>
+<a href="errors.html"><small>Next →</small>Application errors</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#use-an-existing-command">Use an existing command</a></li><li class="toc-level-2"><a href="#command-reference">Command reference</a></li><li class="toc-level-2"><a href="#register-commands-explicitly">Register commands explicitly</a></li><li class="toc-level-2"><a href="#arguments-and-flags">Arguments and flags</a></li><li class="toc-level-2"><a href="#output-and-errors">Output and errors</a></li><li class="toc-level-2"><a href="#startup-and-execution">Startup and execution</a></li></ol></nav><a class="source-link" href="markdown/console.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

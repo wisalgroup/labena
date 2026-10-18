@@ -1,0 +1,129 @@
+# One scheduler per schedule set. Recreate prevents overlapping scheduler replicas.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler
+  namespace: go-modular-dev
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: scheduler
+  template:
+    metadata:
+      labels:
+        app: scheduler
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 70
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: minio-init
+        image: go-modular-minio
+        command:
+        - /bin/sh
+        - -ec
+        args:
+        - "attempt=0\nuntil mc --config-dir /tmp/mc alias set dev \"$FILESYSTEM_MINIO_ENDPOINT\"\
+          \ \"$FILESYSTEM_MINIO_ACCESS_KEY_ID\" \"$FILESYSTEM_MINIO_SECRET_ACCESS_KEY\"\
+          ; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge 30 ]; then exit\
+          \ 1; fi\n  sleep 2\ndone\nmc --config-dir /tmp/mc mb --ignore-existing \"\
+          dev/$FILESYSTEM_MINIO_BUCKET\"\n"
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      - name: migrate
+        image: go-modular-app
+        workingDir: /app
+        command:
+        - /app/cli
+        - migrate
+        - up
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: app-mail
+            optional: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: storage
+          mountPath: /app/storage
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+      containers:
+      - name: scheduler
+        image: go-modular-app
+        workingDir: /app
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: app-mail
+            optional: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: storage
+          mountPath: /app/storage
+        - name: tmp
+          mountPath: /tmp
+        command:
+        - /app/scheduler
+      volumes:
+      - name: storage
+        hostPath:
+          path: /set-by-tilt/storage
+          type: Directory
+      - name: tmp
+        emptyDir: {}

@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Push — Practical guides and Go examples for Labena.">
+<title>Push — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/push.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a class="selected" aria-current="page" href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Communication</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#prepare-expo-and-the-mobile-app">Prepare Expo and the mobile app</a></li><li class="toc-level-2"><a href="#application-configuration">Application configuration</a></li><li class="toc-level-2"><a href="#try-one-alert">Try one alert</a></li><li class="toc-level-2"><a href="#send-independently">Send independently</a></li><li class="toc-level-2"><a href="#inspect-a-receipt">Inspect a receipt</a></li><li class="toc-level-2"><a href="#control-limits-and-failures">Control limits and failures</a></li><li class="toc-level-2"><a href="#durable-notifications">Durable notifications</a></li><li class="toc-level-2"><a href="#expo-mobile-client">Expo mobile client</a></li><li class="toc-level-2"><a href="#test-and-troubleshoot-push">Test and troubleshoot push</a></li></ol></nav></details>
+<article><h1 id="expo-push-delivery">Expo push delivery</h1>
+<p><code>pkg/push</code> sends mobile alerts through Expo using the standard HTTP client. It can
+run without app assembly, PostgreSQL, Redis or a recipient model. The framework
+<a href="notifications.html">notifier</a> composes this same client
+with stored installations, delivery retries and receipt polling.</p>
+<p>Expo hands messages to the platform&#39;s FCM/APNs infrastructure. This adapter sends
+OS notifications, not realtime application events, chat messages or browser Web Push.
+There is no Firebase SDK or native FCM/APNs sender in the Go backend.</p>
+<table>
+<thead>
+<tr>
+<th>Start here</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Verify Expo credentials and one destination</td>
+<td><a href="#try-one-alert">Standalone example</a></td>
+</tr>
+<tr>
+<td>Integrate a mobile client</td>
+<td><a href="#expo-mobile-client">Token registration</a></td>
+</tr>
+<tr>
+<td>Send to all eligible devices for a user/admin</td>
+<td><a href="#durable-notifications">Durable notifications</a></td>
+</tr>
+<tr>
+<td>Diagnose accepted-but-unconfirmed delivery</td>
+<td><a href="#inspect-a-receipt">Receipts</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="prepare-expo-and-the-mobile-app">Prepare Expo and the mobile app<a class="heading-link" href="#prepare-expo-and-the-mobile-app" aria-label="Link to Prepare Expo and the mobile app">#</a></h2>
+<p>Use an Expo development/production build with <code>expo-notifications</code> and configured
+platform push credentials. Set the EAS project ID explicitly when obtaining an Expo
+push token. Use a supported physical device or supported emulator/simulator; current
+requirements and credential setup are in <a href="https://docs.expo.dev/push-notifications/push-notifications-setup/">Expo&#39;s setup guide</a>.</p>
+<p>This framework&#39;s remote-push walkthrough uses your built application, not Expo Go.
+Install/configure <code>expo-notifications</code>, rebuild after native configuration changes,
+and request notification permission before registering a token. The Go backend
+uses an Expo access token only when your project enables enhanced push security.
+Never ship that server credential inside the mobile application.</p>
+<h2 id="application-configuration">Application configuration<a class="heading-link" href="#application-configuration" aria-label="Link to Application configuration">#</a></h2>
+<pre><code class="language-dotenv">PUSH_ENABLED=true
+PUSH_EXPO_PROJECT_ID=your-eas-project-id
+PUSH_EXPO_ACCESS_TOKEN=your-expo-enhanced-push-security-token
+</code></pre>
+<p>Project ID scopes the persisted registration namespace; Expo routes using the token.
+Get client tokens using that same EAS project ID. The server cannot establish token
+ownership or its project from syntax alone. Use authenticated registration endpoints.
+Enable enhanced push security in Expo and supply its access token in production.
+The access token is optional for projects which have not enabled that feature.
+Do not place it in the mobile bundle or commit it to configuration files.</p>
+<p>These settings are loaded by normal app/worker entrypoints. They construct the
+shared client but send nothing during startup. The project ID identifies the
+notification subscription namespace; it is not a recipient, installation or ticket ID.</p>
+<h2 id="try-one-alert">Try one alert<a class="heading-link" href="#try-one-alert" aria-label="Link to Try one alert">#</a></h2>
+<p>First obtain an Expo push token from your configured app. The standalone example
+reads <strong>process environment variables directly</strong>; it does not load <code>.env</code> or use
+<code>APP_ENV_FILE</code>. Supply the values to the shell/process without committing them.</p>
+<pre><code class="language-sh">PUSH_REGISTRATION=&#39;ExpoPushToken[replace-with-your-registration]&#39; \
+  go run ./examples/push
+</code></pre>
+<p>If enhanced push security is enabled, also export <code>PUSH_EXPO_ACCESS_TOKEN</code> to this
+process. The example sends a <strong>real alert</strong> and prints an accepted ticket ID. It
+requires neither SQL nor Redis. A ticket means Expo accepted work; it does not
+prove that the device displayed it.</p>
+<p>After approximately 15 minutes, check that ticket without sending another alert:</p>
+<pre><code class="language-sh">PUSH_TICKET_ID=&#39;replace-with-the-ticket-id&#39; go run ./examples/push
+</code></pre>
+<p>The output distinguishes a pending receipt, a handoff confirmation and an error.
+When <code>PUSH_TICKET_ID</code> is set, the example takes the receipt path even if a registration
+is also present. A receipt lookup failure is a reason to retry the lookup, not to
+send another notification.</p>
+<h2 id="send-independently">Send independently<a class="heading-link" href="#send-independently" aria-label="Link to Send independently">#</a></h2>
+<p>This function-body fragment imports <code>os</code>, <code>time</code> and <code>github.com/wisalgroup/labena/pkg/push</code>.
+It assumes <code>ctx</code>, an authorized <code>expoPushToken</code>, and a string <code>exportID</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">sender<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">push</span><span class="go-punctuation">.</span><span class="go-function">NewExpo</span><span class="go-bracket-0">(</span><span class="go-type">push</span><span class="go-punctuation">.</span><span class="go-type">ExpoConfig</span><span class="go-bracket-1">{</span>
+    AccessToken<span class="go-punctuation">:</span> <span class="go-package">os</span><span class="go-punctuation">.</span><span class="go-function">Getenv</span><span class="go-bracket-2">(</span><span class="go-string">&#34;PUSH_EXPO_ACCESS_TOKEN&#34;</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span> <span class="go-keyword">return</span> err <span class="go-bracket-0">}</span>
+expires <span class="go-operator">:=</span> <span class="go-package">time</span><span class="go-punctuation">.</span><span class="go-function">Now</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Add</span><span class="go-bracket-0">(</span><span class="go-package">time</span><span class="go-punctuation">.</span>Hour<span class="go-bracket-0">)</span>
+ticket<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> sender<span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> expoPushToken<span class="go-punctuation">,</span> <span class="go-type">push</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>
+    Title<span class="go-punctuation">:</span> <span class="go-string">&#34;Your export is ready&#34;</span><span class="go-punctuation">,</span>
+    Body<span class="go-punctuation">:</span> <span class="go-string">&#34;Open the application to download it.&#34;</span><span class="go-punctuation">,</span>
+    Data<span class="go-punctuation">:</span> <span class="go-keyword">map</span><span class="go-bracket-2">[</span><span class="go-builtin-type">string</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;export_id&#34;</span><span class="go-punctuation">:</span> exportID<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    ExpiresAt<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span>expires<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span> <span class="go-keyword">return</span> err <span class="go-bracket-0">}</span>
+<span class="go-comment">// Persist ticket.ID. Acceptance only means Expo queued this message.</span>
+</code></pre>
+<p>Construct once per process and reuse the sender. Calls use their caller&#39;s context;
+do not replace it with a detached background context inside business operations.</p>
+<h2 id="inspect-a-receipt">Inspect a receipt<a class="heading-link" href="#inspect-a-receipt" aria-label="Link to Inspect a receipt">#</a></h2>
+<p>Later, in another request or background job (typically after 15 minutes):</p>
+<pre><code class="language-go" data-highlighted="yes">receipt<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">sender</span><span class="go-punctuation">.</span><span class="go-function">Receipt</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-package">ticket</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err <span class="go-comment">// Retry this lookup; do not resend the notification.</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> <span class="go-operator">!</span>receipt<span class="go-punctuation">.</span>Found <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span> <span class="go-comment">// Still pending: schedule another lookup.</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> receipt<span class="go-punctuation">.</span>Error <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> receipt<span class="go-punctuation">.</span>Error <span class="go-comment">// Definitive handoff failure; inspect its classification.</span>
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// Expo confirmed handoff to the platform provider, not display or user receipt.</span>
+</code></pre>
+<p>Persist the ticket ID if the process can restart before lookup. No background poller
+runs inside <code>pkg/push</code>; your caller owns that lifecycle. See
+<a href="https://docs.expo.dev/push-notifications/sending-notifications/">Expo&#39;s send/receipt lifecycle</a>
+for provider-side behavior.</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>Meaning</th>
+<th>Next step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Send returns a ticket</td>
+<td>Expo accepted the request</td>
+<td>Save the ticket and check later</td>
+</tr>
+<tr>
+<td>Receipt returns a top-level error</td>
+<td>Lookup did not complete reliably</td>
+<td>Retry receipt lookup</td>
+</tr>
+<tr>
+<td><code>Found == false</code></td>
+<td>Receipt is not available yet</td>
+<td>Schedule another lookup</td>
+</tr>
+<tr>
+<td><code>Found == true</code>, <code>Error == nil</code></td>
+<td>Expo confirmed provider handoff</td>
+<td>Record success; this is not user receipt/read state</td>
+</tr>
+<tr>
+<td><code>Found == true</code>, <code>Error != nil</code></td>
+<td>Definitive provider handoff failure</td>
+<td>Inspect classification before retry or disabling the destination</td>
+</tr>
+</tbody>
+</table>
+<p>The framework notifier supplies this persisted polling lifecycle if you do not
+want to implement it separately.</p>
+<h2 id="control-limits-and-failures">Control limits and failures<a class="heading-link" href="#control-limits-and-failures" aria-label="Link to Control limits and failures">#</a></h2>
+<p>The shared <code>push.Sender</code> contract defines both operations once. <code>Ticket</code> acknowledges
+queue acceptance. <code>Receipt.Found</code> distinguishes pending from success, and
+<code>Receipt.Error</code> distinguishes a definitive failure from a lookup/network error.
+<code>*push.Error</code> carries safe codes, permanence, invalid-destination status, and retry timing.
+Provider bodies and registration values are never included in error messages.</p>
+<p><code>NewExpo</code> borrows an optional <code>HTTPClient</code> transport and rejects redirects to avoid
+forwarding credentials. Each operation has a 30-second deadline, with at most six
+concurrent requests per shared client. It performs no automatic retries and starts
+no background workers. Respect Expo&#39;s project-level limits across replicas; HTTP 429
+and Retry-After are surfaced for backoff. Reuse clients rather than constructing one
+per message. Configure worker throughput to match your project budget.</p>
+<p>Only <code>ExpoPushToken[...]</code> and <code>ExponentPushToken[...]</code> registrations are accepted;
+native FCM/APNs tokens must be replaced by Expo registrations. Content is validated
+and bounded before I/O. <code>ExpiresAt</code> maps to Expo&#39;s expiration timestamp. Never send
+passwords, login codes, credentials or sensitive content in OS notifications.</p>
+<table>
+<thead>
+<tr>
+<th>Field or limit</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Nonblank, at most 200 bytes</td>
+</tr>
+<tr>
+<td><code>Body</code></td>
+<td>At most 2000 bytes</td>
+</tr>
+<tr>
+<td><code>Data</code></td>
+<td>String keys and values; resource references, not authoritative state</td>
+</tr>
+<tr>
+<td>Encoded <code>Message</code></td>
+<td>At most 3500 bytes before provider serialization</td>
+</tr>
+<tr>
+<td><code>ExpiresAt</code></td>
+<td>Optional expiry; elapsed content is rejected/skipped</td>
+</tr>
+<tr>
+<td>Concurrency</td>
+<td>At most six HTTP operations per sender instance</td>
+</tr>
+<tr>
+<td>Operation deadline</td>
+<td>At most 30 seconds, or a shorter caller deadline</td>
+</tr>
+</tbody>
+</table>
+<p>Data keys <code>from</code>, <code>message_type</code>, and prefixes <code>google.</code> / <code>gcm.</code> are reserved.
+The adapter chooses the default notification sound; it currently exposes no
+sound, badge, Android-channel selector or bulk-send API. Add such options only
+alongside their provider validation and behavior.</p>
+<p>Classify errors using <code>errors.As</code>, not provider strings:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">var</span> failure <span class="go-operator">*</span><span class="go-type">push</span><span class="go-punctuation">.</span><span class="go-type">Error</span>
+<span class="go-keyword">if</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">As</span><span class="go-bracket-0">(</span>err<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>failure<span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    <span class="go-comment">// failure.InvalidDestination: disable this registration version.</span>
+    <span class="go-comment">// failure.Permanent: correct content/credentials before retrying.</span>
+    <span class="go-comment">// failure.RetryAfter: minimum delay before another eligible attempt.</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>errors</code>. Common safe codes are <code>unregistered</code>, <code>rate_limited</code>, <code>credentials</code>,
+<code>invalid_argument</code> and <code>unavailable</code>. A network failure during Send can leave
+acceptance uncertain. The standalone sender deliberately does not choose a retry
+policy for that operation. See the notifier&#39;s <a href="notifications.html#delivery-lifecycle">delivery lifecycle</a>
+for the framework&#39;s policy.</p>
+<h2 id="durable-notifications">Durable notifications<a class="heading-link" href="#durable-notifications" aria-label="Link to Durable notifications">#</a></h2>
+<p>The framework notifier uses the same client. Each installation gets its own delivery
+row and ticket. After acceptance, status is <code>awaiting_receipt</code>. Workers check after
+15 minutes, then every five minutes while a receipt is missing or lookup fails
+(respecting longer provider Retry-After). Polling does not consume the send-attempt
+budget. A worker restart resumes lookup of the same persisted ticket.</p>
+<p>An <code>ok</code> receipt marks the row sent. <code>DeviceNotRegistered</code> disables only the matching
+registration version. A definitive retryable receipt failure schedules a new send;
+a receipt API outage does not. After 24 hours without confirmation, the row fails
+without automatically resending. Operator replay clears the old ticket and may cause
+a duplicate. A crash after Expo acceptance but before SQL stores its ticket can also
+cause a duplicate; exactly-once delivery is not claimed.</p>
+<p>Synchronous <code>Notifier.Send</code> returns <code>Result.PushTicketID</code>; it does not persist or
+poll that ticket. The caller must check receipts. Prefer <code>Enqueue</code> when this should
+happen automatically through the existing worker lifecycle.</p>
+<p>Use <code>notifier.Enqueue</code> with <code>Message.Push</code> after the authenticated installation
+has been registered. PostgreSQL snapshots each eligible installation and content;
+only delivery IDs enter Asynq. The dispatcher runs with workers and needs no cron
+scheduler. Subscription inactivity pruning is a separate centralized schedule.</p>
+<p>The shipped Identity welcome builder selects database and email; it does not
+implicitly send a push. Your module selects push explicitly when that message is
+useful as an OS alert. See <a href="notifications.html#select-channels">selecting channels</a>.</p>
+<h2 id="expo-mobile-client">Expo mobile client<a class="heading-link" href="#expo-mobile-client" aria-label="Link to Expo mobile client">#</a></h2>
+<p>After permission and token acquisition, send the Expo registration to the
+framework&#39;s authenticated subscription route. The following helper assumes your
+application supplies its EAS <code>projectId</code>, a locally persisted installation UUID,
+API origin and the user&#39;s Identity access token:</p>
+<pre><code class="language-javascript">import * as Notifications from &#39;expo-notifications&#39;;
+import { Platform } from &#39;react-native&#39;;
+
+export async function registerPush({ projectId, installationID, apiURL, accessToken }) {
+  if (Platform.OS === &#39;android&#39;) {
+    await Notifications.setNotificationChannelAsync(&#39;default&#39;, {
+      name: &#39;Default&#39;, importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
+  const permission = await Notifications.requestPermissionsAsync();
+  if (permission.status !== &#39;granted&#39;) return null;
+
+  const { data: registration } = await Notifications.getExpoPushTokenAsync({ projectId });
+  const response = await fetch(`${apiURL}/api/v1/notifications/subscriptions`, {
+    method: &#39;POST&#39;,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      &#39;Content-Type&#39;: &#39;application/json&#39;,
+    },
+    body: JSON.stringify({ installation_id: installationID, registration }),
+  });
+  if (!response.ok) {
+    throw new Error(`Push registration failed (${response.status})`);
+  }
+  const { data: subscription } = await response.json();
+  return subscription.id;
+}
+</code></pre>
+<p><code>apiURL</code> must be reachable from the device; its <code>localhost</code> is not your development
+computer. Save the returned subscription ID. Retry failed registration through your
+normal client request policy and refresh it on startup/token rotation. Do not log
+the registration or access token.</p>
+<p>Before switching accounts, detach the old subscription:</p>
+<pre><code class="language-javascript">const response = await fetch(`${apiURL}/api/v1/notifications/subscriptions/${subscriptionID}`, {
+  method: &#39;DELETE&#39;,
+  headers: { Authorization: `Bearer ${accessToken}` },
+});
+if (!response.ok) throw new Error(`Push detachment failed (${response.status})`);
+</code></pre>
+<p>Use the previous account&#39;s valid token. Identity logout also detaches registrations
+bound to that session. Detachment cannot retract a provider request already in
+flight. A registration token is a delivery address, not an authentication credential.</p>
+<p>For foreground presentation, configure <code>Notifications.setNotificationHandler</code> at
+application startup according to your UX. Subscribe to received/tap events and
+remove listeners when the owning component unmounts. On a tap, authenticate and
+fetch current authorized state using the payload&#39;s resource ID; the push body must
+not decide authorization. See <a href="https://docs.expo.dev/push-notifications/receiving-notifications/">Expo&#39;s incoming-notification guide</a>.</p>
+<p>Framework notifications add <code>notification_key</code> and <code>notification_type</code> string data.
+Use the key to deduplicate client handling. These reserved values override values
+supplied by a module. Direct <code>pkg/push</code> calls do not add them automatically.</p>
+<h2 id="test-and-troubleshoot-push">Test and troubleshoot push<a class="heading-link" href="#test-and-troubleshoot-push" aria-label="Link to Test and troubleshoot push">#</a></h2>
+<pre><code class="language-sh">go test ./pkg/push/... ./internal/platform/notification/...
+</code></pre>
+<p>Provider tests use a local fake HTTP transport to exercise deadlines, safe errors
+and receipt parsing. PostgreSQL-dependent notification tests skip unless
+<code>DATABASE_TEST_POSTGRES</code> is configured; use the <a href="testing-database.html">integration gate</a>
+to verify persistence. Automated tests never contact Expo or send a real alert.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token acquisition fails</td>
+<td>Build credentials, EAS project ID, permission and supported device environment</td>
+</tr>
+<tr>
+<td>Subscription returns 401</td>
+<td>Identity token/session and authentication configuration</td>
+</tr>
+<tr>
+<td>Subscription returns conflict</td>
+<td>Installation/registration already active under another recipient; detach it first</td>
+</tr>
+<tr>
+<td>Send returns <code>credentials</code></td>
+<td>Server Expo access token and platform credentials in the Expo project</td>
+</tr>
+<tr>
+<td>Accepted ticket, no alert</td>
+<td>Receipt, device notification settings, foreground presentation and app environment</td>
+</tr>
+<tr>
+<td>Receipt is not found yet</td>
+<td>Poll later; do not resend solely because it is absent</td>
+</tr>
+<tr>
+<td><code>unregistered</code></td>
+<td>Disable the matching registration; refresh from the client when it registers again</td>
+</tr>
+<tr>
+<td>HTTP 429 / <code>rate_limited</code></td>
+<td>Respect Retry-After and budget throughput across all replicas</td>
+</tr>
+<tr>
+<td>Notification delivery is skipped</td>
+<td>Expired content, no frozen target, detached session or changed registration version</td>
+</tr>
+</tbody>
+</table>
+<p>Expo/mobile behavior can change independently of this repository. Use the official
+<a href="https://docs.expo.dev/push-notifications/push-notifications-setup/">setup</a> and
+<a href="https://docs.expo.dev/push-notifications/sending-notifications/">send/receipt</a> guides
+for current platform prerequisites. The Go APIs and limits above describe this
+repository&#39;s actual adapter.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="notifications.html"><small>← Previous</small>Notifications</a>
+<a href="filesystems.html"><small>Next →</small>File storage</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#prepare-expo-and-the-mobile-app">Prepare Expo and the mobile app</a></li><li class="toc-level-2"><a href="#application-configuration">Application configuration</a></li><li class="toc-level-2"><a href="#try-one-alert">Try one alert</a></li><li class="toc-level-2"><a href="#send-independently">Send independently</a></li><li class="toc-level-2"><a href="#inspect-a-receipt">Inspect a receipt</a></li><li class="toc-level-2"><a href="#control-limits-and-failures">Control limits and failures</a></li><li class="toc-level-2"><a href="#durable-notifications">Durable notifications</a></li><li class="toc-level-2"><a href="#expo-mobile-client">Expo mobile client</a></li><li class="toc-level-2"><a href="#test-and-troubleshoot-push">Test and troubleshoot push</a></li></ol></nav><a class="source-link" href="markdown/push.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

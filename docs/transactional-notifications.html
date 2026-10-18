@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="SQL and notification intent — Practical guides and Go examples for Labena.">
+<title>SQL and notification intent — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/transactional-notifications.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a class="selected" aria-current="page" href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Workflows</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#one-complete-operation">One complete operation</a></li><li class="toc-level-2"><a href="#commit-rollback-and-delivery">Commit, rollback and delivery</a></li><li class="toc-level-2"><a href="#choose-the-appropriate-operation">Choose the appropriate operation</a></li><li class="toc-level-2"><a href="#verify-against-postgresql">Verify against PostgreSQL</a></li><li class="toc-level-2"><a href="#diagnose-an-unexpected-result">Diagnose an unexpected result</a></li></ol></nav></details>
+<article><h1 id="sql-and-notification-intent">SQL and notification intent</h1>
+<p>When a profile change must produce a notification, commit both in the same
+PostgreSQL transaction. Persist the delivery intent during the transaction and
+let a worker deliver it after commit. This uses existing Identity, transaction and
+notification APIs; it needs no new framework abstraction.</p>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service operation</td>
+<td>Validate and update the profile</td>
+</tr>
+<tr>
+<td>Same SQL transaction</td>
+<td>Store one database-channel notification intent</td>
+</tr>
+<tr>
+<td>Commit</td>
+<td>Make both changes visible together</td>
+</tr>
+<tr>
+<td>Worker dispatcher</td>
+<td>Submit a due delivery ID to Redis</td>
+</tr>
+<tr>
+<td>Delivery worker</td>
+<td>Create the recipient&#39;s readable notification record</td>
+</tr>
+</tbody>
+</table>
+<p>This workflow is useful when losing the notification intent would violate the
+operation&#39;s requirements. For optional reactions after a successful commit, compare
+the <a href="onboarding.html">onboarding workflow</a>.</p>
+<h2 id="one-complete-operation">One complete operation<a class="heading-link" href="#one-complete-operation" aria-label="Link to One complete operation">#</a></h2>
+<p><code>examples/module/profile/update.go</code> is a compiled composition example. It does not
+install an endpoint or change the shipped profile endpoint. A real module can
+place this method on its existing service, receiving these collaborators once in
+its constructor.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package profile demonstrates a business change with transactional notification intent.</span>
+<span class="go-keyword">package</span> profile
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/google/</span><span class="go-import-name">uuid</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">service</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/shared/</span><span class="go-import-name">entities</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">notification</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">database</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// Update borrows already constructed collaborators sharing the same database.</span>
+<span class="go-comment">// The caller must authorize userID before invoking it. No new route is installed.</span>
+<span class="go-comment">// Success commits the profile and notification intent together unless this call</span>
+<span class="go-comment">// joins an outer transaction, in which case that caller still owns the commit.</span>
+<span class="go-keyword">func</span> <span class="go-function">Update</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">transactions</span> <span class="go-operator">*</span><span class="go-type">database</span><span class="go-punctuation">.</span><span class="go-type">TxManager</span><span class="go-punctuation">,</span> <span class="go-parameter">users</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UserService</span><span class="go-punctuation">,</span> <span class="go-parameter">notifier</span> <span class="go-operator">*</span><span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Notifier</span><span class="go-punctuation">,</span> <span class="go-parameter">userID</span> <span class="go-type">uuid</span><span class="go-punctuation">.</span><span class="go-number">UUID</span><span class="go-punctuation">,</span> <span class="go-parameter">name</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">return</span> <span class="go-parameter">transactions</span><span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-2">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-2">{</span>
+		user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">users</span><span class="go-punctuation">.</span><span class="go-function">UpdateProfile</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">userID</span><span class="go-punctuation">,</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UpdateProfileInput</span><span class="go-bracket-4">{</span>Name<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-parameter">name</span><span class="go-bracket-4">}</span><span class="go-bracket-3">)</span>
+		<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+			<span class="go-keyword">return</span> err
+		<span class="go-bracket-3">}</span>
+		_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> <span class="go-parameter">notifier</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Recipient</span><span class="go-bracket-4">{</span>
+			Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-5">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-5">)</span><span class="go-punctuation">,</span> ID<span class="go-punctuation">:</span> user<span class="go-punctuation">.</span>ID<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-5">(</span><span class="go-bracket-5">)</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-4">}</span><span class="go-punctuation">,</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-4">{</span>
+			Type<span class="go-punctuation">:</span>     <span class="go-string">&#34;identity.profile_updated&#34;</span><span class="go-punctuation">,</span>
+			Database<span class="go-punctuation">:</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">RawMessage</span><span class="go-bracket-5">(</span><span class="go-string">`{&#34;title&#34;:&#34;Profile updated&#34;,&#34;body&#34;:&#34;Your profile changes were saved.&#34;}`</span><span class="go-bracket-5">)</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-4">}</span><span class="go-bracket-3">)</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Construct <code>users</code>, <code>notifier</code> and <code>transactions</code> with the same database pool. App
+already owns that pool and the shared notifier. Pass collaborators into services;
+keep the complete <code>Resources</code> bundle in module assembly.</p>
+<p>The caller authorizes the user ID before invoking the operation. <code>UpdateProfile</code>
+validates the name and locks the account through its repository. It participates
+in the supplied transaction. <code>Notifier.Enqueue</code> uses that same transaction to
+persist a JSON database-channel intent. Neither operation contacts Redis or SMTP.</p>
+<h2 id="commit-rollback-and-delivery">Commit, rollback and delivery<a class="heading-link" href="#commit-rollback-and-delivery" aria-label="Link to Commit, rollback and delivery">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Both operations succeed</td>
+<td>Profile and intent commit together</td>
+</tr>
+<tr>
+<td>Invalid profile or failed intent insert</td>
+<td>Neither change commits</td>
+</tr>
+<tr>
+<td>Enclosing transaction rolls back</td>
+<td>Both changes roll back, even if this function returned nil</td>
+</tr>
+<tr>
+<td>Worker is stopped or Redis is unavailable</td>
+<td>Committed intent waits in PostgreSQL</td>
+</tr>
+<tr>
+<td>Delivery runs twice for the same intent</td>
+<td>One database notification is stored</td>
+</tr>
+</tbody>
+</table>
+<p>Success means the intent is committed, or pending an outer caller&#39;s commit. The
+notification is not readable until delivery has created the database record. The
+existing notification dispatcher submits due IDs to the worker; with the combined
+app&#39;s workers enabled it runs independently of the cron scheduler. An application
+that uses the package independently must arrange dispatch and delivery itself.</p>
+<p>The example intentionally omits <code>Key</code>, so each successful invocation creates a new
+occurrence. Worker retries reuse its persisted key. Repeating the entire business
+operation creates another occurrence; use a stable business operation key when
+that is undesirable, and design the business write&#39;s own retry semantics too.
+Notification deduplication alone does not make an entire use case idempotent.</p>
+<h2 id="choose-the-appropriate-operation">Choose the appropriate operation<a class="heading-link" href="#choose-the-appropriate-operation" aria-label="Link to Choose the appropriate operation">#</a></h2>
+<p>Use <code>notifier.Enqueue</code> when intent must commit with business state. The same
+pattern can persist email or push content; external delivery still happens later.
+Use <a href="mail.html">mailer.Send or mailer.Enqueue</a> for ordinary email that does not need
+SQL intent. Both reject a caller SQL transaction, because SMTP and Redis cannot
+join the PostgreSQL commit. Do not make a local event the only record of required
+work; <a href="events.html">local events</a> are best effort.</p>
+<p>Sensitive authentication operations, including signup, own their commit
+rules and reject outer transactions. Do not put them inside this example. The
+profile update is chosen because its contract explicitly supports composition.</p>
+<h2 id="verify-against-postgresql">Verify against PostgreSQL<a class="heading-link" href="#verify-against-postgresql" aria-label="Link to Verify against PostgreSQL">#</a></h2>
+<p><code>TestProfileNotificationWorkflowPostgres</code> executes this exact example with the
+real repositories and migrations. It checks success, outer rollback, a failed
+notification insert rolling back the earlier profile write, delayed visibility,
+and replay of the same delivery ID.</p>
+<p>With <code>DATABASE_TEST_POSTGRES</code> pointing to a disposable PostgreSQL database:</p>
+<pre><code class="language-sh">APP_ENV_FILE=&#39;&#39; go test -race ./tests/modules -run TestProfileNotificationWorkflowPostgres -count=1
+</code></pre>
+<p>The test creates and removes an isolated schema. It does not need Redis or a mail
+provider. The wider <a href="testing-database.html">integration gate</a> also covers dispatch
+through real Redis. See <a href="notifications.html">notifications</a> for channel selection,
+occurrence keys, recipient isolation and retry limits.</p>
+<h2 id="diagnose-an-unexpected-result">Diagnose an unexpected result<a class="heading-link" href="#diagnose-an-unexpected-result" aria-label="Link to Diagnose an unexpected result">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Observation</th>
+<th>Meaning</th>
+<th>Next check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profile returned successfully but notification is not listed</td>
+<td>Intent may be committed but not delivered</td>
+<td>Delivery ledger and dispatcher/worker state</td>
+</tr>
+<tr>
+<td>Outer transaction rolled back</td>
+<td>Earlier nil return was not a commit guarantee</td>
+<td>Outer caller&#39;s error handling</td>
+</tr>
+<tr>
+<td>Profile changed but no intent row exists</td>
+<td>A call lost the transaction context, bypassed the shared executor or ran outside this pattern</td>
+<td>Transaction context propagation and repository execution</td>
+</tr>
+<tr>
+<td>Operation returns <code>database.ErrDifferentDatabase</code></td>
+<td>A collaborator uses a different pool from the active transaction</td>
+<td>Construct participating repositories and notifier with the same pool; the executor rejects a foreign pool</td>
+</tr>
+<tr>
+<td>Repeating the whole request produces another notification</td>
+<td>This example intentionally omits a stable key</td>
+<td>Choose a business occurrence key if duplicate requests must converge</td>
+</tr>
+<tr>
+<td>SMTP/Redis transaction guard rejects an operation</td>
+<td>An external effect was called inside the transaction</td>
+<td>Use notifier intent here and deliver after commit</td>
+</tr>
+</tbody>
+</table>
+<p>Use <a href="notifications.html#inspect-and-retry-deliveries">notification delivery inspection</a>
+for the next step. Do not retry a committed profile change merely because an
+optional external channel has not completed.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="persistent-workflow.html"><small>← Previous</small>A persisted HTTP and CLI operation</a>
+<a href="onboarding.html"><small>Next →</small>Account onboarding reactions</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#one-complete-operation">One complete operation</a></li><li class="toc-level-2"><a href="#commit-rollback-and-delivery">Commit, rollback and delivery</a></li><li class="toc-level-2"><a href="#choose-the-appropriate-operation">Choose the appropriate operation</a></li><li class="toc-level-2"><a href="#verify-against-postgresql">Verify against PostgreSQL</a></li><li class="toc-level-2"><a href="#diagnose-an-unexpected-result">Diagnose an unexpected result</a></li></ol></nav><a class="source-link" href="markdown/transactional-notifications.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

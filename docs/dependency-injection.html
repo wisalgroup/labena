@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Dependency injection — Practical guides and Go examples for Labena.">
+<title>Dependency injection — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/dependency-injection.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a class="selected" aria-current="page" href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Architecture</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#construction-and-ownership">Construction and ownership</a></li><li class="toc-level-2"><a href="#construct-a-service-explicitly">Construct a service explicitly</a></li><li class="toc-level-2"><a href="#service-and-repository-contracts">Service and repository contracts</a></li><li class="toc-level-2"><a href="#required-arguments-and-options">Required arguments and options</a></li><li class="toc-level-2"><a href="#cross-module-calls-and-transactions">Cross-module calls and transactions</a></li><li class="toc-level-2"><a href="#context-carries-scope-not-dependencies">Context carries scope, not dependencies</a></li><li class="toc-level-2"><a href="#optional-capabilities">Optional capabilities</a></li><li class="toc-level-2"><a href="#use-a-capability-independently">Use a capability independently</a></li><li class="toc-level-2"><a href="#optional-push">Optional push</a></li><li class="toc-level-2"><a href="#account-and-authentication-operations">Account and authentication operations</a></li><li class="toc-level-2"><a href="#verify-wiring">Verify wiring</a></li></ol></nav></details>
+<article><h1 id="dependency-injection">Dependency injection</h1>
+<p>Pass dependencies through ordinary Go constructors. App creates shared clients;
+module assembly selects the clients its services need. A handler receives its
+operation directly, so it never needs to discover or construct dependencies.</p>
+<h2 id="construction-and-ownership">Construction and ownership<a class="heading-link" href="#construction-and-ownership" aria-label="Link to Construction and ownership">#</a></h2>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: Construct once, borrow explicitly
+    accDescr: App opens and owns infrastructure, constructs capabilities and authentication, and passes shared operations into HTTP, CLI, task and event handlers. Consumers borrow dependencies and never close app resources.
+    App[App assembly] --&gt;|Opens and owns| Resources[(Pools and clients)]
+    Resources --&gt; Capabilities[Notifier and Media library]
+    Resources --&gt; Module[Module registration]
+    App --&gt; Auth[Authentication service]
+    Auth --&gt; Module
+    Capabilities --&gt; Module
+    Module --&gt; Service[Business service]
+    Service --&gt; HTTP[HTTP handler]
+    Service --&gt; CLI[CLI command]
+    Service --&gt; Jobs[Task and event handlers]
+</code></pre>
+<p>Two assembly structs have different purposes:</p>
+<table>
+<thead>
+<tr>
+<th>Struct</th>
+<th>Contains</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dependencies.Resources</code></td>
+<td>Existing clients, pools and shared capabilities</td>
+<td>Module Register functions and app assembly</td>
+</tr>
+<tr>
+<td><code>dependencies.Targets</code></td>
+<td>Routers and registration destinations</td>
+<td>Module <code>Register</code> functions</td>
+</tr>
+</tbody>
+</table>
+<p>Copying Resources shares the clients; it does not clone connections. Modules never
+mutate its maps or close borrowed clients. Services and handlers receive specific
+fields rather than retaining the complete bundle.</p>
+<p>App keeps both bundles on one private <code>application</code>, alongside configuration,
+the lifecycle owner and process handles. Native registries live directly in
+<code>application.targets</code>; the worker and module handlers use the same instances.
+The private application is never passed into modules or platform capabilities.</p>
+<h2 id="construct-a-service-explicitly">Construct a service explicitly<a class="heading-link" href="#construct-a-service-explicitly" aria-label="Link to Construct a service explicitly">#</a></h2>
+<p>Identity assembles its profile operations with ordinary constructors:</p>
+<pre><code class="language-go" data-highlighted="yes">repo <span class="go-operator">:=</span> <span class="go-package">repository</span><span class="go-punctuation">.</span><span class="go-function">NewUserRepository</span><span class="go-bracket-0">(</span><span class="go-package">resources</span><span class="go-punctuation">.</span><span class="go-number">DB</span><span class="go-bracket-0">)</span>
+users<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">service</span><span class="go-punctuation">.</span><span class="go-function">NewUserService</span><span class="go-bracket-0">(</span>repo<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>module-registration fragment</strong> imports
+<code>github.com/wisalgroup/labena/internal/modules/identity/repository</code> and <code>github.com/wisalgroup/labena/internal/modules/identity/service</code>.
+<code>resources</code> is the borrowed <code>dependencies.Resources</code> argument. No query runs here.</p>
+<p>The same <code>users</code> value is passed to HTTP registration and <code>modulecli.New(users)</code>.
+They call the same rules; only their input/output adaptation differs. Follow the
+<a href="persistent-workflow.html">persisted HTTP and CLI workflow</a> to see both callers.</p>
+<h2 id="service-and-repository-contracts">Service and repository contracts<a class="heading-link" href="#service-and-repository-contracts" aria-label="Link to Service and repository contracts">#</a></h2>
+<p>Keep public contracts in the owner&#39;s package:</p>
+<pre><code class="language-text">identity/service/
+  service.go      UserService and AuthService interfaces
+  user.go         userService and NewUserService
+  auth.go         authService and NewAuthService
+  session.go      Authentication methods on *authService
+
+identity/repository/
+  repository.go   Focused repository interfaces
+  user.go         userRepository and NewUserRepository
+  session.go      sessionRepository and NewSessionRepository
+</code></pre>
+<p>A larger use case can live in another file on the same receiver. File organization
+does not require another abstraction, service instance or constructor.</p>
+<p>Multiple consumers import the same owner contract. Avoid duplicating
+<code>UserService</code>, <code>mail.Sender</code> or <code>messaging.Publisher</code> in each caller just to change
+the package name. Add interfaces where substitution or a stable business API is
+useful; concrete capabilities such as <code>*notification.Notifier</code> and <code>*media.Library</code>
+are intentional too.</p>
+<h2 id="required-arguments-and-options">Required arguments and options<a class="heading-link" href="#required-arguments-and-options" aria-label="Link to Required arguments and options">#</a></h2>
+<p>Use explicit arguments for a small required dependency set. Use a cohesive options
+struct when construction has several collaborators or optional controls:</p>
+<pre><code class="language-go" data-highlighted="yes">notifier<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notification</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span>db<span class="go-punctuation">,</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>
+    Queue<span class="go-punctuation">:</span>     queue<span class="go-punctuation">,</span>
+    Mailer<span class="go-punctuation">:</span>    mailer<span class="go-punctuation">,</span>
+    MailRenderer<span class="go-punctuation">:</span> views<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This <strong>construction fragment</strong> assumes already constructed clients and imports
+<code>github.com/wisalgroup/labena/internal/platform/notification</code>. The caller retains the resulting
+notifier for its operations; constructing it sends nothing.</p>
+<p><code>Config</code> describes settings; <code>Options</code> describes constructor controls and
+collaborators. A business service must not import app or read environment variables
+to complete its construction.</p>
+<h2 id="cross-module-calls-and-transactions">Cross-module calls and transactions<a class="heading-link" href="#cross-module-calls-and-transactions" aria-label="Link to Cross-module calls and transactions">#</a></h2>
+<p>Pass a business service from one module to another as an explicit assembly
+argument. Keep business services out of Resources. App may construct services needed
+before registration using owner constructors; transport handlers never construct repositories.</p>
+<p>Use a direct call when the current operation requires a result. Use an event for
+an independent reaction with an accepted delivery guarantee. The local event bus
+does not make a required operation reliable across a process crash.</p>
+<table>
+<thead>
+<tr>
+<th>Interaction</th>
+<th>Ownership boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read/update an account</td>
+<td>Call Identity&#39;s service and apply caller authorization</td>
+</tr>
+<tr>
+<td>Store notification intent with a business change</td>
+<td>Use <code>Notifier.Enqueue</code> inside the same database transaction</td>
+</tr>
+<tr>
+<td>Send email or write an object</td>
+<td>External effect; cannot roll back with SQL</td>
+</tr>
+<tr>
+<td>Publish a local event after commit</td>
+<td>Commit remains valid if publication fails</td>
+</tr>
+</tbody>
+</table>
+<p>DB and Transactions must use the same pool. Repositories resolve their executor
+from context to join the transaction. Normal service operations own transaction
+scope; Identity&#39;s security operations have explicit exceptions for durable failed
+proof counters and refresh-reuse revocation. See
+<a href="database-transactions.html">transactions</a>.</p>
+<h2 id="context-carries-scope-not-dependencies">Context carries scope, not dependencies<a class="heading-link" href="#context-carries-scope-not-dependencies" aria-label="Link to Context carries scope, not dependencies">#</a></h2>
+<p>Propagate the caller&#39;s context to every operation. It carries cancellation,
+deadlines, transaction scope and logging/trace metadata. Inject clients through
+arguments instead of retrieving them from context or a global container.</p>
+<p>Handlers must finish their work before returning. Put deferred processing on the
+queue instead of spawning an unowned goroutine that outlives the handler.</p>
+<h2 id="optional-capabilities">Optional capabilities<a class="heading-link" href="#optional-capabilities" aria-label="Link to Optional capabilities">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Disabled behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache, Pusher, RateLimiter</td>
+<td>May be nil when their feature is disabled</td>
+</tr>
+<tr>
+<td>Disks</td>
+<td>Only selected disks are opened; disabled storage has no usable disk</td>
+</tr>
+<tr>
+<td>TracerProvider, MeterProvider</td>
+<td>App supplies providers; disabled telemetry is no-op</td>
+</tr>
+<tr>
+<td>Mailer</td>
+<td>Always constructed; SMTP connects on sending</td>
+</tr>
+<tr>
+<td>DB/Transactions</td>
+<td>Can be absent for limited assembly; installed modules cannot serve without them</td>
+</tr>
+</tbody>
+</table>
+<p>Validate the dependencies required by an enabled operation during construction.
+Do not defer an inevitable nil dereference until a request. A nil registration
+target omits a transport; it does not grant access or change a service policy.</p>
+<h2 id="use-a-capability-independently">Use a capability independently<a class="heading-link" href="#use-a-capability-independently" aria-label="Link to Use a capability independently">#</a></h2>
+<p>Within this application template, instantiate a platform capability from its
+actual clients and options without importing app or Resources. Its integration
+package is needed only when registering framework transports.</p>
+<p>For reuse from another Go module, choose a <code>pkg</code> capability: Go&#39;s <code>internal</code> import
+rule deliberately limits platform packages. See the <a href="structure.html#package-index">package index</a>.</p>
+<h2 id="optional-push">Optional push<a class="heading-link" href="#optional-push" aria-label="Link to Optional push">#</a></h2>
+<p><code>Resources.Pusher</code> is the optional <code>push.Sender</code>; it is nil when disabled. App also
+passes it to Notifier for durable channel delivery. Choose <a href="push.html">direct push</a>
+for an immediate provider call or <a href="notifications.html">notifications</a> for persisted
+recipient delivery. Inject the selected collaborator into your service.</p>
+<h2 id="account-and-authentication-operations">Account and authentication operations<a class="heading-link" href="#account-and-authentication-operations" aria-label="Link to Account and authentication operations">#</a></h2>
+<p>Identity separates profile operations (<code>UserService</code>) from proof/token/session
+operations (<code>AuthService</code>). Both expose owner contracts with private implementations.
+<code>SignInResult</code> carries the committed user, tokens and Created flag; HTTP maps the
+flag to 201/200. See <a href="identity.html">Identity</a> for account policy and its security
+transaction exceptions.</p>
+<h2 id="verify-wiring">Verify wiring<a class="heading-link" href="#verify-wiring" aria-label="Link to Verify wiring">#</a></h2>
+<p>Use narrow fakes for service decisions and real disposable backends for SQL,
+Redis, retries and ownership isolation. App tests call public <code>Serve</code>/<code>Execute</code>;
+module tests can supply only the targets they need. Keep business tests under
+<code>tests/&lt;module&gt;</code>.</p>
+<p>Continue with <a href="module-registration.html">module registration</a>,
+<a href="shared-types.html">shared types</a>, or <a href="application-lifecycle.html">lifecycle</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="module-registration.html"><small>← Previous</small>Module registration</a>
+<a href="application-lifecycle.html"><small>Next →</small>Application lifecycle</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#construction-and-ownership">Construction and ownership</a></li><li class="toc-level-2"><a href="#construct-a-service-explicitly">Construct a service explicitly</a></li><li class="toc-level-2"><a href="#service-and-repository-contracts">Service and repository contracts</a></li><li class="toc-level-2"><a href="#required-arguments-and-options">Required arguments and options</a></li><li class="toc-level-2"><a href="#cross-module-calls-and-transactions">Cross-module calls and transactions</a></li><li class="toc-level-2"><a href="#context-carries-scope-not-dependencies">Context carries scope, not dependencies</a></li><li class="toc-level-2"><a href="#optional-capabilities">Optional capabilities</a></li><li class="toc-level-2"><a href="#use-a-capability-independently">Use a capability independently</a></li><li class="toc-level-2"><a href="#optional-push">Optional push</a></li><li class="toc-level-2"><a href="#account-and-authentication-operations">Account and authentication operations</a></li><li class="toc-level-2"><a href="#verify-wiring">Verify wiring</a></li></ol></nav><a class="source-link" href="markdown/dependency-injection.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

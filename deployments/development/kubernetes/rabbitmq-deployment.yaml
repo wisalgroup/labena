@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: go-modular-dev
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:4.1.0-management-alpine
+        ports:
+        - name: client
+          containerPort: 5672
+        - name: management
+          containerPort: 15672
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/rabbitmq
+        - name: config
+          mountPath: /etc/rabbitmq/rabbitmq.conf
+          subPath: rabbitmq.conf
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 768Mi
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - -q
+            - ping
+          periodSeconds: 5
+          timeoutSeconds: 5
+        startupProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - -q
+            - ping
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 60
+        envFrom:
+        - secretRef:
+            name: rabbitmq-dev
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: rabbitmq-data
+      - name: config
+        configMap:
+          name: rabbitmq-config
+      hostname: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: go-modular-dev
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+  - name: client
+    port: 5672
+    targetPort: client
+  - name: management
+    port: 15672
+    targetPort: management

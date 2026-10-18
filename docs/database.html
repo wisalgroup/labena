@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Connections — Practical guides and Go examples for Labena.">
+<title>Connections — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/database.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a class="selected" aria-current="page" href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Database and state</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-driver">Choose a driver</a></li><li class="toc-level-2"><a href="#use-the-apps-connection">Use the app&#39;s connection</a></li><li class="toc-level-2"><a href="#configure-the-pool">Configure the pool</a></li><li class="toc-level-2"><a href="#open-a-standalone-pool">Open a standalone pool</a></li><li class="toc-level-2"><a href="#query-logs">Query logs</a></li><li class="toc-level-2"><a href="#verify-a-connection-and-its-schema">Verify a connection and its schema</a></li></ol></nav></details>
+<article><h1 id="database-connections">Database connections</h1>
+<p>Set the database connection in your environment file. App assembly opens one Bun pool and shares it with the repositories and database drivers that need it.</p>
+<pre><code class="language-dotenv">DATABASE_DRIVER=postgres
+DATABASE_URL=postgres://app:password@127.0.0.1:5432/app?sslmode=disable
+</code></pre>
+<p>The credentials above are local placeholders. Use verified TLS and appropriate credentials for remote connections. Configuration is loaded centrally; repositories do not read environment variables.</p>
+<h2 id="choose-a-driver">Choose a driver<a class="heading-link" href="#choose-a-driver" aria-label="Link to Choose a driver">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Driver</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postgres</code></td>
+<td>Installed modules, Bun queries, transactions, migrations and database cache</td>
+</tr>
+<tr>
+<td><code>mysql</code></td>
+<td>Reusable database/cache packages and custom MySQL migrations; installed module SQL is PostgreSQL</td>
+</tr>
+<tr>
+<td><code>sqlite</code></td>
+<td>Available through standalone <code>pkg/database</code>; not supported by the app&#39;s combined migration history</td>
+</tr>
+</tbody>
+</table>
+<p>For independent MySQL components, use its native DSN:</p>
+<pre><code class="language-dotenv">DATABASE_DRIVER=mysql
+DATABASE_URL=app:password@tcp(127.0.0.1:3306)/app
+</code></pre>
+<p>The connection package enables MySQL time parsing, UTC decoding, and a UTC session time zone. Other driver options, including TLS options, remain available.</p>
+<p>Changing <code>DATABASE_DRIVER</code> does not translate existing SQL or migrate data. Keep one chosen engine for an application&#39;s migration history.
+The shipped app rejects a mixed migration dialect even for CLI help. A MySQL
+application requires porting or replacing the installed modules&#39; queries and SQL;
+it is not an alternative quickstart profile. The required integration gate verifies
+PostgreSQL and Redis; optional engines need their own verification.</p>
+<h2 id="use-the-apps-connection">Use the app&#39;s connection<a class="heading-link" href="#use-the-apps-connection" aria-label="Link to Use the app&#39;s connection">#</a></h2>
+<p>App assembly opens a database when <code>DATABASE_URL</code> is nonempty. Database cache requires that connection. With no URL and database cache disabled, <code>a.resources.DB</code> and <code>a.resources.Transactions</code> remain nil; Redis tasks and local events do not require SQL independently. Serving the installed business modules still requires PostgreSQL.</p>
+<p>Inside the owning module’s <code>register.go</code>, inject its borrowed pool into the repository:</p>
+<pre><code class="language-go" data-highlighted="yes">catalogRepo<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">catalogrepository</span><span class="go-punctuation">.</span><span class="go-function">NewProductRepository</span><span class="go-bracket-0">(</span>deps<span class="go-punctuation">.</span>DB<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Errorf</span><span class="go-bracket-1">(</span><span class="go-string">&#34;app: catalog repository: %w&#34;</span><span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This fragment assumes the repository from <a href="database-queries.html">Models and queries</a> has been added and imported as <code>catalogrepository</code>. Pass the repository to the owning service, then pass that service to package registration. Do not open another pool per request or module.</p>
+<p>The app owns the pool and closes it after its consumers stop. Repositories and the database cache driver borrow it.</p>
+<h2 id="configure-the-pool">Configure the pool<a class="heading-link" href="#configure-the-pool" aria-label="Link to Configure the pool">#</a></h2>
+<p>These are the current application defaults:</p>
+<pre><code class="language-dotenv">DATABASE_NAME=
+DATABASE_MAX_OPEN_CONNS=20
+DATABASE_MAX_IDLE_CONNS=5
+DATABASE_CONN_MAX_LIFETIME=30m
+DATABASE_CONN_MAX_IDLE_TIME=5m
+DATABASE_CONNECT_TIMEOUT=5s
+DATABASE_PING_TIMEOUT=5s
+DATABASE_SLOW_QUERY_THRESHOLD=500ms
+</code></pre>
+<p><code>DATABASE_NAME</code> is a diagnostic name; the DSN selects the actual database. Opening a pool includes a ping and closes the pool if initialization fails.</p>
+<p>Budget connections across every process and replica. Ten replicas with a limit of 20 can open 200 connections, before migration tools and other services are counted. More connections are not automatically more throughput.</p>
+<p>Connection and ping timeouts do not limit query duration. Give each operation a bounded context:</p>
+<pre><code class="language-go" data-highlighted="yes">ctx<span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithTimeout</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">3</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-0">)</span>
+<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+product<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">repository</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment belongs in a caller that owns the operation deadline. Pass the derived context onward, handle the returned error, and use the returned product.</p>
+<h2 id="open-a-standalone-pool">Open a standalone pool<a class="heading-link" href="#open-a-standalone-pool" aria-label="Link to Open a standalone pool">#</a></h2>
+<p>Use <code>pkg/database</code> directly for tooling that does not use app assembly. This complete function borrows its caller&#39;s configuration and context, verifies access, and closes its own pool:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> probe
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">database</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">Check</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">cfg</span> <span class="go-type">database</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span>err <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	db<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Open</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">cfg</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">defer</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span> err <span class="go-operator">=</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-2">(</span>err<span class="go-punctuation">,</span> db<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span><span class="go-bracket-2">)</span> <span class="go-bracket-1">}</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">var</span> value <span class="go-builtin-type">int</span>
+	<span class="go-keyword">return</span> db<span class="go-punctuation">.</span><span class="go-function">NewRaw</span><span class="go-bracket-1">(</span><span class="go-string">&#34;SELECT 1&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">Scan</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>value<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Start with <code>database.DefaultConfig()</code> and set its DSN before calling. <code>Open</code> returns <code>*bun.DB</code>. <code>OpenSQL</code> returns a native <code>*sql.DB</code> for SQL-only callers. The Bun pool&#39;s <code>db.DB</code> is its underlying SQL pool, not a second connection owner; close the owner once.</p>
+<p>A literal <code>database.Config</code> with <code>MaxIdleConns: 0</code> disables idle retention. <code>DefaultConfig</code> supplies five idle connections. Private in-memory SQLite databases use one retained connection so their schema survives between calls.</p>
+<h2 id="query-logs">Query logs<a class="heading-link" href="#query-logs" aria-label="Link to Query logs">#</a></h2>
+<p>Bun queries resolve <code>logging.FromContext(ctx)</code> at execution time, preserving request and job fields. Successful queries log metadata at DEBUG, slow queries at WARN, and failures at ERROR. Cancellation is DEBUG; deadline expiry is WARN. Missing rows are not logged as database failures.</p>
+<p>Set the desired channel’s <code>Options.Level</code> to <code>slog.LevelDebug</code> in <code>internal/app/config/observability.go</code> to include successful queries.</p>
+<pre><code class="language-dotenv">DATABASE_SLOW_QUERY_THRESHOLD=500ms
+</code></pre>
+<p>The hook records operation, duration, and database name. It omits SQL text, bound values, credentials, and server error text. Queries through the underlying <code>db.DB</code> bypass Bun hooks. Returned driver errors may still contain sensitive detail; translate them before sending responses.</p>
+<p>To inspect SQL for a request, open its database span in Grafana and read
+<code>db.query.text</code>. Tracing captures sanitized query structure, with values replaced
+by <code>?</code> and comments removed; enabling DEBUG does not add SQL to logs. See
+<a href="observability.html#inspect-a-requests-sql-in-grafana">request SQL in Grafana</a>
+for navigation, supported queries and capture limits.</p>
+<p>See <a href="database-transactions.html">Transactions</a> before adding multi-query workflows, and <a href="migrations.html">Migrations</a> before creating tables.</p>
+<h2 id="verify-a-connection-and-its-schema">Verify a connection and its schema<a class="heading-link" href="#verify-a-connection-and-its-schema" aria-label="Link to Verify a connection and its schema">#</a></h2>
+<p>After configuring the intended database:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate status
+go run ./cmd/cli migrate up
+</code></pre>
+<p>The first command inspects migration state; the second changes schema. A successful
+connection ping proves access to the server, not that every required table or
+permission exists. Exercise a representative request after applying migrations.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Investigate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection refused or startup timeout</td>
+<td>Host/port reachability and whether the dependency is running</td>
+</tr>
+<tr>
+<td>Authentication/TLS failure</td>
+<td>Credentials, certificate configuration, and server policy; do not print the DSN</td>
+</tr>
+<tr>
+<td>CLI fails before printing help</td>
+<td>CLI intentionally constructs configured resources; required connections must work</td>
+</tr>
+<tr>
+<td>Pool waits during load</td>
+<td>Total process/replica connection budget, long queries, and unclosed rows/transactions</td>
+</tr>
+<tr>
+<td>Context deadline during a query</td>
+<td>Query duration and caller deadline, separately from connect/ping timeouts</td>
+</tr>
+<tr>
+<td>Table missing after a successful connection</td>
+<td>Registered migration history, selected database/schema, and deployed binary</td>
+</tr>
+</tbody>
+</table>
+<p>For deployment sizing, reserve connections for migrations, administration, and
+other applications too. Readiness dependency checks are bounded; they do not
+replace query-level error handling or recovery. Continue with
+<a href="database-queries.html">entities and queries</a>, <a href="testing-database.html">database tests</a>,
+and <a href="observability.html">observability</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="http-client.html"><small>← Previous</small>HTTP client</a>
+<a href="database-queries.html"><small>Next →</small>Entities and queries</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-a-driver">Choose a driver</a></li><li class="toc-level-2"><a href="#use-the-apps-connection">Use the app&#39;s connection</a></li><li class="toc-level-2"><a href="#configure-the-pool">Configure the pool</a></li><li class="toc-level-2"><a href="#open-a-standalone-pool">Open a standalone pool</a></li><li class="toc-level-2"><a href="#query-logs">Query logs</a></li><li class="toc-level-2"><a href="#verify-a-connection-and-its-schema">Verify a connection and its schema</a></li></ol></nav><a class="source-link" href="markdown/database.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

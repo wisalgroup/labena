@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="HTTP and modules — Practical guides and Go examples for Labena.">
+<title>HTTP and modules — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/testing-http.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a class="selected" aria-current="page" href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Testing</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#test-decoding-and-rendering-together">Test decoding and rendering together</a></li><li class="toc-level-2"><a href="#test-a-real-module-operation">Test a real module operation</a></li><li class="toc-level-2"><a href="#verify-authentication-and-ownership">Verify authentication and ownership</a></li><li class="toc-level-2"><a href="#verify-multipart-and-streaming-behavior">Verify multipart and streaming behavior</a></li><li class="toc-level-2"><a href="#check-the-live-openapi-contract">Check the live OpenAPI contract</a></li><li class="toc-level-2"><a href="#test-full-application-wiring">Test full application wiring</a></li></ol></nav></details>
+<article><h1 id="testing-http-and-modules">Testing HTTP and modules</h1>
+<p>Send requests through a fresh platform API and inspect status, headers, and body.
+Most HTTP tests need neither a listening socket nor full application construction.
+This exercises Huma binding, shared policies, and response serialization together.</p>
+<h2 id="test-decoding-and-rendering-together">Test decoding and rendering together<a class="heading-link" href="#test-decoding-and-rendering-together" aria-label="Link to Test decoding and rendering together">#</a></h2>
+<p>Save this complete test in <code>tests/catalog/http_example_test.go</code>. Tests inside this
+repository may import <code>internal/platform/api</code>; they do not need to live inside the
+internal package itself.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> catalog_test
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">net/</span><span class="go-import-name">http</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">net/http/</span><span class="go-import-name">httptest</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">strings</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">testing</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/danielgtaylor/huma/</span><span class="go-import-name">v2</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">api</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/api/</span><span class="go-import-name">response</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">TestNameEndpoint</span><span class="go-bracket-0">(</span><span class="go-parameter">t</span> <span class="go-operator">*</span><span class="go-type">testing</span><span class="go-punctuation">.</span><span class="go-type">T</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">for</span> _<span class="go-punctuation">,</span> tc <span class="go-operator">:=</span> <span class="go-keyword">range</span> <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+		<span class="go-type">name</span>   <span class="go-builtin-type">string</span>
+		<span class="go-type">body</span>   <span class="go-builtin-type">string</span>
+		<span class="go-type">status</span> <span class="go-builtin-type">int</span>
+		<span class="go-type">called</span> <span class="go-builtin-type">bool</span>
+	<span class="go-bracket-1">}</span><span class="go-bracket-1">{</span>
+		<span class="go-bracket-2">{</span><span class="go-string">&#34;valid&#34;</span><span class="go-punctuation">,</span> <span class="go-string">`{&#34;name&#34;:&#34;Ada&#34;}`</span><span class="go-punctuation">,</span> <span class="go-number">200</span><span class="go-punctuation">,</span> <span class="go-keyword">true</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-2">{</span><span class="go-string">&#34;missing&#34;</span><span class="go-punctuation">,</span> <span class="go-string">`{}`</span><span class="go-punctuation">,</span> <span class="go-number">422</span><span class="go-punctuation">,</span> <span class="go-keyword">false</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-2">{</span><span class="go-string">&#34;unknown field&#34;</span><span class="go-punctuation">,</span> <span class="go-string">`{&#34;name&#34;:&#34;Ada&#34;,&#34;role&#34;:&#34;admin&#34;}`</span><span class="go-punctuation">,</span> <span class="go-number">422</span><span class="go-punctuation">,</span> <span class="go-keyword">false</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-2">{</span><span class="go-string">&#34;duplicate&#34;</span><span class="go-punctuation">,</span> <span class="go-string">`{&#34;name&#34;:&#34;Ada&#34;,&#34;Name&#34;:&#34;Other&#34;}`</span><span class="go-punctuation">,</span> <span class="go-number">400</span><span class="go-punctuation">,</span> <span class="go-keyword">false</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-2">{</span><span class="go-string">&#34;malformed&#34;</span><span class="go-punctuation">,</span> <span class="go-string">`{`</span><span class="go-punctuation">,</span> <span class="go-number">400</span><span class="go-punctuation">,</span> <span class="go-keyword">false</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-1">}</span> <span class="go-bracket-1">{</span>
+		<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Run</span><span class="go-bracket-2">(</span>tc<span class="go-punctuation">.</span>name<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-3">(</span><span class="go-parameter">t</span> <span class="go-operator">*</span><span class="go-type">testing</span><span class="go-punctuation">.</span><span class="go-type">T</span><span class="go-bracket-3">)</span> <span class="go-bracket-3">{</span>
+			server<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-4">(</span><span class="go-type">api</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-5">{</span><span class="go-bracket-5">}</span><span class="go-bracket-4">)</span>
+			<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-5">(</span>err<span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">type</span> <span class="go-type">nameBody</span> <span class="go-keyword">struct</span> <span class="go-bracket-4">{</span>
+				Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34; minLength:&#34;1&#34; maxLength:&#34;100&#34;`</span>
+			<span class="go-bracket-4">}</span>
+			called <span class="go-operator">:=</span> <span class="go-keyword">false</span>
+			<span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-4">(</span>server<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-5">{</span>
+				OperationID<span class="go-punctuation">:</span> <span class="go-string">&#34;test.name&#34;</span><span class="go-punctuation">,</span> Method<span class="go-punctuation">:</span> <span class="go-string">&#34;POST&#34;</span><span class="go-punctuation">,</span> Path<span class="go-punctuation">:</span> <span class="go-string">&#34;/name&#34;</span><span class="go-punctuation">,</span> MaxBodyBytes<span class="go-punctuation">:</span> <span class="go-number">1024</span><span class="go-punctuation">,</span>
+			<span class="go-bracket-5">}</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-5">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">in</span> <span class="go-operator">*</span><span class="go-keyword">struct</span><span class="go-bracket-0">{</span> <span class="go-type">Body</span> <span class="go-type">nameBody</span> <span class="go-bracket-0">}</span><span class="go-bracket-5">)</span> <span class="go-bracket-5">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-0">[</span><span class="go-type">nameBody</span><span class="go-bracket-0">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-5">)</span> <span class="go-bracket-5">{</span>
+				called <span class="go-operator">=</span> <span class="go-keyword">true</span>
+				<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-0">(</span><span class="go-parameter">in</span><span class="go-punctuation">.</span>Body<span class="go-bracket-0">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+			<span class="go-bracket-5">}</span><span class="go-bracket-4">)</span>
+			req <span class="go-operator">:=</span> <span class="go-package">httptest</span><span class="go-punctuation">.</span><span class="go-function">NewRequest</span><span class="go-bracket-4">(</span><span class="go-package">http</span><span class="go-punctuation">.</span>MethodPost<span class="go-punctuation">,</span> <span class="go-string">&#34;/name&#34;</span><span class="go-punctuation">,</span> <span class="go-package">strings</span><span class="go-punctuation">.</span><span class="go-function">NewReader</span><span class="go-bracket-5">(</span>tc<span class="go-punctuation">.</span>body<span class="go-bracket-5">)</span><span class="go-bracket-4">)</span>
+			req<span class="go-punctuation">.</span>Header<span class="go-punctuation">.</span><span class="go-function">Set</span><span class="go-bracket-4">(</span><span class="go-string">&#34;Content-Type&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;application/json&#34;</span><span class="go-bracket-4">)</span>
+			result <span class="go-operator">:=</span> <span class="go-package">httptest</span><span class="go-punctuation">.</span><span class="go-function">NewRecorder</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span>
+			server<span class="go-punctuation">.</span><span class="go-function">ServeHTTP</span><span class="go-bracket-4">(</span>result<span class="go-punctuation">,</span> req<span class="go-bracket-4">)</span>
+			<span class="go-keyword">if</span> result<span class="go-punctuation">.</span>Code <span class="go-operator">!=</span> tc<span class="go-punctuation">.</span>status <span class="go-operator">||</span> called <span class="go-operator">!=</span> tc<span class="go-punctuation">.</span>called <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;status=%d called=%v body=%s&#34;</span><span class="go-punctuation">,</span> result<span class="go-punctuation">.</span>Code<span class="go-punctuation">,</span> called<span class="go-punctuation">,</span> result<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">var</span> body <span class="go-keyword">struct</span> <span class="go-bracket-4">{</span>
+				<span class="go-type">Type</span> <span class="go-builtin-type">string</span>   <span class="go-string">`json:&#34;type&#34;`</span>
+				<span class="go-type">Data</span> <span class="go-type">nameBody</span> <span class="go-string">`json:&#34;data&#34;`</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Unmarshal</span><span class="go-bracket-4">(</span>result<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span><span class="go-function">Bytes</span><span class="go-bracket-5">(</span><span class="go-bracket-5">)</span><span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>body<span class="go-bracket-4">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-5">(</span>err<span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">if</span> result<span class="go-punctuation">.</span><span class="go-function">Header</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-4">(</span><span class="go-string">&#34;X-Request-ID&#34;</span><span class="go-bracket-4">)</span> <span class="go-operator">==</span> <span class="go-string">&#34;&#34;</span> <span class="go-operator">||</span> result<span class="go-punctuation">.</span><span class="go-function">Header</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-4">(</span><span class="go-string">&#34;X-API-Version&#34;</span><span class="go-bracket-4">)</span> <span class="go-operator">!=</span> <span class="go-string">&#34;v1&#34;</span> <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;missing response headers: %v&#34;</span><span class="go-punctuation">,</span> result<span class="go-punctuation">.</span><span class="go-function">Header</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">if</span> tc<span class="go-punctuation">.</span>called <span class="go-operator">&amp;&amp;</span> body<span class="go-punctuation">.</span>Data<span class="go-punctuation">.</span>Name <span class="go-operator">!=</span> <span class="go-string">&#34;Ada&#34;</span> <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;data=%+v&#34;</span><span class="go-punctuation">,</span> body<span class="go-punctuation">.</span>Data<span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">if</span> tc<span class="go-punctuation">.</span>status <span class="go-operator">==</span> <span class="go-number">422</span> <span class="go-operator">&amp;&amp;</span> body<span class="go-punctuation">.</span>Type <span class="go-operator">!=</span> <span class="go-string">&#34;urn:go-modular:error:validation_failed&#34;</span> <span class="go-bracket-4">{</span>
+				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;problem type=%q&#34;</span><span class="go-punctuation">,</span> body<span class="go-punctuation">.</span>Type<span class="go-bracket-5">)</span>
+			<span class="go-bracket-4">}</span>
+		<span class="go-bracket-3">}</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Run <code>go test ./tests/catalog</code> after adding the example. It verifies that invalid
+input never reaches the operation, successful results use <code>data</code>, and both paths
+have correlation headers. It does not establish persistence or authorization.</p>
+<h2 id="test-a-real-module-operation">Test a real module operation<a class="heading-link" href="#test-a-real-module-operation" aria-label="Link to Test a real module operation">#</a></h2>
+<p>Use the existing owner service contract for a small fake, then register the actual
+module transport. Identity&#39;s <code>internal/modules/identity/delivery/http/user_handler_test.go</code>
+shows this pattern. Do not define a second production contract solely for a test.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Useful assertion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Valid request</td>
+<td>Expected service input and selected public response fields</td>
+</tr>
+<tr>
+<td>Invalid body/path/query</td>
+<td>Service was never invoked</td>
+</tr>
+<tr>
+<td>Application field errors</td>
+<td>Every safe message appears at the intended location</td>
+</tr>
+<tr>
+<td>Operational failure</td>
+<td>Generic public problem; no raw provider/driver detail</td>
+</tr>
+<tr>
+<td>Profile update</td>
+<td>Omitted/null/empty name follows the current service policy</td>
+</tr>
+<tr>
+<td>Pagination</td>
+<td>Defaults, bounds, ambiguous query rejection, and stable page shape</td>
+</tr>
+</tbody>
+</table>
+<p>Test a policy, not every internal method call. A fake can confirm that the handler
+passes the authenticated user ID; it cannot prove the repository enforces a
+concurrent database constraint.</p>
+<h2 id="verify-authentication-and-ownership">Verify authentication and ownership<a class="heading-link" href="#verify-authentication-and-ownership" aria-label="Link to Verify authentication and ownership">#</a></h2>
+<p>Protected route tests should cover:</p>
+<ul>
+<li>No Authorization header, multiple headers, malformed bearer credentials.</li>
+<li>Valid credentials and an active principal.</li>
+<li>Operational authenticator failure, which must not become anonymous access.</li>
+<li>Reading the current account versus another account&#39;s resource.</li>
+<li>A protected group with no authenticator, which must fail closed.</li>
+</ul>
+<p>Authentication and authorization are different assertions. A UUID that parses or
+a token that verifies does not grant permission to every resource. Use the same
+<code>api.Authenticated</code> grouping that production registration uses.</p>
+<h2 id="verify-multipart-and-streaming-behavior">Verify multipart and streaming behavior<a class="heading-link" href="#verify-multipart-and-streaming-behavior" aria-label="Link to Verify multipart and streaming behavior">#</a></h2>
+<p>For uploads, test the whole request byte limit, permitted parts, authorization
+before parsing, and cleanup of temporary files after success and failure. For
+streaming, check opening failures before commitment separately from copy failures
+after bytes have been written.</p>
+<p><code>httptest.ResponseRecorder</code> is useful for ordinary responses. Use a real local
+<code>httptest.Server</code> when the behavior requires a network connection, disconnect,
+flush, or transport abort. The platform&#39;s streaming and shutdown tests are the
+reference; a recorder alone cannot establish client-visible truncation behavior.</p>
+<h2 id="check-the-live-openapi-contract">Check the live OpenAPI contract<a class="heading-link" href="#check-the-live-openapi-contract" aria-label="Link to Check the live OpenAPI contract">#</a></h2>
+<pre><code class="language-sh">go test ./docs/api ./internal/platform/api/...
+</code></pre>
+<p>These tests inspect the running document and response schemas. When adding a
+conditional status or binary response, assert that its documented media type,
+status, required fields, and security match the runtime handler. Rebuilding Go
+routes updates the live document; there is no generated Swagger file to edit.</p>
+<h2 id="test-full-application-wiring">Test full application wiring<a class="heading-link" href="#test-full-application-wiring" aria-label="Link to Test full application wiring">#</a></h2>
+<pre><code class="language-sh">go test -race ./internal/modules/identity/delivery/http ./internal/platform/api/...
+go test ./tests/modules ./tests/app
+</code></pre>
+<p><code>tests/modules</code> includes the database-free Catalog starter and compiled workflows.
+Some module/app tests need disposable backends and skip without their settings;
+use the <a href="testing.html#run-the-required-integration-gate-locally">required integration gate</a>
+for full core coverage.</p>
+<p>Register fresh APIs for each test. Finish registration before serving. For tests
+that start listeners or runners, use readiness/completion signals and bounded
+contexts instead of arbitrary sleeps, then join users before closing dependencies.</p>
+<p>Continue with <a href="testing-database.html">database tests</a>,
+<a href="testing-async.html">task and event tests</a>, and <a href="responses.html">responses</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="testing.html"><small>← Previous</small>Testing basics</a>
+<a href="testing-database.html"><small>Next →</small>Databases and transactions</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#test-decoding-and-rendering-together">Test decoding and rendering together</a></li><li class="toc-level-2"><a href="#test-a-real-module-operation">Test a real module operation</a></li><li class="toc-level-2"><a href="#verify-authentication-and-ownership">Verify authentication and ownership</a></li><li class="toc-level-2"><a href="#verify-multipart-and-streaming-behavior">Verify multipart and streaming behavior</a></li><li class="toc-level-2"><a href="#check-the-live-openapi-contract">Check the live OpenAPI contract</a></li><li class="toc-level-2"><a href="#test-full-application-wiring">Test full application wiring</a></li></ol></nav><a class="source-link" href="markdown/testing-http.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

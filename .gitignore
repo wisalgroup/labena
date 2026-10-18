@@ -1,0 +1,18 @@
+/api
+/cli
+/build/
+.DS_Store
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+!.env.*.example
+.obsidian/
+/storage/logs/
+.log
+/storage/app/
+
+# Local OAuth client credentials
+/client_secret_*.json

@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Queues and tasks — Practical guides and Go examples for Labena.">
+<title>Queues and tasks — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/queues.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a class="selected" aria-current="page" href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Background work</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#try-the-existing-task">Try the existing task</a></li><li class="toc-level-2"><a href="#distinguish-the-names">Distinguish the names</a></li><li class="toc-level-2"><a href="#keep-task-code-with-its-module">Keep task code with its module</a></li><li class="toc-level-2"><a href="#define-a-task">Define a task</a></li><li class="toc-level-2"><a href="#write-and-register-a-handler">Write and register a handler</a></li><li class="toc-level-2"><a href="#enqueue-work">Enqueue work</a></li><li class="toc-level-3"><a href="#enqueue-from-a-service">Enqueue from a service</a></li><li class="toc-level-2"><a href="#keep-configuration-central">Keep configuration central</a></li><li class="toc-level-2"><a href="#configure-options-and-delays">Configure options and delays</a></li><li class="toc-level-2"><a href="#choose-task-outcomes">Choose task outcomes</a></li><li class="toc-level-2"><a href="#set-retries-per-task">Set retries per task</a></li><li class="toc-level-2"><a href="#make-effects-safe-to-repeat">Make effects safe to repeat</a></li><li class="toc-level-2"><a href="#know-the-boundary">Know the boundary</a></li><li class="toc-level-2"><a href="#read-delivery-metadata">Read delivery metadata</a></li><li class="toc-level-2"><a href="#write-a-result">Write a result</a></li><li class="toc-level-2"><a href="#start-a-worker">Start a worker</a></li><li class="toc-level-2"><a href="#set-capacity">Set capacity</a></li><li class="toc-level-2"><a href="#register-before-starting">Register before starting</a></li><li class="toc-level-2"><a href="#readiness-and-shutdown">Readiness and shutdown</a></li><li class="toc-level-2"><a href="#inspection-and-administration">Inspection and administration</a></li><li class="toc-level-2"><a href="#asynqmon-dashboard">Asynqmon dashboard</a></li><li class="toc-level-2"><a href="#inspect-and-recover">Inspect and recover</a></li><li class="toc-level-2"><a href="#customize-backoff-and-classification">Customize backoff and classification</a></li><li class="toc-level-2"><a href="#tracing-and-metrics">Tracing and metrics</a></li><li class="toc-level-2"><a href="#inspect-capacity-and-failures">Inspect capacity and failures</a></li><li class="toc-level-2"><a href="#troubleshoot-pending-or-repeated-tasks">Troubleshoot pending or repeated tasks</a></li><li class="toc-level-2"><a href="#test-tasks-and-their-integration">Test tasks and their integration</a></li><li class="toc-level-2"><a href="#use-queues-independently">Use queues independently</a></li></ol></nav></details>
+<article><h1 id="queues-and-tasks">Queues and tasks</h1>
+<p>A task asks a worker to do one operation later. The producer submits it to Redis;
+a worker selects its handler and processes it outside the original request.
+Use a queue for work that needs retries, delayed execution, or survival across
+application restarts.</p>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: One task, one worker per delivery
+    accDescr: Producers enqueue into Redis. A worker runs the matching handler. A task may complete, retry after a delay, or be archived; another delivery can repeat the operation.
+    Producer[HTTP, CLI or scheduler] --&gt;|Enqueue| Redis[(Redis queue)]
+    Redis --&gt;|One competing worker| Handler[ServeMux → handler → service]
+    Handler --&gt;|Success| Complete[Complete]
+    Handler --&gt;|Retryable error| Retry[Retry after a delay]
+    Retry --&gt; Redis
+    Handler --&gt;|Retries exhausted or skipped| Archive[Archive]
+</code></pre>
+<p>Several workers compete for tasks from the same queue. They do not each receive a
+copy. Retries and recovery can deliver a task again, so handlers must tolerate
+repeat execution. For independent reactions to one fact, see <a href="events.html">events</a>.</p>
+<p>Choose the entry point that fits the operation:</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Use</th>
+<th>Success acknowledges</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run one operation later</td>
+<td><code>queue.EnqueueContext</code></td>
+<td>Redis accepted a task</td>
+</tr>
+<tr>
+<td>React to a fact in the current process</td>
+<td><a href="events.html">Events</a></td>
+<td>Local publication, not completion</td>
+</tr>
+<tr>
+<td>Run an operation repeatedly</td>
+<td><a href="scheduling.html">Scheduling</a></td>
+<td>A future tick may enqueue a task</td>
+</tr>
+<tr>
+<td>Commit a notification with a business write</td>
+<td><a href="notifications.html#send-immediately-or-queue-durably">Notifier.Enqueue</a></td>
+<td>SQL intent, subject to commit</td>
+</tr>
+</tbody>
+</table>
+<p>The task model, options, handler and administration APIs are native Asynq. The
+framework adds shared routing, observability, transaction guards and lifecycle
+ownership. There is no additional Job interface to learn.</p>
+<h2 id="try-the-existing-task">Try the existing task<a class="heading-link" href="#try-the-existing-task" aria-label="Link to Try the existing task">#</a></h2>
+<p>Use the configured profile from <a href="index.html">installation</a>. Redis, PostgreSQL,
+the application migrations and an existing Identity user are required. For automatic
+signup, enable and configure <a href="identity.html">authentication</a> first. The minimal
+quickstart keeps authentication off; it cannot create a user through OTP as-is.</p>
+<p>Run the combined app, which includes workers by default:</p>
+<pre><code class="language-sh">go run ./cmd/app
+</code></pre>
+<p>In another terminal, enqueue the existing welcome task for a real user ID:</p>
+<pre><code class="language-sh">go run ./cmd/cli identity welcome &#39;&lt;user-id&gt;&#39;
+go run ./cmd/cli notifications list user &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p>Use the same environment file and database/Redis settings in both terminals.
+The command prints a task ID after Redis accepts the work. The worker then reloads
+the account and persists eligible notification channel intents. A worker-owned
+dispatcher scans those intents every second; delivery workers attempt each channel.
+The list may initially be empty while that work is pending.</p>
+<p>Welcome uses a stable key per recipient and channel. Repeating the command does
+not create another database welcome notification. Verified addresses also receive
+email when a mailer is available. The normal app always supplies its configured
+mailer, but SMTP must be reachable for email to succeed. No cron scheduler is
+required for notification delivery.</p>
+<h2 id="distinguish-the-names">Distinguish the names<a class="heading-link" href="#distinguish-the-names" aria-label="Link to Distinguish the names">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Task type</td>
+<td><code>identity.welcome.v1</code></td>
+<td>Selects the handler; a persisted contract</td>
+</tr>
+<tr>
+<td>Task ID</td>
+<td>Generated by Asynq</td>
+<td>Identifies one submitted task</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td><code>default</code> or <code>high</code></td>
+<td>Selects the workload from which workers pull</td>
+</tr>
+<tr>
+<td>Handler</td>
+<td>Identity welcome handler</td>
+<td>Reloads the account and persists channel intents</td>
+</tr>
+</tbody>
+</table>
+<p>Task types are persisted contracts: renaming one requires a plan for queued tasks.
+The application uses native Asynq tasks, without a Job interface.</p>
+<h2 id="keep-task-code-with-its-module">Keep task code with its module<a class="heading-link" href="#keep-task-code-with-its-module" aria-label="Link to Keep task code with its module">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Owns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal/modules/identity/jobs/welcome.go</code></td>
+<td>Stable task type, serializable payload and constructor</td>
+</tr>
+<tr>
+<td><code>internal/modules/identity/delivery/jobs/welcome.go</code></td>
+<td>Decoding, validation and invocation of business behavior</td>
+</tr>
+<tr>
+<td><code>internal/modules/identity/register.go</code></td>
+<td>Dependency construction and handler registration</td>
+</tr>
+<tr>
+<td><code>internal/app/schedules.go</code></td>
+<td>Central recurring schedules, when needed</td>
+</tr>
+</tbody>
+</table>
+<p>Pass IDs rather than whole entities, credentials or rendered private data. Reload
+current account state when the handler runs. Large use cases remain methods on an
+existing service; creating a task does not require another service abstraction.</p>
+<h2 id="define-a-task">Define a task<a class="heading-link" href="#define-a-task" aria-label="Link to Define a task">#</a></h2>
+<p>Keep the task type, payload and constructor together in <code>internal/modules/&lt;module&gt;/jobs</code>.
+Use <code>&lt;Operation&gt;Type</code>, <code>&lt;Operation&gt;</code> and <code>New&lt;Operation&gt;</code> consistently. This is the
+complete existing <code>internal/modules/identity/jobs/welcome.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package jobs defines Identity&#39;s native Asynq tasks and their serializable inputs.</span>
+<span class="go-keyword">package</span> jobs
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">time</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/google/</span><span class="go-import-name">uuid</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/hibiken/</span><span class="go-import-name">asynq</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">asynqx</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">const</span> <span class="go-number">WelcomeType</span> <span class="go-operator">=</span> <span class="go-string">&#34;identity.welcome.v1&#34;</span>
+
+<span class="go-comment">// Welcome carries only identity. The worker reloads account state and contact data;</span>
+<span class="go-comment">// names, email addresses, credentials and notification content never enter this job.</span>
+<span class="go-keyword">type</span> <span class="go-type">Welcome</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	UserID <span class="go-type">uuid</span><span class="go-punctuation">.</span><span class="go-number">UUID</span> <span class="go-string">`json:&#34;user_id&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// NewWelcome constructs a fresh task; enqueue through the app&#39;s borrowed client.</span>
+<span class="go-comment">// Queue routing comes from application configuration. Retries are safe because</span>
+<span class="go-comment">// the notification&#39;s occurrence key is stable across attempts.</span>
+<span class="go-keyword">func</span> <span class="go-function">NewWelcome</span><span class="go-bracket-0">(</span><span class="go-parameter">userID</span> <span class="go-type">uuid</span><span class="go-punctuation">.</span><span class="go-number">UUID</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">Task</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">if</span> <span class="go-parameter">userID</span> <span class="go-operator">==</span> <span class="go-package">uuid</span><span class="go-punctuation">.</span>Nil <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span><span class="go-string">&#34;identity: welcome job requires a user ID&#34;</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	data<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Marshal</span><span class="go-bracket-1">(</span><span class="go-type">Welcome</span><span class="go-bracket-2">{</span>UserID<span class="go-punctuation">:</span> <span class="go-parameter">userID</span><span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> err
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-package">asynqx</span><span class="go-punctuation">.</span><span class="go-function">NewTask</span><span class="go-bracket-1">(</span><span class="go-number">WelcomeType</span><span class="go-punctuation">,</span> data<span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">MaxRetry</span><span class="go-bracket-2">(</span><span class="go-number">5</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Timeout</span><span class="go-bracket-2">(</span><span class="go-number">30</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>asynqx.NewTask</code> initializes headers for client trace propagation. Native options
+remain available. Create a fresh task for each enqueue; middleware updates its
+headers, so sharing a task concurrently is unsafe.</p>
+<h2 id="write-and-register-a-handler">Write and register a handler<a class="heading-link" href="#write-and-register-a-handler" aria-label="Link to Write and register a handler">#</a></h2>
+<p>A handler decodes the task, calls the owning service or capability, and returns
+its outcome. Reuse owner contracts such as <code>service.UserService</code>. This complete
+existing handler lives in <code>internal/modules/identity/delivery/jobs/welcome.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package jobs handles Identity&#39;s native Asynq tasks.</span>
+<span class="go-keyword">package</span> jobs
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/shared/</span><span class="go-import-name">entities</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/google/</span><span class="go-import-name">uuid</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/hibiken/</span><span class="go-import-name">asynq</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">domain</span><span class="go-string">&#34;</span>
+	<span class="go-package">identityjobs</span> <span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">jobs</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">notifications</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">service</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/shared/</span><span class="go-import-name">enums</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">notification</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// Welcome reloads current account state and persists channel intents. Completion</span>
+<span class="go-comment">// means notification intent is saved, not that email has reached the recipient.</span>
+<span class="go-comment">// Platform notification workers own actual channel delivery and independent retries.</span>
+<span class="go-keyword">type</span> <span class="go-type">Welcome</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	Users        <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UserService</span>
+	Notifier     <span class="go-operator">*</span><span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Notifier</span>
+	EmailEnabled <span class="go-builtin-type">bool</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>h <span class="go-type">Welcome</span><span class="go-bracket-0">)</span> <span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">task</span> <span class="go-operator">*</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">Task</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">var</span> input <span class="go-type">identityjobs</span><span class="go-punctuation">.</span><span class="go-type">Welcome</span>
+	<span class="go-keyword">if</span> <span class="go-parameter">task</span> <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-2">(</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-3">(</span><span class="go-string">&#34;identity: missing welcome job&#34;</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span>SkipRetry<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Unmarshal</span><span class="go-bracket-1">(</span><span class="go-parameter">task</span><span class="go-punctuation">.</span><span class="go-function">Payload</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>input<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-operator">||</span> input<span class="go-punctuation">.</span>UserID <span class="go-operator">==</span> <span class="go-package">uuid</span><span class="go-punctuation">.</span>Nil <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-2">(</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-3">(</span><span class="go-string">&#34;identity: invalid welcome job&#34;</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span>SkipRetry<span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>Users<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> input<span class="go-punctuation">.</span>UserID<span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Is</span><span class="go-bracket-1">(</span>err<span class="go-punctuation">,</span> <span class="go-package">domain</span><span class="go-punctuation">.</span>ErrUserNotFound<span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> err
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> user <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">domain</span><span class="go-punctuation">.</span>ErrUserRequired
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">if</span> user<span class="go-punctuation">.</span>DeletedAt <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-operator">||</span> user<span class="go-punctuation">.</span>Status <span class="go-operator">!=</span> <span class="go-package">enums</span><span class="go-punctuation">.</span>UserActive <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+	<span class="go-bracket-1">}</span>
+	content <span class="go-operator">:=</span> <span class="go-package">notifications</span><span class="go-punctuation">.</span><span class="go-function">NewWelcome</span><span class="go-bracket-1">(</span>user<span class="go-punctuation">.</span>Name<span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> <span class="go-operator">!</span>h<span class="go-punctuation">.</span>EmailEnabled <span class="go-operator">||</span> user<span class="go-punctuation">.</span>EmailVerifiedAt <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		content<span class="go-punctuation">.</span>Email <span class="go-operator">=</span> <span class="go-keyword">nil</span>
+	<span class="go-bracket-1">}</span>
+	recipient <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Recipient</span><span class="go-bracket-1">{</span>Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-2">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-2">)</span><span class="go-punctuation">,</span> ID<span class="go-punctuation">:</span> user<span class="go-punctuation">.</span>ID<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> Email<span class="go-punctuation">:</span> user<span class="go-punctuation">.</span>Email<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-bracket-1">}</span>
+	_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> h<span class="go-punctuation">.</span>Notifier<span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> content<span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Module construction supplies the handler&#39;s collaborators. Registration stays in
+<code>identity/register.go</code>, using the native mux before workers start:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">mux</span><span class="go-punctuation">.</span><span class="go-function">HandleFunc</span><span class="go-bracket-0">(</span><span class="go-package">jobs</span><span class="go-punctuation">.</span>WelcomeType<span class="go-punctuation">,</span> <span class="go-package">welcome</span><span class="go-punctuation">.</span>Handle<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Here <code>jobs</code> imports the task definitions, <code>welcome</code> is the constructed handler,
+and <code>mux</code> is <code>targets.TaskRouter</code>. A larger business operation belongs on its
+existing service receiver; transport decoding stays in the handler.</p>
+<p>Keep persisted task names and payload fields compatible with work already in
+Redis. The welcome job saves notification intent; notification workers perform
+channel delivery. Its stable occurrence key makes repeated attempts converge on
+the same intents. See <a href="notifications.html">notifications</a> for those guarantees.</p>
+<h2 id="enqueue-work">Enqueue work<a class="heading-link" href="#enqueue-work" aria-label="Link to Enqueue work">#</a></h2>
+<p>Module assembly passes <code>deps.Queue</code>, the existing <code>asynqx.Client</code>, to operations
+that need it. No module-specific queue contract is needed. This function-body
+fragment assumes a borrowed <code>queue</code>, <code>ctx</code>, a UUID <code>userID</code>, and a <code>(string, error)</code> result:</p>
+<pre><code class="language-go" data-highlighted="yes">task<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">jobs</span><span class="go-punctuation">.</span><span class="go-function">NewWelcome</span><span class="go-bracket-0">(</span>userID<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-string">&#34;&#34;</span><span class="go-punctuation">,</span> err
+<span class="go-bracket-0">}</span>
+info<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">queue</span><span class="go-punctuation">.</span><span class="go-function">EnqueueContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> task<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-string">&#34;&#34;</span><span class="go-punctuation">,</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> info<span class="go-punctuation">.</span>ID<span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/internal/modules/identity/jobs</code>. The returned ID acknowledges queue
+acceptance; it does not mean the notification has been delivered. Raw enqueue
+cannot commit atomically with application SQL; see <a href="database-transactions.html">transactions</a>.
+The app client rejects active framework SQL transaction scopes before enqueue.
+Standalone clients can install <code>middleware.RequireNoTransaction()</code> outermost;
+raw native clients bypass this policy. SQL notification intent is available when
+the notification must commit with a business change.</p>
+<h3 id="enqueue-from-a-service">Enqueue from a service<a class="heading-link" href="#enqueue-from-a-service" aria-label="Link to Enqueue from a service">#</a></h3>
+<p>HTTP, CLI and event handlers use the same borrowed <code>asynqx.Client</code> method shown
+above. Pass that dependency to the service that owns the operation during module
+construction; do not inject the complete <code>Resources</code> bundle into the service.
+App client middleware already supplies routing, transaction guards and tracing.
+Constructing a fresh task with <code>asynqx.NewTask</code> prepares its propagation headers.</p>
+<h2 id="keep-configuration-central">Keep configuration central<a class="heading-link" href="#keep-configuration-central" aria-label="Link to Keep configuration central">#</a></h2>
+<p><code>internal/app/config/queues.go</code> defines the available queues. Both use the
+same Redis connection and worker pool:</p>
+<pre><code class="language-dotenv">QUEUE_REDIS_URL=redis://127.0.0.1:6379/1
+QUEUE_DEFAULT=default
+QUEUE_DEFAULT_PRIORITY=1
+QUEUE_HIGH_PRIORITY=3
+QUEUE_CONCURRENCY=4
+QUEUE_ROUTES=identity.welcome.v1=high
+</code></pre>
+<p>A task&#39;s destination is resolved in this order:</p>
+<ol>
+<li><code>asynq.Queue(...)</code> passed at enqueue time or in schedule options.</li>
+<li>An exact task-type entry in <code>QUEUE_ROUTES</code>.</li>
+<li><code>QUEUE_DEFAULT</code>.</li>
+</ol>
+<p>Unlisted task types use the default queue. Unknown queue names fail before
+publication. Priorities are selection weights, not reserved worker counts.
+Cache Redis uses database 0 by default; queue Redis uses database 1.</p>
+<p>To introduce a third named queue, add it to <code>QueueConfig.loadQueues</code> in
+<code>internal/app/config/queues.go</code>. Then restart producers and workers with the
+same definition. <code>QUEUE_ROUTES</code> only selects among configured queues; it does not
+create a queue definition. Adding a queue name does not create another worker pool.</p>
+<h2 id="configure-options-and-delays">Configure options and delays<a class="heading-link" href="#configure-options-and-delays" aria-label="Link to Configure options and delays">#</a></h2>
+<p>Native options pass through unchanged, except that app routing owns queue selection:</p>
+<pre><code class="language-go" data-highlighted="yes">info<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">queue</span><span class="go-punctuation">.</span><span class="go-function">EnqueueContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> task<span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">MaxRetry</span><span class="go-bracket-1">(</span><span class="go-number">3</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Timeout</span><span class="go-bracket-1">(</span><span class="go-number">30</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">ProcessIn</span><span class="go-bracket-1">(</span><span class="go-number">5</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Retention</span><span class="go-bracket-1">(</span><span class="go-number">24</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Hour<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment imports <code>time</code> and Asynq. Check the error before reading <code>info</code>.
+<code>ProcessIn</code> delays eligibility once; <a href="scheduling.html">recurring schedules</a> enqueue
+new tasks repeatedly. Capacity and polling affect actual start time.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Queue(name)</code></td>
+<td>Override central task routing with a configured queue</td>
+</tr>
+<tr>
+<td><code>MaxRetry(n)</code></td>
+<td>Retry budget after the initial attempt</td>
+</tr>
+<tr>
+<td><code>Timeout(d)</code>, <code>Deadline(t)</code></td>
+<td>Relative or absolute execution limit</td>
+</tr>
+<tr>
+<td><code>ProcessIn(d)</code>, <code>ProcessAt(t)</code></td>
+<td>One-time delayed eligibility; choose one</td>
+</tr>
+<tr>
+<td><code>Unique(ttl)</code></td>
+<td>Temporary type/queue/payload enqueue deduplication</td>
+</tr>
+<tr>
+<td><code>TaskID(id)</code></td>
+<td>Explicit task identity</td>
+</tr>
+<tr>
+<td><code>Retention(d)</code></td>
+<td>Keep completed tasks and results</td>
+</tr>
+<tr>
+<td><code>Group(name)</code></td>
+<td>Native grouping; requires explicit server aggregator wiring</td>
+</tr>
+</tbody>
+</table>
+<p>Explicit enqueue options take native precedence over constructor options. Queue
+options in constructors are overridden by central routing; put queue policy in
+<a href="queues.html#keep-configuration-central">configuration</a> or enqueue options.
+Handle <code>asynq.ErrDuplicateTask</code> and <code>asynq.ErrTaskIDConflict</code> with <code>errors.Is</code> when
+the caller needs to distinguish duplicate acceptance. Uniqueness does not prevent
+all duplicate effects.</p>
+<h2 id="choose-task-outcomes">Choose task outcomes<a class="heading-link" href="#choose-task-outcomes" aria-label="Link to Choose task outcomes">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Handler result</th>
+<th>Asynq behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nil</code></td>
+<td>Complete the task; retain it only when configured</td>
+</tr>
+<tr>
+<td>Ordinary error</td>
+<td>Retry while its budget permits, then archive</td>
+</tr>
+<tr>
+<td>Error wrapping <code>asynq.SkipRetry</code></td>
+<td>Archive without another retry</td>
+</tr>
+</tbody>
+</table>
+<p>Reject an invalid task at the handler boundary:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> task <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-operator">||</span> <span class="go-package">task</span><span class="go-punctuation">.</span><span class="go-function">Type</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-operator">!=</span> <span class="go-package">jobs</span><span class="go-punctuation">.</span>WelcomeType <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Join</span><span class="go-bracket-1">(</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span><span class="go-string">&#34;unexpected task type&#34;</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span>SkipRetry<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This fragment imports <code>errors</code>, Asynq and <code>internal/modules/identity/jobs</code>.
+Decode and validate its payload before calling the service. Exact-type checks
+matter because native ServeMux routing also supports prefixes. Do not classify
+transient infrastructure failures as invalid payloads.</p>
+<h2 id="set-retries-per-task">Set retries per task<a class="heading-link" href="#set-retries-per-task" aria-label="Link to Set retries per task">#</a></h2>
+<p>In an operation with an injected queue, set native enqueue options:</p>
+<pre><code class="language-go" data-highlighted="yes">info<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">queue</span><span class="go-punctuation">.</span><span class="go-function">EnqueueContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> task<span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">MaxRetry</span><span class="go-bracket-1">(</span><span class="go-number">3</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Timeout</span><span class="go-bracket-1">(</span><span class="go-number">30</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Handle <code>err</code> before using <code>info</code>. Three retries means up to four ordinary attempts.
+A timeout cancels cooperative work; it does not reverse an email or database change.
+<code>MaxRetry(0)</code> disables retries after the initial attempt, not duplicate delivery
+caused by every possible failure.</p>
+<h2 id="make-effects-safe-to-repeat">Make effects safe to repeat<a class="heading-link" href="#make-effects-safe-to-repeat" aria-label="Link to Make effects safe to repeat">#</a></h2>
+<p>Use an operation identity that survives retries. Enforce it with a database unique
+constraint, conditional transition or downstream idempotency key. Record the effect
+and its identity atomically where possible. Task uniqueness only reduces duplicate
+enqueues for a retention window; it does not make an external action atomic with
+Asynq completion.</p>
+<p>A database commit followed by Redis enqueue can fail between the two actions. If
+both must succeed together, add a deliberate outbox workflow; this app does not
+provide one automatically.</p>
+<p>Identity&#39;s welcome handler demonstrates one useful boundary: <code>NewWelcome</code> gives
+its notification the key <code>welcome</code>, and persisted notification intents enforce
+recipient/key/channel uniqueness. A repeated task converges on existing intents.
+The database channel is stored once; an uncertain external email attempt can still
+duplicate. Choose an idempotency key for the business occurrence, not a fresh random
+value inside every retry.</p>
+<h2 id="know-the-boundary">Know the boundary<a class="heading-link" href="#know-the-boundary" aria-label="Link to Know the boundary">#</a></h2>
+<p>Asynq is the only queue backend in this app. Redis persistence and recovery settings
+determine durability. A successful enqueue is not an exactly-once guarantee, and
+raw SQL changes are not atomic with Redis publication. The
+<a href="notifications.html">notification delivery ledger</a> provides a focused transactional
+outbox when business operations explicitly use its Enqueue API; it does not make
+arbitrary tasks transactional.</p>
+<p>Keep arbitrary Redis enqueue outside <code>database.TxManager.Execute</code>. The app client
+returns a transaction error before publishing if the supplied context carries an
+active framework transaction. A post-commit enqueue can still fail: expose or
+recover that failure explicitly rather than claiming the SQL write rolled back.
+For notifications that must be guaranteed by the commit, use the
+<a href="transactional-notifications.html">transactional notification workflow</a>.</p>
+<h2 id="read-delivery-metadata">Read delivery metadata<a class="heading-link" href="#read-delivery-metadata" aria-label="Link to Read delivery metadata">#</a></h2>
+<p>Inside a delivered task handler:</p>
+<pre><code class="language-go" data-highlighted="yes">id<span class="go-punctuation">,</span> ok <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">GetTaskID</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> <span class="go-operator">!</span>ok <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-1">(</span><span class="go-string">&#34;task delivery metadata is missing&#34;</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+queueName<span class="go-punctuation">,</span> _ <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">GetQueueName</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+retries<span class="go-punctuation">,</span> _ <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">GetRetryCount</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+maxRetries<span class="go-punctuation">,</span> _ <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">GetMaxRetry</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Use these values for diagnostics or an operation that requires them. A direct unit
+test call has no worker metadata unless explicitly supplied. <code>task.Type()</code>,
+<code>Payload()</code> and <code>Headers()</code> remain available. Treat delivered task data as read-only.
+Custom failure classification can preserve the retry counter, so it is not always
+the total invocation count.</p>
+<h2 id="write-a-result">Write a result<a class="heading-link" href="#write-a-result" aria-label="Link to Write a result">#</a></h2>
+<p>A delivered task has a native ResultWriter. Write a small result before returning:</p>
+<pre><code class="language-go" data-highlighted="yes">result<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Marshal</span><span class="go-bracket-0">(</span><span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+    <span class="go-type">Delivered</span> <span class="go-builtin-type">bool</span> <span class="go-string">`json:&#34;delivered&#34;`</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-1">{</span>Delivered<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> <span class="go-package">task</span><span class="go-punctuation">.</span><span class="go-function">ResultWriter</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Write</span><span class="go-bracket-0">(</span>result<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> err
+</code></pre>
+<p>Constructed tasks have no result writer. Do not retain it after the handler returns.
+Writes replace the result rather than append; <code>Retention</code> keeps successful results
+available. Store large artifacts elsewhere and return their reference.</p>
+<p>Inspect state alongside result bytes: an earlier attempt may have written a result
+before failing. Result persistence is not atomic with an external effect; a write
+failure after sending a receipt can cause another send on retry.</p>
+<h2 id="start-a-worker">Start a worker<a class="heading-link" href="#start-a-worker" aria-label="Link to Start a worker">#</a></h2>
+<p>Use the same Redis settings as the producer:</p>
+<pre><code class="language-sh">go run ./cmd/worker
+</code></pre>
+<p>This starts Asynq workers, local event subscribers and the notification dispatcher.
+It opens no business HTTP listener and does not select the cron scheduler.
+<code>cmd/app</code> already runs workers; use a separate worker process when you want to
+scale or deploy task execution independently.</p>
+<p>Enable the cron scheduler on one designated app process per schedule set.
+Multiple schedulers would independently enqueue the same recurring work;
+worker replicas can safely compete for pending deliveries.</p>
+<h2 id="set-capacity">Set capacity<a class="heading-link" href="#set-capacity" aria-label="Link to Set capacity">#</a></h2>
+<pre><code class="language-dotenv">QUEUE_CONCURRENCY=4
+QUEUE_DEFAULT_PRIORITY=1
+QUEUE_HIGH_PRIORITY=3
+QUEUE_STRICT_PRIORITY=false
+QUEUE_SHUTDOWN_TIMEOUT=15s
+</code></pre>
+<p>Concurrency is the total number of active tasks <strong>per process</strong>, across both queues.
+Three processes configured with 4 can run up to 12 tasks at once. Budget database
+connections and downstream capacity accordingly.</p>
+<p>With weighted selection, <code>high</code> is preferred relative to <code>default</code>; weights do not
+promise a completion ratio or latency. Strict priority always prefers higher
+priority work and can starve lower-priority queues. One shared pool is configured;
+independent pools require explicit native Asynq server wiring in app assembly.</p>
+<h2 id="register-before-starting">Register before starting<a class="heading-link" href="#register-before-starting" aria-label="Link to Register before starting">#</a></h2>
+<p>App construction creates the native ServeMux, installs global worker middleware,
+and calls module registration. A module&#39;s <code>register.go</code> maps job types
+to handlers:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>TaskRouter <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-operator">&amp;&amp;</span> welcome <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">targets</span><span class="go-punctuation">.</span>TaskRouter<span class="go-punctuation">.</span><span class="go-function">HandleFunc</span><span class="go-bracket-1">(</span><span class="go-package">jobs</span><span class="go-punctuation">.</span>WelcomeType<span class="go-punctuation">,</span> <span class="go-package">welcome</span><span class="go-punctuation">.</span>Handle<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This function-body fragment uses Identity&#39;s <code>register.go</code> registration pattern;
+<code>jobs</code> imports its job definitions and <code>welcome</code> is its constructed delivery
+handler. It borrows the same user service and notifier as the module. Register every task type that these
+workers may consume, including <code>app.command</code> when command scheduling is enabled.
+Do not modify routes after startup.</p>
+<h2 id="readiness-and-shutdown">Readiness and shutdown<a class="heading-link" href="#readiness-and-shutdown" aria-label="Link to Readiness and shutdown">#</a></h2>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: Keep subscribers alive while workers drain
+    accDescr: Worker readiness waits for local event subscribers. On shutdown, stop admission first, drain active tasks next, then drain event handlers before closing shared resources.
+    subgraph Startup[Startup dependency]
+        Subscribers[Local subscribers ready] --&gt; Worker[Worker verifies Redis and becomes ready]
+    end
+    subgraph Shutdown[Shutdown order]
+        Admission[Stop HTTP, scheduling and dispatch] --&gt; Tasks[Drain active tasks]
+        Tasks --&gt; Events[Drain local event handlers]
+        Events --&gt; Resources[Close shared resources]
+    end
+</code></pre>
+<p>Only selected processes run. In particular, <code>cmd/worker</code> does not start HTTP or the
+cron scheduler; the shutdown sequence omits services absent from that process.</p>
+<p>Redis connectivity is checked before worker readiness. Readiness is a startup
+signal, not continuous Redis health monitoring. A worker-only process has no
+<code>/readyz</code> HTTP endpoint; metrics can run on their separate optional listener.</p>
+<p>During shutdown, Asynq stops fetching and waits for active handlers within its
+budget. Handlers must honor cancellation and join their work. Pending Redis tasks
+remain for another worker; shutdown does not drain the entire backlog. The app
+closes clients only after their users stop. See <a href="application-lifecycle.html">lifecycle</a>.</p>
+<h2 id="inspection-and-administration">Inspection and administration<a class="heading-link" href="#inspection-and-administration" aria-label="Link to Inspection and administration">#</a></h2>
+<p>These operator commands are always available:</p>
+<pre><code class="language-sh">go run ./cmd/cli queue list
+go run ./cmd/cli queue inspect default TASK_ID
+go run ./cmd/cli queue pause high
+go run ./cmd/cli queue resume high
+go run ./cmd/cli queue cancel TASK_ID
+go run ./cmd/cli queue archive default TASK_ID
+go run ./cmd/cli queue replay default TASK_ID
+go run ./cmd/cli queue delete default TASK_ID
+</code></pre>
+<p>Use the task&#39;s actual queue. Inspection prints JSON with byte fields encoded as
+base64. In app assembly, <code>a.inspector.GetTaskInfo(queueName, taskID)</code>
+returns native TaskInfo with raw Result bytes. The native pagination and bulk APIs
+remain available. Inspector calls have Redis I/O timeouts, not per-call contexts.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pause/resume</td>
+<td>Changes admission; active handlers continue</td>
+</tr>
+<tr>
+<td>Cancel</td>
+<td>Cooperative; does not delete work or prevent retry</td>
+</tr>
+<tr>
+<td>Archive</td>
+<td>Supported non-active tasks only</td>
+</tr>
+<tr>
+<td>Replay</td>
+<td>Scheduled/retry/archived to pending; retry history remains</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>Supported non-active tasks; effects cannot be undone</td>
+</tr>
+</tbody>
+</table>
+<p>Completed tasks cannot be replayed through native RunTask. Restrict operator access
+to retained payloads, results and errors. App owns Inspector connections; borrowers
+must not close them. See <a href="#inspect-and-recover">safe replay</a> before replaying.</p>
+<h2 id="asynqmon-dashboard">Asynqmon dashboard<a class="heading-link" href="#asynqmon-dashboard" aria-label="Link to Asynqmon dashboard">#</a></h2>
+<p>Enable the embedded dashboard independently of CLI administration:</p>
+<pre><code class="language-dotenv">QUEUE_DASHBOARD_ENABLED=true
+QUEUE_DASHBOARD_USERNAME=operator
+QUEUE_DASHBOARD_PASSWORD=replace-with-a-secret
+</code></pre>
+<p>Restart an HTTP-enabled process and open <code>http://localhost:8080/admin/queues/</code>.
+The browser requests Basic Auth credentials. UI and API share the existing HTTP
+listener and use <code>QUEUE_REDIS_URL</code>, including its database index. Use HTTPS for
+remote access. Disable the setting and restart to remove routes and connections.</p>
+<h2 id="inspect-and-recover">Inspect and recover<a class="heading-link" href="#inspect-and-recover" aria-label="Link to Inspect and recover">#</a></h2>
+<p>Queue administration commands are always available. Inspect before replaying:</p>
+<pre><code class="language-sh">go run ./cmd/cli queue list
+go run ./cmd/cli queue inspect default TASK_ID
+go run ./cmd/cli queue replay default TASK_ID
+</code></pre>
+<p><code>default</code> must match the task&#39;s actual queue. Fix the cause and verify that its
+business effect can safely repeat. Native replay moves supported scheduled, retry
+or archived work to pending; it does not reset retry history. Completed tasks need
+an intentional new enqueue rather than <code>RunTask</code> replay.</p>
+<p>The <a href="#asynqmon-dashboard">dashboard</a> provides a separate authenticated
+UI. Pause/resume affects new admission, cancellation is cooperative, and deletion
+cannot undo effects. See <a href="#inspection-and-administration">administration</a>
+for the full command list and state restrictions.</p>
+<h2 id="customize-backoff-and-classification">Customize backoff and classification<a class="heading-link" href="#customize-backoff-and-classification" aria-label="Link to Customize backoff and classification">#</a></h2>
+<p>After loading config and before <code>app.Serve</code>, optional native callbacks can change
+retry timing and whether an error counts toward failure statistics:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">cfg</span><span class="go-punctuation">.</span>Queue<span class="go-punctuation">.</span>RetryDelay <span class="go-operator">=</span> <span class="go-keyword">func</span><span class="go-bracket-0">(</span><span class="go-parameter">n</span> <span class="go-builtin-type">int</span><span class="go-punctuation">,</span> <span class="go-parameter">err</span> <span class="go-builtin-type">error</span><span class="go-punctuation">,</span> <span class="go-parameter">task</span> <span class="go-operator">*</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">Task</span><span class="go-bracket-0">)</span> <span class="go-type">time</span><span class="go-punctuation">.</span><span class="go-type">Duration</span> <span class="go-bracket-0">{</span>
+    limit <span class="go-operator">:=</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Second <span class="go-operator">&lt;&lt;</span> <span class="go-function">min</span><span class="go-bracket-1">(</span><span class="go-parameter">n</span><span class="go-punctuation">,</span> <span class="go-number">6</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> limit<span class="go-operator">/</span><span class="go-number">2</span> <span class="go-operator">+</span> <span class="go-package">time</span><span class="go-punctuation">.</span><span class="go-function">Duration</span><span class="go-bracket-1">(</span><span class="go-package">rand</span><span class="go-punctuation">.</span><span class="go-function">Int64N</span><span class="go-bracket-2">(</span><span class="go-builtin-type">int64</span><span class="go-bracket-3">(</span>limit<span class="go-operator">/</span><span class="go-number">2</span><span class="go-bracket-3">)</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This uses <code>time</code>, <code>math/rand/v2</code> and Asynq. It bounds exponential delay with jitter.
+Keep callbacks fast and safe for concurrent calls. Nil callbacks keep native defaults.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">cfg</span><span class="go-punctuation">.</span>Queue<span class="go-punctuation">.</span>IsFailure <span class="go-operator">=</span> <span class="go-keyword">func</span><span class="go-bracket-0">(</span><span class="go-parameter">err</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">bool</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-operator">!</span><span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">Is</span><span class="go-bracket-1">(</span><span class="go-parameter">err</span><span class="go-punctuation">,</span> ErrTemporarilyThrottled<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Define <code>ErrTemporarilyThrottled</code> in your application. Returning false does <strong>not</strong>
+make the task successful: while retries remain it can retry without incrementing
+the counter. Repeated non-failures can therefore continue indefinitely. Define a
+terminal policy; classification does not override an already exhausted budget.</p>
+<h2 id="tracing-and-metrics">Tracing and metrics<a class="heading-link" href="#tracing-and-metrics" aria-label="Link to Tracing and metrics">#</a></h2>
+<p><code>app/infrastructure.go</code> installs global client routing and tracing, native worker middleware,
+and Asynq&#39;s official Prometheus collector. Workers create consumer spans linked to
+producer context. Registered mux patterns bound task-name metric labels; IDs belong
+in logs and traces. Baggage, payloads and results are not copied into routine telemetry.</p>
+<p>Native recurring schedules bypass the client chain. Routing is resolved at
+registration; each execution still has a worker span without a stale startup trace.
+See <a href="observability.html#trace-queues-and-events">observability</a>.</p>
+<h2 id="inspect-capacity-and-failures">Inspect capacity and failures<a class="heading-link" href="#inspect-capacity-and-failures" aria-label="Link to Inspect capacity and failures">#</a></h2>
+<p>Enable the <a href="#asynqmon-dashboard">queue dashboard</a> to inspect pending,
+active, delayed, retry and archived tasks. With metrics enabled, the official Asynq
+collector exposes queue state and pending latency; handler duration records each
+attempt. Long queues can mean insufficient capacity, slow dependencies or paused
+workers—not necessarily failed publication.</p>
+<p>Use <a href="queues.html">failure handling</a> to define retries and replay safely.</p>
+<h2 id="troubleshoot-pending-or-repeated-tasks">Troubleshoot pending or repeated tasks<a class="heading-link" href="#troubleshoot-pending-or-repeated-tasks" aria-label="Link to Troubleshoot pending or repeated tasks">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check first</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enqueue returns an error</td>
+<td>Caller context, transaction scope, Redis URL and configured queue</td>
+<td>Resolve it before reporting acceptance; an uncertain network result may already have created a task</td>
+</tr>
+<tr>
+<td>Task stays pending</td>
+<td>Worker selection, queue name, paused state, process health</td>
+<td>Start a handler-capable worker sharing the same Redis database</td>
+</tr>
+<tr>
+<td>Task is scheduled</td>
+<td><code>ProcessIn</code> / <code>ProcessAt</code> and current time</td>
+<td>Wait until eligible; start time also depends on capacity</td>
+</tr>
+<tr>
+<td>No matching handler</td>
+<td>Task type and the deployed module registration</td>
+<td>Deploy the handler before publishing its versioned task type</td>
+</tr>
+<tr>
+<td>Task is archived</td>
+<td>Inspect retained error and retry count</td>
+<td>Fix the cause and verify idempotency before replay</td>
+</tr>
+<tr>
+<td>Welcome task completed but notification absent</td>
+<td>Notification delivery ledger and worker dispatcher</td>
+<td>Inspect <code>notifications deliveries</code>; task completion acknowledged intent only</td>
+</tr>
+<tr>
+<td>An email was sent twice</td>
+<td>Provider uncertainty, retry history, business key</td>
+<td>Treat external delivery as potentially repeated; uniqueness is not exactly once</td>
+</tr>
+<tr>
+<td>More worker processes do not receive local signup events</td>
+<td>GoChannel process boundary</td>
+<td>Keep local subscribers with the publishing process; scale workers for Redis tasks</td>
+</tr>
+</tbody>
+</table>
+<p>Task payloads, results and retained errors are operator data. Restrict Redis,
+dashboard and backup access, especially for queued mail. Avoid logging bodies,
+credentials or arbitrary provider error text in application telemetry.</p>
+<h2 id="test-tasks-and-their-integration">Test tasks and their integration<a class="heading-link" href="#test-tasks-and-their-integration" aria-label="Link to Test tasks and their integration">#</a></h2>
+<p>Unit-test decoding, invalid payloads, missing records and repeat-safe effects by
+calling handlers directly with a task and test collaborators. Such calls have no
+worker metadata or result writer. Keep business tests under <code>tests/&lt;module&gt;</code>;
+delivery adapters and reusable queue middleware may have tests beside their owners.</p>
+<pre><code class="language-sh">go test ./pkg/asynqx/... ./internal/modules/identity/delivery/jobs/...
+go test ./tests/modules -run TestWorkflowGuidesMatchCompiledSources -count=1
+</code></pre>
+<p>Those checks do not prove Redis delivery. The <a href="testing-database.html">database and Redis integration
+gate</a> exercises signup → event → task → notification storage.
+Use <a href="testing-async.html">task testing</a> for cancellation, retries and lifecycle tests.</p>
+<h2 id="use-queues-independently">Use queues independently<a class="heading-link" href="#use-queues-independently" aria-label="Link to Use queues independently">#</a></h2>
+<p><code>pkg/asynqx</code> can be used without app assembly. A native <code>*asynq.Client</code> satisfies
+<code>asynqx.Client</code>; the caller owns its connection and worker setup. This function-body
+fragment assumes <code>ctx</code>, <code>userID</code> and <code>options</code> (<code>asynq.RedisClientOpt</code>) are supplied:</p>
+<pre><code class="language-go" data-highlighted="yes">client <span class="go-operator">:=</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">NewClient</span><span class="go-bracket-0">(</span>options<span class="go-bracket-0">)</span>
+<span class="go-keyword">defer</span> client<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+
+task<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">jobs</span><span class="go-punctuation">.</span><span class="go-function">NewWelcome</span><span class="go-bracket-0">(</span>userID<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> err <span class="go-operator">=</span> client<span class="go-punctuation">.</span><span class="go-function">EnqueueContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> task<span class="go-punctuation">,</span> <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Queue</span><span class="go-bracket-1">(</span><span class="go-string">&#34;high&#34;</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> err
+</code></pre>
+<p>The raw native client does not install the framework&#39;s routing, tracing or SQL
+transaction guard. To retain the guard with native enqueueing, wrap once using
+<code>github.com/wisalgroup/labena/pkg/asynqx/middleware</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">queue <span class="go-operator">:=</span> <span class="go-package">middleware</span><span class="go-punctuation">.</span><span class="go-function">Chain</span><span class="go-bracket-0">(</span><span class="go-package">client</span><span class="go-punctuation">.</span>EnqueueContext<span class="go-punctuation">,</span> <span class="go-package">middleware</span><span class="go-punctuation">.</span><span class="go-function">RequireNoTransaction</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p><code>Route(routing)</code> and <code>ObserveClient(provider)</code> are optional members of that same
+chain. They are application assembly concerns; business callers still use the
+same <code>EnqueueContext</code> method.</p>
+<p><code>asynqx.NewWorker(server, handler, redisPool, startupTimeout)</code> borrows its clients
+and checks Redis when <code>Run(ctx)</code> starts. Register handlers first, run once, wait
+for shutdown to finish, then close owned clients. Handlers must cooperate with
+cancellation: Go cannot forcibly terminate a goroutine. Do not also call native
+<code>Start</code>, <code>Run</code> or <code>Shutdown</code> on a server managed by this adapter.</p>
+<p>Continue with <a href="scheduling.html">recurring schedules</a>, <a href="events.html">events</a>, or
+<a href="onboarding.html">the complete onboarding workflow</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="identity.html"><small>← Previous</small>Authentication and sessions</a>
+<a href="events.html"><small>Next →</small>Events and subscriptions</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#try-the-existing-task">Try the existing task</a></li><li class="toc-level-2"><a href="#distinguish-the-names">Distinguish the names</a></li><li class="toc-level-2"><a href="#keep-task-code-with-its-module">Keep task code with its module</a></li><li class="toc-level-2"><a href="#define-a-task">Define a task</a></li><li class="toc-level-2"><a href="#write-and-register-a-handler">Write and register a handler</a></li><li class="toc-level-2"><a href="#enqueue-work">Enqueue work</a></li><li class="toc-level-3"><a href="#enqueue-from-a-service">Enqueue from a service</a></li><li class="toc-level-2"><a href="#keep-configuration-central">Keep configuration central</a></li><li class="toc-level-2"><a href="#configure-options-and-delays">Configure options and delays</a></li><li class="toc-level-2"><a href="#choose-task-outcomes">Choose task outcomes</a></li><li class="toc-level-2"><a href="#set-retries-per-task">Set retries per task</a></li><li class="toc-level-2"><a href="#make-effects-safe-to-repeat">Make effects safe to repeat</a></li><li class="toc-level-2"><a href="#know-the-boundary">Know the boundary</a></li><li class="toc-level-2"><a href="#read-delivery-metadata">Read delivery metadata</a></li><li class="toc-level-2"><a href="#write-a-result">Write a result</a></li><li class="toc-level-2"><a href="#start-a-worker">Start a worker</a></li><li class="toc-level-2"><a href="#set-capacity">Set capacity</a></li><li class="toc-level-2"><a href="#register-before-starting">Register before starting</a></li><li class="toc-level-2"><a href="#readiness-and-shutdown">Readiness and shutdown</a></li><li class="toc-level-2"><a href="#inspection-and-administration">Inspection and administration</a></li><li class="toc-level-2"><a href="#asynqmon-dashboard">Asynqmon dashboard</a></li><li class="toc-level-2"><a href="#inspect-and-recover">Inspect and recover</a></li><li class="toc-level-2"><a href="#customize-backoff-and-classification">Customize backoff and classification</a></li><li class="toc-level-2"><a href="#tracing-and-metrics">Tracing and metrics</a></li><li class="toc-level-2"><a href="#inspect-capacity-and-failures">Inspect capacity and failures</a></li><li class="toc-level-2"><a href="#troubleshoot-pending-or-repeated-tasks">Troubleshoot pending or repeated tasks</a></li><li class="toc-level-2"><a href="#test-tasks-and-their-integration">Test tasks and their integration</a></li><li class="toc-level-2"><a href="#use-queues-independently">Use queues independently</a></li></ol></nav><a class="source-link" href="markdown/queues.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

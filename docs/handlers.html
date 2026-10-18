@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Handlers — Practical guides and Go examples for Labena.">
+<title>Handlers — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/handlers.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a class="selected" aria-current="page" href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#register-and-handle-once">Register and handle once</a></li><li class="toc-level-2"><a href="#input-and-output">Input and output</a></li><li class="toc-level-2"><a href="#authentication-and-policy">Authentication and policy</a></li><li class="toc-level-2"><a href="#keep-context-and-deadlines">Keep context and deadlines</a></li><li class="toc-level-2"><a href="#pagination-uploads-and-streaming">Pagination, uploads and streaming</a></li><li class="toc-level-3"><a href="#return-a-page">Return a page</a></li><li class="toc-level-3"><a href="#receive-an-upload">Receive an upload</a></li><li class="toc-level-3"><a href="#stream-a-response">Stream a response</a></li><li class="toc-level-2"><a href="#independent-use">Independent use</a></li><li class="toc-level-2"><a href="#test-a-handler-through-http">Test a handler through HTTP</a></li></ol></nav></details>
+<article><h1 id="http-handlers">HTTP handlers</h1>
+<p>A handler translates a validated HTTP request into a service call, then selects
+public response fields. Huma supplies typed inputs and outputs; business services
+receive ordinary <code>context.Context</code> and service-owned inputs.</p>
+<p>The usual flow is short:</p>
+<pre><code class="language-text">Bound request → trusted caller context → authorization → service → public response
+</code></pre>
+<p>Start with the <a href="routing.html#register-a-route">Catalog route</a> for a database-free
+example. The profile update below shows the same pattern with a real service.</p>
+<h2 id="register-and-handle-once">Register and handle once<a class="heading-link" href="#register-and-handle-once" aria-label="Link to Register and handle once">#</a></h2>
+<p>Identity keeps its handler private in
+<code>internal/modules/identity/delivery/http/user_handler.go</code>. This is its profile-update flow:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-bracket-0">(</span>h <span class="go-operator">*</span><span class="go-type">userHandler</span><span class="go-bracket-0">)</span> <span class="go-function">updateProfile</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">req</span> <span class="go-operator">*</span><span class="go-type">UpdateProfileRequest</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-1">[</span><span class="go-type">UserResponse</span><span class="go-bracket-1">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    id<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+    <span class="go-bracket-1">}</span>
+    user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>svc<span class="go-punctuation">.</span><span class="go-function">UpdateProfile</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> id<span class="go-punctuation">,</span> <span class="go-parameter">req</span><span class="go-punctuation">.</span><span class="go-function">Input</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-1">(</span><span class="go-function">newUserResponse</span><span class="go-bracket-2">(</span>user<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Imports are <code>context</code>, <code>github.com/wisalgroup/labena/internal/platform/api</code>, and
+<code>github.com/wisalgroup/labena/internal/platform/api/response</code>. The receiver holds Identity&#39;s existing
+<code>service.UserService</code>; <code>UpdateProfileRequest</code> and <code>UserResponse</code> belong to the same
+HTTP package. See <a href="requests.html#map-to-a-service-input">request mapping</a> for <code>Input</code>.</p>
+<p>Registration in the same package uses the borrowed protected API:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span>protected<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">{</span>
+    OperationID<span class="go-punctuation">:</span>  <span class="go-string">&#34;identity.updateProfile&#34;</span><span class="go-punctuation">,</span>
+    Method<span class="go-punctuation">:</span>       <span class="go-string">&#34;PATCH&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>         <span class="go-string">&#34;/users/me&#34;</span><span class="go-punctuation">,</span>
+    Summary<span class="go-punctuation">:</span>      <span class="go-string">&#34;Update your profile&#34;</span><span class="go-punctuation">,</span>
+    MaxBodyBytes<span class="go-punctuation">:</span> <span class="go-number">4096</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">handler</span><span class="go-punctuation">.</span>updateProfile<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This describes the existing Identity route; do not register another copy. A request
+with <code>{&#34;name&#34;:&#34;Ada&#34;}</code> updates the signed-in account and returns its public fields
+under <code>data</code>. The account ID comes from the principal, never the request body.</p>
+<h2 id="input-and-output">Input and output<a class="heading-link" href="#input-and-output" aria-label="Link to Input and output">#</a></h2>
+<p>A typed handler has this shape:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">input</span> <span class="go-operator">*</span><span class="go-type">Input</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">Output</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span>
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Input</code></td>
+<td>HTTP sources, JSON shape, Huma validation and documentation tags</td>
+</tr>
+<tr>
+<td><code>Input.Input(...)</code></td>
+<td>Straightforward conversion into a service input, where useful</td>
+</tr>
+<tr>
+<td>Handler</td>
+<td>Trusted caller context, transport-specific authorization and response conversion</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>Business decisions and validation shared by HTTP, jobs, events, and CLI</td>
+</tr>
+<tr>
+<td><code>Output</code></td>
+<td>Public response body, headers, and status</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>struct{ Body T }</code> for a JSON-only request. Use a named input when it has several
+sources or a mapping method. Return <code>response.JSON[T]</code> for the shared success
+envelope. Use <code>response.Empty</code> for no body and native Huma output types for streams
+or special headers. See <a href="responses.html">responses</a>.</p>
+<p>Keep request and response types in the transport package. Returning a Bun entity
+directly can expose fields unrelated to the endpoint, including future additions.
+An explicit conversion makes that public boundary reviewable.</p>
+<h2 id="authentication-and-policy">Authentication and policy<a class="heading-link" href="#authentication-and-policy" aria-label="Link to Authentication and policy">#</a></h2>
+<p>Protected routes use <code>targets.AuthenticatedHTTP</code>, built with <code>api.Authenticated</code>.
+It combines bearer validation with its OpenAPI security declaration. Inside the
+handler:</p>
+<table>
+<thead>
+<tr>
+<th>Helper</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>api.Principal(ctx)</code></td>
+<td>Authenticated user and session identifiers</td>
+</tr>
+<tr>
+<td><code>api.CurrentUserID(ctx)</code></td>
+<td>Account ID, without loading the account</td>
+</tr>
+<tr>
+<td><code>api.RequireCurrentUser(ctx, id)</code></td>
+<td>Requires the supplied ID to match the caller; mismatch returns not found</td>
+</tr>
+</tbody>
+</table>
+<p>For a self-service <code>/users/{id}</code> route, Identity checks ownership before reading:</p>
+<pre><code class="language-go" data-highlighted="yes">id <span class="go-operator">:=</span> <span class="go-package">uuid</span><span class="go-punctuation">.</span><span class="go-function">MustParse</span><span class="go-bracket-0">(</span><span class="go-package">req</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-0">)</span> <span class="go-comment">// Huma already validated format:&#34;uuid&#34;.</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">RequireCurrentUser</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>svc<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-0">(</span><span class="go-function">newUserResponse</span><span class="go-bracket-1">(</span>user<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>This fragment uses <code>github.com/google/uuid</code> and Identity&#39;s existing handler types.
+A validated UUID is only a well-formed identifier. For shared documents, teams,
+roles, or other permissions, implement the actual policy in the owning service;
+<code>RequireCurrentUser</code> is specifically a self-service account check.</p>
+<p>Pass trusted values explicitly to services. Do not accept <code>owner_id</code>, session IDs,
+or privileged flags from a request when they are determined by authentication.</p>
+<h2 id="keep-context-and-deadlines">Keep context and deadlines<a class="heading-link" href="#keep-context-and-deadlines" aria-label="Link to Keep context and deadlines">#</a></h2>
+<p>Pass the handler&#39;s <code>ctx</code> into every service, database, storage, and provider call.
+It carries cancellation, tracing, and the context logger. Do not replace it with
+<code>context.Background()</code> to keep work running after the request.</p>
+<p>If a call has a shorter deadline than its caller, derive a child context:</p>
+<pre><code class="language-go" data-highlighted="yes">lookupCtx<span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithTimeout</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">2</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-0">)</span>
+<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>svc<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>lookupCtx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment imports <code>time</code> and belongs before the usual error/response mapping.
+For work intended to outlive the request, enqueue a task and return a documented
+acceptance result. Cancellation does not undo a committed database transaction or
+an accepted task. See <a href="database-transactions.html">transactions</a> and <a href="queues.html">queues</a>.</p>
+<h2 id="pagination-uploads-and-streaming">Pagination, uploads and streaming<a class="heading-link" href="#pagination-uploads-and-streaming" aria-label="Link to Pagination, uploads and streaming">#</a></h2>
+<p>These are native Huma inputs and outputs with a few shared helpers. Use the
+smallest shape appropriate to the operation.</p>
+<h3 id="return-a-page">Return a page<a class="heading-link" href="#return-a-page" aria-label="Link to Return a page">#</a></h3>
+<p>Embed <code>api.PaginationInput</code>, pass <code>input.Pagination()</code> to the service, and convert
+only the returned items. The application type remains <code>pagination.Pagination</code>.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ListProductsRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">api</span><span class="go-punctuation">.</span><span class="go-type">PaginationInput</span>
+    Search <span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;search&#34; maxLength:&#34;100&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>A service returns <code>*pagination.Page[Product]</code>; the handler should expose its public
+<code>ProductResponse</code> shape while preserving page metadata. See
+<a href="responses.html#return-a-page">page responses</a> and <a href="database-queries.html#return-a-page">database pagination</a>.</p>
+<h3 id="receive-an-upload">Receive an upload<a class="heading-link" href="#receive-an-upload" aria-label="Link to Receive an upload">#</a></h3>
+<p>Use <code>RawBody multipart.Form</code> and <code>api.Multipart</code> on the operation. Set an explicit
+positive <code>MaxBodyBytes</code> for the <strong>whole request</strong>, not just the file contents.
+Authentication should run before multipart parsing.</p>
+<p>The handler must still validate permitted parts, open the selected file, and close
+it. The middleware bounds parsing, spools large files, and removes temporary files
+after return or panic. See the <a href="requests.html#multipart-bodies">multipart example</a>.</p>
+<h3 id="stream-a-response">Stream a response<a class="heading-link" href="#stream-a-response" aria-label="Link to Stream a response">#</a></h3>
+<p>Native Huma outputs can supply <code>Body func(huma.Context)</code>. This helper is a complete
+pattern for an already-authorized, already-opened download reader:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Imports: context, io, net/http, Huma, and platform/api/response.</span>
+<span class="go-keyword">type</span> <span class="go-type">downloadOutput</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Body <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">streamDownload</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">reader</span> <span class="go-type">io</span><span class="go-punctuation">.</span><span class="go-type">ReadCloser</span><span class="go-bracket-0">)</span> <span class="go-operator">*</span><span class="go-type">downloadOutput</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-operator">&amp;</span><span class="go-type">downloadOutput</span><span class="go-bracket-1">{</span>Body<span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">c</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">defer</span> <span class="go-keyword">func</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span> <span class="go-bracket-3">{</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">LogError</span><span class="go-bracket-4">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">reader</span><span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-5">(</span><span class="go-bracket-5">)</span><span class="go-bracket-4">)</span> <span class="go-bracket-3">}</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span>
+        <span class="go-parameter">c</span><span class="go-punctuation">.</span><span class="go-function">SetHeader</span><span class="go-bracket-3">(</span><span class="go-string">&#34;Content-Type&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;application/octet-stream&#34;</span><span class="go-bracket-3">)</span>
+        <span class="go-parameter">c</span><span class="go-punctuation">.</span><span class="go-function">SetHeader</span><span class="go-bracket-3">(</span><span class="go-string">&#34;Content-Disposition&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;attachment&#34;</span><span class="go-bracket-3">)</span>
+        <span class="go-parameter">c</span><span class="go-punctuation">.</span><span class="go-function">SetHeader</span><span class="go-bracket-3">(</span><span class="go-string">&#34;X-Content-Type-Options&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;nosniff&#34;</span><span class="go-bracket-3">)</span>
+        <span class="go-parameter">c</span><span class="go-punctuation">.</span><span class="go-function">SetHeader</span><span class="go-bracket-3">(</span><span class="go-string">&#34;Cache-Control&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;no-store&#34;</span><span class="go-bracket-3">)</span>
+        <span class="go-keyword">if</span> _<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">io</span><span class="go-punctuation">.</span><span class="go-function">Copy</span><span class="go-bracket-3">(</span><span class="go-parameter">c</span><span class="go-punctuation">.</span><span class="go-function">BodyWriter</span><span class="go-bracket-4">(</span><span class="go-bracket-4">)</span><span class="go-punctuation">,</span> <span class="go-parameter">reader</span><span class="go-bracket-3">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+            <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">LogError</span><span class="go-bracket-4">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> err<span class="go-bracket-4">)</span>
+            <span class="go-function">panic</span><span class="go-bracket-4">(</span><span class="go-package">http</span><span class="go-punctuation">.</span>ErrAbortHandler<span class="go-bracket-4">)</span>
+        <span class="go-bracket-3">}</span>
+    <span class="go-bracket-2">}</span><span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Open the reader using the request context <strong>before</strong> returning this output, so
+open/authorization failures can still return <code>response.Error</code>. The output callback
+owns closing the reader. Declare the binary media type in the operation&#39;s
+<code>Responses</code>; Identity&#39;s <code>registerMedia</code> in <code>internal/modules/identity/delivery/http/routes.go</code>
+is the working example.</p>
+<p>Once headers or bytes are committed, do not append a JSON problem to the stream.
+<code>http.ErrAbortHandler</code> tells the server to abort the transport; the shared recovery
+preserves that signal. Flush, hijack, and response-controller deadlines remain
+available through the underlying HTTP support.</p>
+<h2 id="independent-use">Independent use<a class="heading-link" href="#independent-use" aria-label="Link to Independent use">#</a></h2>
+<p>You can construct the platform API without the complete application. This example
+belongs inside the repository because <code>internal/platform/api</code> is an internal package:</p>
+<pre><code class="language-go" data-highlighted="yes">server<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-type">api</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>Title<span class="go-punctuation">:</span> <span class="go-string">&#34;Catalog API&#34;</span><span class="go-punctuation">,</span> Version<span class="go-punctuation">:</span> <span class="go-string">&#34;1.0.0&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+public <span class="go-operator">:=</span> <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">NewGroup</span><span class="go-bracket-0">(</span>server<span class="go-punctuation">,</span> <span class="go-string">&#34;/api/v1&#34;</span><span class="go-bracket-0">)</span>
+protected <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">Authenticated</span><span class="go-bracket-0">(</span>public<span class="go-punctuation">,</span> authenticator<span class="go-bracket-0">)</span>
+<span class="go-comment">// Register your operations on public or protected before serving.</span>
+</code></pre>
+<p><code>authenticator</code> implements <code>api.Authenticator</code>. A nil authenticator fails closed on
+protected routes. <code>server</code> is an <code>http.Handler</code>: pass it to <code>pkg/httpserver</code> or a
+standard HTTP server whose listener and graceful shutdown you own. Infrastructure
+handlers mount on <code>server.Mux</code>, but serve the server object itself.</p>
+<h2 id="test-a-handler-through-http">Test a handler through HTTP<a class="heading-link" href="#test-a-handler-through-http" aria-label="Link to Test a handler through HTTP">#</a></h2>
+<p>Use a freshly constructed API and <code>httptest</code> to exercise the route, binding,
+policies, metadata, and response together. The following assertions fit a test
+that already registered its Catalog route on <code>server</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">request <span class="go-operator">:=</span> <span class="go-package">httptest</span><span class="go-punctuation">.</span><span class="go-function">NewRequest</span><span class="go-bracket-0">(</span><span class="go-package">http</span><span class="go-punctuation">.</span>MethodGet<span class="go-punctuation">,</span> <span class="go-string">&#34;/api/v1/catalog/hello/Ada&#34;</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-bracket-0">)</span>
+result <span class="go-operator">:=</span> <span class="go-package">httptest</span><span class="go-punctuation">.</span><span class="go-function">NewRecorder</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+<span class="go-package">server</span><span class="go-punctuation">.</span><span class="go-function">ServeHTTP</span><span class="go-bracket-0">(</span>result<span class="go-punctuation">,</span> request<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> result<span class="go-punctuation">.</span>Code <span class="go-operator">!=</span> <span class="go-package">http</span><span class="go-punctuation">.</span>StatusOK <span class="go-bracket-0">{</span>
+    <span class="go-package">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-1">(</span><span class="go-string">&#34;status = %d; body = %s&#34;</span><span class="go-punctuation">,</span> result<span class="go-punctuation">.</span>Code<span class="go-punctuation">,</span> result<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> result<span class="go-punctuation">.</span><span class="go-function">Header</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span><span class="go-string">&#34;X-Request-ID&#34;</span><span class="go-bracket-0">)</span> <span class="go-operator">==</span> <span class="go-string">&#34;&#34;</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">t</span><span class="go-punctuation">.</span><span class="go-function">Fatal</span><span class="go-bracket-1">(</span><span class="go-string">&#34;missing request ID&#34;</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Imports are <code>net/http</code> and <code>net/http/httptest</code>; <code>t</code> is the test&#39;s <code>*testing.T</code>.
+Use the Catalog tests in <code>tests/modules</code> as a complete infrastructure-free starting
+point. Keep business behavior tests in <code>tests/&lt;module&gt;</code>, including authorization,
+invalid input, and failure cases. Calling a handler directly bypasses Huma binding
+and must not be treated as validation coverage.</p>
+<p>Continue with <a href="requests.html">requests</a>, <a href="responses.html">responses</a>, and
+<a href="errors.html">error handling</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="routing.html"><small>← Previous</small>Routing</a>
+<a href="requests.html"><small>Next →</small>Requests &amp; validation</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#register-and-handle-once">Register and handle once</a></li><li class="toc-level-2"><a href="#input-and-output">Input and output</a></li><li class="toc-level-2"><a href="#authentication-and-policy">Authentication and policy</a></li><li class="toc-level-2"><a href="#keep-context-and-deadlines">Keep context and deadlines</a></li><li class="toc-level-2"><a href="#pagination-uploads-and-streaming">Pagination, uploads and streaming</a></li><li class="toc-level-3"><a href="#return-a-page">Return a page</a></li><li class="toc-level-3"><a href="#receive-an-upload">Receive an upload</a></li><li class="toc-level-3"><a href="#stream-a-response">Stream a response</a></li><li class="toc-level-2"><a href="#independent-use">Independent use</a></li><li class="toc-level-2"><a href="#test-a-handler-through-http">Test a handler through HTTP</a></li></ol></nav><a class="source-link" href="markdown/handlers.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

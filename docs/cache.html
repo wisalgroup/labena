@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Cache — Practical guides and Go examples for Labena.">
+<title>Cache — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/cache.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a class="selected" aria-current="page" href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Database and state</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#configure-a-driver">Configure a driver</a></li><li class="toc-level-2"><a href="#load-on-a-miss-and-work-with-multiple-values">Load on a miss and work with multiple values</a></li><li class="toc-level-3"><a href="#store-and-typed-loading">Store and typed loading</a></li><li class="toc-level-3"><a href="#understand-remembers-guarantees">Understand Remember&#39;s guarantees</a></li><li class="toc-level-2"><a href="#store-read-and-delete">Store, read, and delete</a></li><li class="toc-level-3"><a href="#check-presence">Check presence</a></li><li class="toc-level-2"><a href="#raw-and-typed-batches">Raw and typed batches</a></li><li class="toc-level-2"><a href="#invalidate-after-a-write">Invalidate after a write</a></li><li class="toc-level-2"><a href="#clear-a-namespace">Clear a namespace</a></li><li class="toc-level-2"><a href="#capacity-timeouts-and-tuning">Capacity, timeouts, and tuning</a></li><li class="toc-level-2"><a href="#database-cache">Database cache</a></li><li class="toc-level-2"><a href="#misses-failures-and-invalidation">Misses, failures, and invalidation</a></li><li class="toc-level-2"><a href="#ownership-and-example">Ownership and example</a></li></ol></nav></details>
+<article><h1 id="cache">Cache</h1>
+<p>Cache keeps replaceable data close to an operation. Inject <code>cache.Store</code> into the
+service that needs it, choose a finite TTL, and keep authoritative data in its
+owning repository. Start with <code>cache.Remember</code> to load a value only when absent.</p>
+<h2 id="configure-a-driver">Configure a driver<a class="heading-link" href="#configure-a-driver" aria-label="Link to Configure a driver">#</a></h2>
+<p>For one-process development:</p>
+<pre><code class="language-dotenv">CACHE_DRIVER=memory
+</code></pre>
+<p>For shared cache across application replicas:</p>
+<pre><code class="language-dotenv">CACHE_DRIVER=redis
+CACHE_REDIS_URL=redis://127.0.0.1:6379/0
+CACHE_NAMESPACE=myapp
+</code></pre>
+<p>The code default is <code>disabled</code>, which leaves <code>Resources.Cache</code> nil. The example
+environment selects Redis. Required cache dependencies should be checked during
+service construction; optional caching needs an explicit bypass path.</p>
+<table>
+<thead>
+<tr>
+<th>Driver</th>
+<th>Scope and capacity</th>
+<th>Expiration and ownership</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>memory</code></td>
+<td>One process; bounded count and total bytes; rejects full writes</td>
+<td>Lazy expiration; app owns and closes the store</td>
+</tr>
+<tr>
+<td><code>redis</code></td>
+<td>Shared backend; capacity and eviction are backend policy</td>
+<td>Native TTL; store borrows a Redis client</td>
+</tr>
+<tr>
+<td><code>database</code></td>
+<td>Shared PostgreSQL/MySQL table</td>
+<td>Expired rows are unreadable; explicit cleanup reclaims them; pool is borrowed</td>
+</tr>
+</tbody>
+</table>
+<p>Changing a driver does not transfer cached values. Namespaces separate keys, not
+permissions. Do not cache secrets or cross-tenant results without a deliberate
+access and retention policy.</p>
+<h2 id="load-on-a-miss-and-work-with-multiple-values">Load on a miss and work with multiple values<a class="heading-link" href="#load-on-a-miss-and-work-with-multiple-values" aria-label="Link to Load on a miss and work with multiple values">#</a></h2>
+<p>The two loading forms share the same behavior:</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>API</th>
+<th>Return value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Preserve a known Go result type</td>
+<td><code>cache.Remember(ctx, store, key, ttl, load)</code></td>
+<td>Your loader&#39;s type</td>
+</tr>
+<tr>
+<td>Work with dynamic JSON</td>
+<td><code>store.Remember(ctx, key, ttl, load)</code></td>
+<td><code>any</code> containing JSON objects, arrays, or scalars</td>
+</tr>
+</tbody>
+</table>
+<p>Batch operations are covered <a href="#raw-and-typed-batches">below</a>; use Remember first for
+an ordinary single-resource lookup.</p>
+<h3 id="store-and-typed-loading">Store and typed loading<a class="heading-link" href="#store-and-typed-loading" aria-label="Link to Store and typed loading">#</a></h3>
+<p>This complete helper caches a transport-independent product summary. Place it in
+the service that owns the query and inject its store and loader:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> service
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">time</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">cache</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">type</span> <span class="go-type">ProductSummary</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	ID   <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;id&#34;`</span>
+	Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">CachedProduct</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">store</span> <span class="go-type">cache</span><span class="go-punctuation">.</span><span class="go-type">Store</span><span class="go-punctuation">,</span> <span class="go-parameter">id</span> <span class="go-builtin-type">string</span><span class="go-punctuation">,</span>
+	<span class="go-parameter">load</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">(</span><span class="go-type">ProductSummary</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-type">ProductSummary</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	<span class="go-keyword">return</span> <span class="go-package">cache</span><span class="go-punctuation">.</span><span class="go-function">Remember</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-parameter">store</span><span class="go-punctuation">,</span> <span class="go-string">&#34;catalog:v1:product:&#34;</span><span class="go-operator">+</span><span class="go-parameter">id</span><span class="go-punctuation">,</span>
+		<span class="go-number">5</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-punctuation">,</span> <span class="go-parameter">load</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This proposed Catalog helper requires a non-nil store. The caller authorizes the
+operation and chooses a key containing every dimension that changes the result,
+such as tenant or locale. The loader reads authoritative data using its supplied
+context. The first successful call loads and caches; later calls return the cached
+summary until expiry or deletion.</p>
+<p>The dynamic form uses the same cache path:</p>
+<pre><code class="language-go" data-highlighted="yes">value<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Remember</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;settings:v1&#34;</span><span class="go-punctuation">,</span> <span class="go-number">5</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-punctuation">,</span>
+    <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">(</span><span class="go-builtin-type">any</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">map</span><span class="go-bracket-2">[</span><span class="go-builtin-type">string</span><span class="go-bracket-2">]</span><span class="go-builtin-type">any</span><span class="go-bracket-2">{</span><span class="go-string">&#34;theme&#34;</span><span class="go-punctuation">:</span> <span class="go-string">&#34;dark&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+    <span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// value is a map[string]any on both misses and hits.</span>
+_ <span class="go-operator">=</span> value
+</code></pre>
+<p>Dynamic objects become <code>map[string]any</code>, arrays become <code>[]any</code>, and numbers become
+<code>json.Number</code>. The typed helper restores its concrete type. Both forms JSON-encode
+and decode on a miss as well as a hit, producing caller-owned values with the same
+shape on both paths. Values must round-trip through JSON.</p>
+<h3 id="understand-remembers-guarantees">Understand Remember&#39;s guarantees<a class="heading-link" href="#understand-remembers-guarantees" aria-label="Link to Understand Remember&#39;s guarantees">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hit</td>
+<td>Decode and return; keep the existing TTL</td>
+</tr>
+<tr>
+<td>Miss</td>
+<td>Call the loader, encode, then store; TTL starts after loading</td>
+</tr>
+<tr>
+<td>Loader failure</td>
+<td>Return it; do not cache the failure</td>
+</tr>
+<tr>
+<td>Backend read failure or corrupt cached JSON</td>
+<td>Return an error; do not call the loader</td>
+</tr>
+<tr>
+<td>Encoding or write failure</td>
+<td>Return an error, even if loading succeeded</td>
+</tr>
+<tr>
+<td>Concurrent misses</td>
+<td>More than one loader may run</td>
+</tr>
+<tr>
+<td>Cancellation during loading</td>
+<td>Loader should stop; canceled results are not published afterward</td>
+</tr>
+</tbody>
+</table>
+<p>There is no automatic stampede lock or stale-while-revalidate behavior. A loader
+racing <code>Delete</code> or <code>Clear</code> can refill a key. Use versioned keys or an explicit
+consistency strategy where this matters. Do not put irreversible work in a loader.</p>
+<h2 id="store-read-and-delete">Store, read, and delete<a class="heading-link" href="#store-read-and-delete" aria-label="Link to Store, read, and delete">#</a></h2>
+<p>The base store reads and writes raw bytes. This fragment belongs in an operation
+that already has a store and serialized <code>encodedProduct</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">const</span> <span class="go-number">key</span> <span class="go-operator">=</span> <span class="go-string">&#34;catalog:v1:product:42&#34;</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Set</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">key</span><span class="go-punctuation">,</span> encodedProduct<span class="go-punctuation">,</span> <span class="go-number">5</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+value<span class="go-punctuation">,</span> found<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">key</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> found <span class="go-bracket-0">{</span>
+    <span class="go-comment">// Decode value using the format used by the writer.</span>
+    _ <span class="go-operator">=</span> value
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Delete</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">key</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>time</code>; the injected interface is <code>github.com/wisalgroup/labena/pkg/cache.Store</code>. Nil and empty
+byte slices are valid entries, so use <code>found</code>, not <code>len(value)</code>, to recognize a hit.
+Deleting a missing key succeeds.</p>
+<p><code>Set</code> atomically replaces one value and its expiry. TTL must be positive; zero does
+not mean forever. <code>Get</code> does not extend TTL. Expired entries are misses, and remote
+drivers round positive TTLs up to whole milliseconds.</p>
+<p>Keys contain 1–255 UTF-8 bytes without NUL, are case-sensitive, and preserve trailing
+spaces. The size limit includes key and value. Returned data belongs to the caller;
+retained inputs are copied, but do not mutate slices or maps while a call is running.</p>
+<h3 id="check-presence">Check presence<a class="heading-link" href="#check-presence" aria-label="Link to Check presence">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes">found<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Exists</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;catalog:v1:product:42&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Use <code>found</code> for a presence-only operation. An <code>Exists</code> followed by <code>Set</code> is not an
+atomic “create if absent” operation; the interface provides no uniqueness lock.</p>
+<h2 id="raw-and-typed-batches">Raw and typed batches<a class="heading-link" href="#raw-and-typed-batches" aria-label="Link to Raw and typed batches">#</a></h2>
+<p>Use store methods for bytes:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">SetMulti</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">byte</span><span class="go-bracket-1">{</span>
+    <span class="go-string">&#34;binary:v1&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-number">0</span><span class="go-punctuation">,</span> <span class="go-number">255</span><span class="go-punctuation">,</span> <span class="go-number">128</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    <span class="go-string">&#34;empty:v1&#34;</span><span class="go-punctuation">:</span>  <span class="go-keyword">nil</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+raw<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">GetMulti</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span><span class="go-bracket-1">{</span><span class="go-string">&#34;binary:v1&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;empty:v1&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;missing:v1&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// raw contains the two hits; missing keys are omitted.</span>
+_ <span class="go-operator">=</span> raw
+</code></pre>
+<p>Use package helpers for JSON:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">cache</span><span class="go-punctuation">.</span><span class="go-function">SetMulti</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> store<span class="go-punctuation">,</span> <span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-type">ProductSummary</span><span class="go-bracket-1">{</span>
+    <span class="go-string">&#34;catalog:v1:product:42&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span>ID<span class="go-punctuation">:</span> <span class="go-string">&#34;42&#34;</span><span class="go-punctuation">,</span> Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Starter product&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+products<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">cache</span><span class="go-punctuation">.</span>GetMulti<span class="go-bracket-0">[</span>ProductSummary<span class="go-bracket-0">]</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> store<span class="go-punctuation">,</span>
+    <span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span><span class="go-bracket-1">{</span><span class="go-string">&#34;catalog:v1:product:42&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+_ <span class="go-operator">=</span> products
+</code></pre>
+<p><code>ProductSummary</code> is the type defined above. <code>cache.GetMulti[any]</code> supports dynamic
+JSON. Do not read arbitrary binary values with JSON helpers; incompatible or
+corrupt data is an error, not a miss.</p>
+<p>Batches accept at most <strong>1,000 keys/items</strong> and <strong>8 MiB</strong> of key/value data, subject
+to each entry&#39;s size limit. Writes validate the batch first; a later backend
+failure may leave partial writes. Reads are not a cross-key snapshot. A read or
+JSON-decoding error returns no partial result and does not mutate cached entries.</p>
+<h2 id="invalidate-after-a-write">Invalidate after a write<a class="heading-link" href="#invalidate-after-a-write" aria-label="Link to Invalidate after a write">#</a></h2>
+<p>Delete the relevant key after the authoritative write has committed. This optional
+cache example runs outside any caller SQL transaction. A successful repository
+call inside a joined transaction is not yet a commit; the outer operation must
+invalidate only after its transaction completes.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">Rename</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-punctuation">,</span> name<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>cache<span class="go-punctuation">.</span><span class="go-function">Delete</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;catalog:v1:product:&#34;</span><span class="go-operator">+</span>id<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span>ctx<span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">WarnContext</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;product cache invalidation failed&#34;</span><span class="go-punctuation">,</span>
+        <span class="go-string">&#34;error_category&#34;</span><span class="go-punctuation">,</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">ErrorCategory</span><span class="go-bracket-2">(</span>err<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>This proposed service fragment uses its repository and cache dependencies and
+imports <code>github.com/wisalgroup/labena/pkg/logging</code>. It returns the committed result even if cache
+invalidation fails. The cached value can remain stale until its TTL expires; the
+earlier example bounds that lifetime to five minutes. Choose this policy only
+when that stale window is acceptable. Stricter consistency needs an explicit
+design; reporting an error cannot roll back an already committed SQL write.</p>
+<p>Commit-before-invalidation alone does not eliminate stale-fill races. Version keys
+when a type or representation changes, and use a deliberate policy for concurrent
+writes and loaders. Cache is not the source of truth.</p>
+<h2 id="clear-a-namespace">Clear a namespace<a class="heading-link" href="#clear-a-namespace" aria-label="Link to Clear a namespace">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">Clear</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This administrative operation keeps the store usable. Memory clears the instance;
+Redis scans/unlinks matching namespace keys across primaries; SQL deletes within
+its namespace and current transaction. A remote error may leave a partial clear,
+and concurrent writers can repopulate data. Quiesce writers when a complete clear
+is required. <code>Clear</code> never closes a store or its borrowed connection.</p>
+<h2 id="capacity-timeouts-and-tuning">Capacity, timeouts, and tuning<a class="heading-link" href="#capacity-timeouts-and-tuning" aria-label="Link to Capacity, timeouts, and tuning">#</a></h2>
+<p>The main defaults are:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CACHE_NAMESPACE</code></td>
+<td><code>default</code></td>
+<td>Remote key namespace</td>
+</tr>
+<tr>
+<td><code>CACHE_MAX_ENTRY_BYTES</code></td>
+<td><code>1048576</code></td>
+<td>Key plus value limit</td>
+</tr>
+<tr>
+<td><code>CACHE_MEMORY_CAPACITY</code></td>
+<td><code>10000</code></td>
+<td>Retained entry count</td>
+</tr>
+<tr>
+<td><code>CACHE_MEMORY_MAX_BYTES</code></td>
+<td><code>67108864</code></td>
+<td>Retained key/value budget; 64 MiB</td>
+</tr>
+<tr>
+<td><code>CACHE_OPERATION_TIMEOUT</code></td>
+<td><code>5s</code></td>
+<td>Remote operation bound</td>
+</tr>
+<tr>
+<td><code>CACHE_DATABASE_TABLE</code></td>
+<td><code>cache_entries</code></td>
+<td>SQL table</td>
+</tr>
+</tbody>
+</table>
+<p>Only configure values you need to change. Process memory also includes map
+metadata and in-flight copies. Memory returns <code>cache.ErrFull</code> instead of evicting
+live entries; a rejected replacement leaves its old value intact. Expired entries
+are reclaimed on reads or admission pressure, without a maintenance goroutine.</p>
+<p>Concrete memory stores additionally expose <code>Usage()</code>, <code>PruneExpired(ctx, limit)</code>,
+and <code>GetInto(ctx, key, buf[:0])</code> for explicit cleanup or buffer reuse. Portable
+services should depend on <code>cache.Store</code> unless they need those controls.</p>
+<p>Redis keys use <code>cache:&lt;namespace&gt;:&lt;key&gt;</code>. The URL-based app setup opens a standalone
+client. <code>pkg/redis.Open</code> also supports explicit Sentinel/Cluster configuration for
+independent integrations; changing a URL alone does not describe every cluster
+topology. Backend eviction can remove entries before their TTL.</p>
+<h2 id="database-cache">Database cache<a class="heading-link" href="#database-cache" aria-label="Link to Database cache">#</a></h2>
+<p>Set <code>CACHE_DRIVER=database</code> with the database driver and URL, then publish and apply
+the cache table:</p>
+<pre><code class="language-sh">go run ./cmd/cli cache tables
+go run ./cmd/cli migrate up
+</code></pre>
+<p>Expired rows remain stored until cleanup. With a concrete database cache store:</p>
+<pre><code class="language-go" data-highlighted="yes">removed<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">store</span><span class="go-punctuation">.</span><span class="go-function">PruneExpired</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-number">1000</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Handle <code>err</code> before using the deleted count. <code>PruneExpired</code> belongs to
+<code>cache/database.Store</code>, not the portable interface. It removes a bounded batch in
+that namespace; locked rows can remain for a later pass. Schedule maintenance
+explicitly using the application&#39;s <a href="scheduling.html">central scheduling</a>.</p>
+<p>Database cache operations resolve <code>database.Executor(ctx, pool)</code> and join a SQL
+transaction using the same pool. Rollback undoes its writes and deletes. TTL starts
+at <code>Set</code>, not commit. Memory and Redis do not share that transaction behavior.
+See <a href="database-transactions.html">transactions</a>.</p>
+<h2 id="misses-failures-and-invalidation">Misses, failures, and invalidation<a class="heading-link" href="#misses-failures-and-invalidation" aria-label="Link to Misses, failures, and invalidation">#</a></h2>
+<p>A backend failure is not a miss. Decide explicitly whether your service should
+fail or fall back to authoritative storage. Remember itself propagates the error;
+it does not silently fall back. Avoid logging cached payloads.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache dependency is nil</td>
+<td><code>CACHE_DRIVER</code> and constructor validation</td>
+</tr>
+<tr>
+<td>Every replica loads separately</td>
+<td>The <code>memory</code> driver is process-local</td>
+</tr>
+<tr>
+<td><code>ErrInvalidTTL</code></td>
+<td>Supply a positive duration; no forever entries</td>
+</tr>
+<tr>
+<td><code>ErrFull</code></td>
+<td>Memory capacity/byte budget and expired-entry cleanup</td>
+</tr>
+<tr>
+<td><code>ErrTooLarge</code></td>
+<td>Key + value size and batch limits</td>
+</tr>
+<tr>
+<td><code>ErrInvalidValue</code></td>
+<td>Writer/reader encoding and key version agree</td>
+</tr>
+<tr>
+<td>SQL table missing</td>
+<td>Publish cache tables, rebuild, and apply migrations</td>
+</tr>
+<tr>
+<td>Deleted value reappears</td>
+<td>Concurrent loader or writer refilled it</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>errors.Is</code> with stable <code>cache.Err…</code> values. There are no portable counters,
+locks, compare-and-swap operations, or atomic multi-key transactions in this store.</p>
+<h2 id="ownership-and-example">Ownership and example<a class="heading-link" href="#ownership-and-example" aria-label="Link to Ownership and example">#</a></h2>
+<p>App owns resource cleanup once, after users stop. Remote stores borrow their
+clients; modules must not close shared clients or pools. Constructors do not create
+tables or start background work. Standalone code owns the resources it opens.</p>
+<pre><code class="language-sh">CACHE_DRIVER=memory go run ./examples/cache
+</code></pre>
+<p>The example loads central configuration, writes and reads an entry, and closes its
+resources. Remote variants need the selected backend and, for SQL, applied
+migrations. Test hit/miss behavior, expiry, loader failures, wrong encodings, and
+invalidation outcomes against the driver your application actually uses.</p>
+<p>Continue with <a href="database-queries.html">database queries</a>,
+<a href="database-transactions.html">transactions</a>, and <a href="testing.html">testing</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="seeders.html"><small>← Previous</small>Seeders</a>
+<a href="identity.html"><small>Next →</small>Authentication and sessions</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#configure-a-driver">Configure a driver</a></li><li class="toc-level-2"><a href="#load-on-a-miss-and-work-with-multiple-values">Load on a miss and work with multiple values</a></li><li class="toc-level-3"><a href="#store-and-typed-loading">Store and typed loading</a></li><li class="toc-level-3"><a href="#understand-remembers-guarantees">Understand Remember&#39;s guarantees</a></li><li class="toc-level-2"><a href="#store-read-and-delete">Store, read, and delete</a></li><li class="toc-level-3"><a href="#check-presence">Check presence</a></li><li class="toc-level-2"><a href="#raw-and-typed-batches">Raw and typed batches</a></li><li class="toc-level-2"><a href="#invalidate-after-a-write">Invalidate after a write</a></li><li class="toc-level-2"><a href="#clear-a-namespace">Clear a namespace</a></li><li class="toc-level-2"><a href="#capacity-timeouts-and-tuning">Capacity, timeouts, and tuning</a></li><li class="toc-level-2"><a href="#database-cache">Database cache</a></li><li class="toc-level-2"><a href="#misses-failures-and-invalidation">Misses, failures, and invalidation</a></li><li class="toc-level-2"><a href="#ownership-and-example">Ownership and example</a></li></ol></nav><a class="source-link" href="markdown/cache.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

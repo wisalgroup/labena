@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Configuration — Practical guides and Go examples for Labena.">
+<title>Configuration — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/configuration.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a class="selected" aria-current="page" href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Getting started</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#start-with-a-profile">Start with a profile</a></li><li class="toc-level-2"><a href="#understand-precedence">Understand precedence</a></li><li class="toc-level-2"><a href="#keep-routine-settings-at-their-defaults">Keep routine settings at their defaults</a></li><li class="toc-level-2"><a href="#enable-capabilities-deliberately">Enable capabilities deliberately</a></li><li class="toc-level-2"><a href="#find-the-setting-to-change">Find the setting to change</a></li><li class="toc-level-2"><a href="#select-process-roles">Select process roles</a></li><li class="toc-level-2"><a href="#supply-settings-from-go">Supply settings from Go</a></li><li class="toc-level-2"><a href="#add-a-setting">Add a setting</a></li><li class="toc-level-2"><a href="#diagnose-a-configuration-failure">Diagnose a configuration failure</a></li></ol></nav></details>
+<article><h1 id="configuration">Configuration</h1>
+<p>Load settings once, validate them, then pass typed values into application
+construction. Business services receive the values and clients they need; they
+do not read environment variables during an operation.</p>
+<h2 id="start-with-a-profile">Start with a profile<a class="heading-link" href="#start-with-a-profile" aria-label="Link to Start with a profile">#</a></h2>
+<p>For your first run, use the profile and services in <a href="index.html">installation</a>:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env.quickstart.example
+go run ./cmd/cli migrate up
+go run ./cmd/app
+</code></pre>
+<p>For local edits, copy that profile to an ignored <code>.env</code> file if you do not already
+have one, then unset the selector:</p>
+<pre><code class="language-sh">cp -n .env.quickstart.example .env
+unset APP_ENV_FILE
+</code></pre>
+<p><code>cp -n</code> preserves an existing <code>.env</code>. Edit it deliberately instead of overwriting
+working credentials. Never commit real credentials to an example file.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.env.quickstart.example</code></td>
+<td>First success with tutorial PostgreSQL/Redis; optional features off</td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>Full implemented feature set: fill provider credentials before use</td>
+</tr>
+<tr>
+<td><code>.env.postgres.example</code></td>
+<td>Expanded local settings, including MinIO; check its endpoints against your services</td>
+</tr>
+<tr>
+<td><code>.env.asynq.example</code></td>
+<td>Component-oriented settings; supply a database URL before serving installed modules</td>
+</tr>
+<tr>
+<td><code>deployments/development/kubernetes/app-config.yaml</code></td>
+<td>Public Kubernetes feature switches and cluster endpoints</td>
+</tr>
+</tbody>
+</table>
+<p>Examples deliberately differ. The full example enables Redis cache, MinIO,
+Identity/Google, Expo, queue tooling and observability. It is not a credential-free
+quickstart. Mail is always present and opens SMTP only when sending.</p>
+<h2 id="understand-precedence">Understand precedence<a class="heading-link" href="#understand-precedence" aria-label="Link to Understand precedence">#</a></h2>
+<p>The loader takes one isolated snapshot:</p>
+<ol>
+<li>Read the selected dotenv file, if any.</li>
+<li>Overlay process environment variables, including explicitly empty values.</li>
+<li>Decode typed settings and apply <code>envDefault</code> values.</li>
+<li>Validate the result without opening connections.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Selector</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APP_ENV_FILE</code> unset</td>
+<td>Read <code>.env</code> if it exists</td>
+</tr>
+<tr>
+<td><code>APP_ENV_FILE=.env.local</code></td>
+<td>Require this exact file</td>
+</tr>
+<tr>
+<td><code>APP_ENV_FILE=&#39;&#39;</code></td>
+<td>Read no dotenv file</td>
+</tr>
+</tbody>
+</table>
+<p>Loading does not modify the process environment. An empty process variable wins
+over a dotenv value, but a field with <code>envDefault</code> can still receive its default.
+Empty strings are not a universal off switch.</p>
+<p>Override one value for a run:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example HTTP_ADDRESS=127.0.0.1:8081 go run ./cmd/app
+</code></pre>
+<p>The server now listens on port <strong>8081</strong>. Other settings still come from the selected
+profile and Go defaults.</p>
+<h2 id="keep-routine-settings-at-their-defaults">Keep routine settings at their defaults<a class="heading-link" href="#keep-routine-settings-at-their-defaults" aria-label="Link to Keep routine settings at their defaults">#</a></h2>
+<p>Environment files should express deployment decisions: enabled features,
+connections, credentials, public origins and deliberate tuning overrides. They do
+not need to repeat every timeout and pool size.</p>
+<pre><code class="language-dotenv">APP_NAME=orders
+APP_ENV=production
+DATABASE_DRIVER=postgres
+DATABASE_URL=postgres://USER:PASSWORD@DB_HOST:5432/DB_NAME?sslmode=require
+QUEUE_REDIS_URL=redis://REDIS_HOST:6379/1
+EVENTS_DRIVER=gochannel
+CACHE_DRIVER=disabled
+FILESYSTEM_DISK=disabled
+</code></pre>
+<p>This is a <strong>fragment</strong>, not a complete production profile. Set the remaining
+settings required by enabled features. <code>APP_NAME</code> supplies telemetry&#39;s standard
+<code>service.name</code>; its Go field is <code>App.AppName</code>.</p>
+<p>Find all supported keys, exact defaults and validation constraints in the
+<a href="configuration-reference.html">configuration reference</a>.</p>
+<h2 id="enable-capabilities-deliberately">Enable capabilities deliberately<a class="heading-link" href="#enable-capabilities-deliberately" aria-label="Link to Enable capabilities deliberately">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Settings to consider</th>
+<th>What else must exist</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td><code>AUTH_ENABLED</code>, verification/access keys</td>
+<td>PostgreSQL, SMTP, rate-limit Redis</td>
+</tr>
+<tr>
+<td>Redis cache</td>
+<td><code>CACHE_DRIVER=redis</code>, <code>CACHE_REDIS_URL</code></td>
+<td>A separate Redis database from queues and rate limits</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td><code>FILESYSTEM_DISK</code>, selected disk credentials</td>
+<td>Bucket and its intended access policy</td>
+</tr>
+<tr>
+<td>Push</td>
+<td><code>PUSH_ENABLED</code>, Expo project/access settings</td>
+<td>Valid Expo registrations and worker delivery</td>
+</tr>
+<tr>
+<td>Traces/log export</td>
+<td>Tracing switch, <code>LOG_CHANNELS</code>, OTLP endpoints</td>
+<td>An OTLP collector</td>
+</tr>
+<tr>
+<td>Metrics</td>
+<td><code>METRICS_ENABLED</code>, <code>METRICS_ADDRESS</code></td>
+<td>A free listener address and a scraper</td>
+</tr>
+<tr>
+<td>Queue dashboard</td>
+<td><code>QUEUE_DASHBOARD_ENABLED</code>, username/password</td>
+<td>HTTP role; queue CLI needs no enable flag</td>
+</tr>
+<tr>
+<td>Recurring work</td>
+<td><code>app.Processes{Scheduler: true}</code></td>
+<td>One designated scheduler and workers for its tasks</td>
+</tr>
+</tbody>
+</table>
+<p>Queue Redis defaults to database <strong>1</strong>, cache to <strong>0</strong>, and rate limits to <strong>2</strong>.
+Validation rejects active stores configured with the same endpoint and database.
+These are logical namespaces within Redis, not separate failure domains.</p>
+<p>Generate each Identity key independently with <code>openssl rand -base64 32</code>; keep keys
+stable across restarts and consistent across replicas. Provider secrets belong in
+local ignored files or deployment secret storage, not ConfigMaps. See
+<a href="identity.html">Identity</a> and <a href="deployment.html">deployment</a>.</p>
+<h2 id="find-the-setting-to-change">Find the setting to change<a class="heading-link" href="#find-the-setting-to-change" aria-label="Link to Find the setting to change">#</a></h2>
+<p>The typed schema lives under <code>internal/app/config</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config.go</code>, <code>load.go</code>, <code>validate.go</code></td>
+<td>Schema composition, snapshot loading and cross-capability validation</td>
+</tr>
+<tr>
+<td><code>app.go</code>, <code>http.go</code></td>
+<td>Application identity, lifetime budgets and HTTP listener</td>
+</tr>
+<tr>
+<td><code>database.go</code>, <code>cache.go</code></td>
+<td>Connections and cache policy</td>
+</tr>
+<tr>
+<td><code>queues.go</code>, <code>events.go</code></td>
+<td>Tasks, queue routing and local events</td>
+</tr>
+<tr>
+<td><code>filesystems.go</code>, <code>media.go</code></td>
+<td>Named disks, visibility, URL policy and Media settings</td>
+</tr>
+<tr>
+<td><code>mail.go</code>, <code>notifications.go</code></td>
+<td>SMTP, branding, Expo and delivery dispatch</td>
+</tr>
+<tr>
+<td><code>auth.go</code>, <code>ratelimit.go</code>, <code>cors.go</code></td>
+<td>Authentication policy and request admission</td>
+</tr>
+<tr>
+<td><code>observability.go</code></td>
+<td>Logging channels, tracing and metrics</td>
+</tr>
+</tbody>
+</table>
+<p>Channel formats, file retention and levels are defined in Go beside observability
+settings. See <a href="logging.html#single-or-daily-files">single or daily files</a>.</p>
+<h2 id="select-process-roles">Select process roles<a class="heading-link" href="#select-process-roles" aria-label="Link to Select process roles">#</a></h2>
+<p>Each executable supplies explicit <code>app.Processes</code> flags in main.go. <code>cmd/app</code> and
+<code>cli serve</code> select HTTP and workers; <code>cmd/worker</code> selects workers; <code>cmd/scheduler</code>
+selects the scheduler. HTTP and workers include their local event consumers.
+Environment variables configure connections and features, not execution choices.</p>
+<p>Run one scheduler per schedule set. See
+<a href="entry-points.html#select-a-process">entry points</a> before splitting processes.</p>
+<h2 id="supply-settings-from-go">Supply settings from Go<a class="heading-link" href="#supply-settings-from-go" aria-label="Link to Supply settings from Go">#</a></h2>
+<p><code>config.Load()</code> reads the environment. Use <code>config.FromEnvironment</code> for an isolated
+validated snapshot, or <code>config.Defaults()</code> as an editable baseline:</p>
+<pre><code class="language-go" data-highlighted="yes">cfg <span class="go-operator">:=</span> <span class="go-package">config</span><span class="go-punctuation">.</span><span class="go-function">Defaults</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+cfg<span class="go-punctuation">.</span>App<span class="go-punctuation">.</span>ShutdownTimeout <span class="go-operator">=</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Minute
+cfg<span class="go-punctuation">.</span>Filesystem<span class="go-punctuation">.</span>Default <span class="go-operator">=</span> <span class="go-string">&#34;local&#34;</span>
+cfg<span class="go-punctuation">.</span>Filesystem<span class="go-punctuation">.</span>Disks<span class="go-bracket-0">[</span><span class="go-string">&#34;local&#34;</span><span class="go-bracket-0">]</span><span class="go-punctuation">.</span>Root <span class="go-operator">=</span> <span class="go-string">&#34;storage/app&#34;</span>
+</code></pre>
+<p>This fragment imports <code>time</code> and <code>github.com/wisalgroup/labena/internal/app/config</code>. Set the
+required connection details before calling <code>app.Serve(ctx, cfg, app.Processes{Workers: true})</code>.
+<code>Defaults</code> performs no environment reads and does not validate the resulting
+baseline; <code>Serve</code> validates programmatic settings before acquisition.</p>
+<p>Maps and slices are immutable after assembly. Configuration has no live reload:
+restart the application after changes.</p>
+<h2 id="add-a-setting">Add a setting<a class="heading-link" href="#add-a-setting" aria-label="Link to Add a setting">#</a></h2>
+<p>Add a typed field beside its owning capability&#39;s settings:</p>
+<pre><code class="language-go" data-highlighted="yes">ExportTimeout time<span class="go-punctuation">.</span>Duration <span class="go-string">`env:&#34;EXPORT_TIMEOUT&#34; envDefault:&#34;30s&#34;`</span>
+</code></pre>
+<p>Then validate the range, translate it to owner options if needed, and pass it
+explicitly to the consumer. Update the configuration reference and any profile
+that needs a deployment-specific value. HTTP, CORS and events use complete
+environment names on their fields rather than inherited prefixes.</p>
+<p>Keep behavioral callbacks, such as queue retry classification, in Go. Do not add
+runtime environment reads to a service as a shortcut around construction.</p>
+<h2 id="diagnose-a-configuration-failure">Diagnose a configuration failure<a class="heading-link" href="#diagnose-a-configuration-failure" aria-label="Link to Diagnose a configuration failure">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cannot load environment file</code></td>
+<td>Check the explicit path and working directory</td>
+</tr>
+<tr>
+<td>A default replaces an empty value</td>
+<td>Use the documented off switch or a nonempty override</td>
+</tr>
+<tr>
+<td>CLI help fails before printing</td>
+<td>It validates and constructs the full configured app</td>
+</tr>
+<tr>
+<td>Redis isolation validation fails</td>
+<td>Give queue, cache and active rate limits different databases or servers</td>
+</tr>
+<tr>
+<td>Changing a file has no effect</td>
+<td>Remove the process override and restart</td>
+</tr>
+</tbody>
+</table>
+<p>Continue with <a href="local-development.html">local development</a>,
+<a href="dependency-injection.html">dependency injection</a>, or the complete
+<a href="configuration-reference.html">configuration reference</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="upgrading.html"><small>← Previous</small>Adoption and updates</a>
+<a href="modules.html"><small>Next →</small>Your first module</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#start-with-a-profile">Start with a profile</a></li><li class="toc-level-2"><a href="#understand-precedence">Understand precedence</a></li><li class="toc-level-2"><a href="#keep-routine-settings-at-their-defaults">Keep routine settings at their defaults</a></li><li class="toc-level-2"><a href="#enable-capabilities-deliberately">Enable capabilities deliberately</a></li><li class="toc-level-2"><a href="#find-the-setting-to-change">Find the setting to change</a></li><li class="toc-level-2"><a href="#select-process-roles">Select process roles</a></li><li class="toc-level-2"><a href="#supply-settings-from-go">Supply settings from Go</a></li><li class="toc-level-2"><a href="#add-a-setting">Add a setting</a></li><li class="toc-level-2"><a href="#diagnose-a-configuration-failure">Diagnose a configuration failure</a></li></ol></nav><a class="source-link" href="markdown/configuration.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

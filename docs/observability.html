@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Observability — Practical guides and Go examples for Labena.">
+<title>Observability — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/observability.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a class="selected" aria-current="page" href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Operations</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-where-to-start">Choose where to start</a></li><li class="toc-level-2"><a href="#start-the-local-stack">Start the local stack</a></li><li class="toc-level-2"><a href="#follow-your-first-request">Follow your first request</a></li><li class="toc-level-2"><a href="#filter-logs-by-request-metadata">Filter logs by request metadata</a></li><li class="toc-level-3"><a href="#understand-metadata-and-labels">Understand metadata and labels</a></li><li class="toc-level-2"><a href="#configure-log-export">Configure log export</a></li><li class="toc-level-2"><a href="#configure-tracing">Configure tracing</a></li><li class="toc-level-2"><a href="#enable-metrics">Enable metrics</a></li><li class="toc-level-2"><a href="#available-metrics">Available metrics</a></li><li class="toc-level-2"><a href="#http-tracing">HTTP tracing</a></li><li class="toc-level-2"><a href="#correlate-logs-with-the-current-span">Correlate logs with the current span</a></li><li class="toc-level-2"><a href="#create-a-span">Create a span</a></li><li class="toc-level-2"><a href="#add-a-custom-metric">Add a custom metric</a></li><li class="toc-level-2"><a href="#database-queries-and-pool-metrics">Database queries and pool metrics</a></li><li class="toc-level-3"><a href="#inspect-a-requests-sql-in-grafana">Inspect a request&#39;s SQL in Grafana</a></li><li class="toc-level-3"><a href="#instrument-another-pool">Instrument another pool</a></li><li class="toc-level-2"><a href="#redis-and-cache-operations">Redis and cache operations</a></li><li class="toc-level-2"><a href="#trace-queues-and-events">Trace queues and events</a></li><li class="toc-level-2"><a href="#trace-outgoing-http-requests">Trace outgoing HTTP requests</a></li><li class="toc-level-2"><a href="#trace-mail-sends">Trace mail sends</a></li><li class="toc-level-2"><a href="#console-commands">Console commands</a></li><li class="toc-level-2"><a href="#export-and-shutdown-behavior">Export and shutdown behavior</a></li><li class="toc-level-2"><a href="#retention-resources-and-failures">Retention, resources and failures</a></li><li class="toc-level-2"><a href="#troubleshooting">Troubleshooting</a></li><li class="toc-level-2"><a href="#production-boundary">Production boundary</a></li><li class="toc-level-3"><a href="#rate-limiting">Rate limiting</a></li><li class="toc-level-3"><a href="#safe-failure-diagnostics">Safe failure diagnostics</a></li><li class="toc-level-3"><a href="#operational-signal-coverage">Operational signal coverage</a></li><li class="toc-level-2"><a href="#verify-a-custom-signal">Verify a custom signal</a></li></ol></nav></details>
+<article><h1 id="observability">Observability</h1>
+<p>Logs describe individual outcomes. Metrics show rates, latency and capacity over
+time. Traces connect operations across HTTP requests, dependencies, tasks and events.
+The app supplies boundary instrumentation; add business signals only where useful.</p>
+<h2 id="choose-where-to-start">Choose where to start<a class="heading-link" href="#choose-where-to-start" aria-label="Link to Choose where to start">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Start with</th>
+<th>Continue to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Why did this request fail?</td>
+<td>Its <code>request_id</code> in Loki</td>
+<td>The linked Tempo trace and safe error code</td>
+</tr>
+<tr>
+<td>Which query made it slow?</td>
+<td>The request trace</td>
+<td>Database child spans and sanitized <code>db.query.text</code></td>
+</tr>
+<tr>
+<td>Is latency increasing for everyone?</td>
+<td>Prometheus route latency/rate</td>
+<td>Representative traces and pool/backlog signals</td>
+</tr>
+<tr>
+<td>Why is background work delayed?</td>
+<td>Queue backlog and task state</td>
+<td>Worker attempts and the notification ledger</td>
+</tr>
+<tr>
+<td>Is the process healthy?</td>
+<td>Liveness, readiness, scrape health</td>
+<td>The specific dependency or lifecycle signal</td>
+</tr>
+</tbody>
+</table>
+<p>You do not need to add custom spans before investigating normal HTTP, database,
+cache, task, and event boundaries. First use the instrumentation already installed.</p>
+<h2 id="start-the-local-stack">Start the local stack<a class="heading-link" href="#start-the-local-stack" aria-label="Link to Start the local stack">#</a></h2>
+<p>Grafana is the UI; Prometheus stores metrics, Tempo stores traces, Loki stores logs,
+and Alloy receives logs and spans over OTLP/HTTP. Application log files are not collected.</p>
+<pre><code class="language-mermaid">flowchart TB
+    accTitle: Three signals, one place to investigate
+    accDescr: Prometheus scrapes metrics. Alloy forwards OTLP spans to Tempo and OTLP logs to Loki. Grafana queries all three stores.
+    Metrics[App /metrics] --&gt; Prometheus[(Prometheus)]
+    Spans[App spans] --&gt; Traces[Alloy: receive traces]
+    Traces --&gt; Tempo[(Tempo)]
+    Logs[App OTLP logs] --&gt; LogReceiver[Alloy: receive logs]
+    LogReceiver --&gt; Loki[(Loki)]
+    Prometheus --&gt; Grafana[Grafana]
+    Tempo --&gt; Grafana
+    Loki --&gt; Grafana
+</code></pre>
+<p>With the existing Tilt development environment:</p>
+<pre><code class="language-sh">tilt up
+</code></pre>
+<p>Tilt starts observability by default; use <code>-- --observability=false</code> to disable it.
+For an already-running session with explicit arguments, use
+<code>tilt args -- --observability=true</code> to enable it again (retain any other desired flags).
+Alternatively, start the complete Compose profile:</p>
+<pre><code class="language-sh">docker compose --env-file deployments/observability/compose.env   -f deployments/compose.yaml up --build -d
+</code></pre>
+<p>Choose one setup because their host ports overlap. The Compose environment file
+starts backends <strong>and</strong> enables app signals; <code>--profile observability</code> alone does
+not configure the app. Shell environment overrides still apply.</p>
+<p>Open <a href="http://localhost:3000/d/go-modular-overview">Labena · Overview</a>. Data
+sources and the dashboard are provisioned. Local Grafana permits anonymous Viewer
+access, so a login form is not required to view data. Both full profiles select
+<code>stderr,file,observability</code> log channels: readable console, readable daily files,
+and direct OTLP log export. The application&#39;s current root sampling
+default is 100%; the Compose observability profile also explicitly selects 100%.
+<code>TRACING_SAMPLE_RATIO</code> can reduce the volume outside local exploration.</p>
+<p>Tilt forwards Alloy&#39;s OTLP endpoint to localhost:4318 for host applications.
+Prometheus&#39;s supplied app target is the Kubernetes <code>api:9090</code> service; scraping a
+separate host process requires a corresponding scrape target.</p>
+<h2 id="follow-your-first-request">Follow your first request<a class="heading-link" href="#follow-your-first-request" aria-label="Link to Follow your first request">#</a></h2>
+<p>With the local app and observability stack running:</p>
+<pre><code class="language-sh">curl -i http://localhost:8080/healthz
+curl -i http://localhost:8080/readyz
+</code></pre>
+<p>The response includes <code>X-Request-ID</code> and <code>X-API-Version</code>. Copy the request ID, open
+Grafana Explore, select Loki, and filter on it using the steps below. Health probes
+show the HTTP boundary; make an authenticated <code>GET /api/v1/users/me</code> request when
+you want to inspect database work too:</p>
+<pre><code class="language-sh">curl -i http://localhost:8080/api/v1/users/me \
+  -H &#34;Authorization: Bearer $ACCESS_TOKEN&#34;
+</code></pre>
+<p>Set <code>ACCESS_TOKEN</code> to a current application access token. A successful account
+response includes the same request ID in its JSON envelope. Do not share the token
+when reporting a failure.</p>
+<p>Allow a scrape/export interval, then check application scrape health, request rate
+and duration. Expand an HTTP log in Grafana and follow its trace link. Generate
+<a href="queues.html#try-the-existing-task">task</a> and <a href="events.html#signup-flow">event</a>
+work to see their signals; unused capabilities have no measurements.</p>
+<p>A log&#39;s trace ID does not guarantee a stored trace. Sampling, dropped exports and
+retention can all explain a missing trace. Scrape health proves the endpoint is
+reachable, not that every application dependency is healthy.</p>
+<h2 id="filter-logs-by-request-metadata">Filter logs by request metadata<a class="heading-link" href="#filter-logs-by-request-metadata" aria-label="Link to Filter logs by request metadata">#</a></h2>
+<p>The observability channel sends log attributes such as <code>request_id</code> directly over
+OTLP. Loki stores these attributes as structured metadata, alongside native
+<code>trace_id</code>, <code>span_id</code> and <code>severity_text</code> fields. It is available to Loki queries in Explore and dashboard log
+panels without adding a JSON parser. It is not an indexed stream label, so it does
+not appear in the initial stream-label selector.</p>
+<p>In Explore&#39;s Builder, select <code>service_name = labena</code>, then add a <strong>Label filter</strong>
+operation for <code>request_id</code>, choose <code>=</code>, and enter the request ID. The equivalent
+query is:</p>
+<pre><code class="language-logql">{service_name=&#34;labena&#34;} | request_id=&#34;YOUR_REQUEST_ID&#34;
+</code></pre>
+<p>For new OTLP records, filter severity with <code>severity_text=&#34;WARN&#34;</code> or
+<code>severity_text=&#34;ERROR&#34;</code>. The environment resource field is
+<code>deployment_environment_name</code>. These replace the old file pipeline&#39;s <code>level</code> and
+<code>environment</code> fields; <code>request_id</code> keeps its name. Log lines contain the message,
+while their attributes are available as metadata.</p>
+<p>This applies to newly exported OTLP logs after the app and collector restart.
+Older JSON log records still require JSON parsing to filter their request ID.
+Logs without a request ID do not match a specific ID filter. No dashboard textbox
+is required; each query chooses its own filter. Prometheus metrics remain aggregate
+measurements, and Tempo traces are reached through a matching log&#39;s <strong>View trace</strong>
+link.</p>
+<h3 id="understand-metadata-and-labels">Understand metadata and labels<a class="heading-link" href="#understand-metadata-and-labels" aria-label="Link to Understand metadata and labels">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Where to use it</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>service_name</code></td>
+<td>Loki stream selector</td>
+<td>Groups a bounded application identity</td>
+</tr>
+<tr>
+<td><code>request_id</code>, <code>trace_id</code>, <code>span_id</code></td>
+<td>Structured metadata filter</td>
+<td>Identifies one execution without creating an indexed stream per request</td>
+</tr>
+<tr>
+<td><code>severity_text</code></td>
+<td>Metadata filter</td>
+<td>Native OTLP severity such as <code>WARN</code></td>
+</tr>
+<tr>
+<td><code>deployment_environment_name</code></td>
+<td>Resource metadata filter</td>
+<td>Environment reported by the process</td>
+</tr>
+<tr>
+<td>HTTP route template</td>
+<td>Metrics labels and spans</td>
+<td>Groups a bounded operation rather than raw user paths</td>
+</tr>
+</tbody>
+</table>
+<p>Grafana&#39;s Builder can filter metadata using a Label filter operation even though it
+is not an indexed stream label. Suggestions depend on the selected data and time
+range. A field may be entered by name when it is absent from suggestions.</p>
+<p>Do not add <code>| json</code> to parse a new OTLP log&#39;s message as though it were the former
+JSON file record. Applying a parser to records with existing fields can create
+<code>*_extracted</code> duplicates. Older retained file records may still use <code>level</code> and
+need JSON parsing; choose the query for the records&#39; actual format.</p>
+<h2 id="configure-log-export">Configure log export<a class="heading-link" href="#configure-log-export" aria-label="Link to Configure log export">#</a></h2>
+<p>Include <code>observability</code> in <code>LOG_CHANNELS</code> to enable the OTLP driver. To avoid local
+files completely, select <code>stderr,observability</code>; to retain readable daily files,
+select <code>stderr,file,observability</code>.</p>
+<pre><code class="language-dotenv">LOG_CHANNELS=stderr,file,observability
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:4318/v1/logs
+</code></pre>
+<p>Use <code>http://alloy:4318/v1/logs</code> inside the supplied containers. Tilt and Compose
+configure that address; host applications use localhost. The endpoint is a full
+OTLP/HTTP URL. Authentication belongs at the collector; URL credentials, queries
+and fragments are rejected. <code>APP_NAME</code> and <code>APP_ENV</code> identify the source.</p>
+<p>Log export works independently of tracing, trace sampling, metrics and local file
+output. Console and daily file formats stay readable. The observability channel
+creates no <code>observability.log</code>, and Alloy has no access to application log files.
+Existing files are left untouched and are not replayed into Loki.</p>
+<p>The application queues at most 2,048 records and exports batches of up to 512,
+with a one-second interval and five-second request timeout. Queue saturation drops
+oldest records; failed batches are discarded and reported to stderr without raw
+payloads or endpoint details. Alloy retries its own forwarding with bounded queues.
+These queues are in memory: outages or process crashes can lose logs. Daily files
+are an independent local copy, not an automatic export retry buffer.</p>
+<p>At shutdown, app stops producers, closes dependencies, then flushes log export
+within three seconds or the remaining cleanup deadline, whichever is shorter.
+<code>OTLPOptions</code> in the channel definition allows different timeout budgets. Collector
+availability is not required at startup or for readiness.</p>
+<h2 id="configure-tracing">Configure tracing<a class="heading-link" href="#configure-tracing" aria-label="Link to Configure tracing">#</a></h2>
+<p>Without the supplied local profile, configure OTLP HTTP explicitly:</p>
+<pre><code class="language-dotenv">TRACING_ENABLED=true
+TRACING_TRUST_INCOMING=false
+APP_NAME=labena
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4318/v1/traces
+TRACING_SAMPLE_RATIO=1
+TRACING_EXPORT_TIMEOUT=5s
+TRACING_SHUTDOWN_TIMEOUT=3s
+</code></pre>
+<p>Tracing defaults to disabled and the default root sampling ratio is 1. Use a
+reachable collector hostname inside containers, not host loopback. The endpoint
+is the full traces URL; credentials, queries and fragments are rejected.</p>
+<p>Incoming HTTP trace context is ignored unless <code>TRACING_TRUST_INCOMING=true</code>.
+Enable trust only behind controlled ingress: parent-based sampling follows the
+trusted parent&#39;s sampling decision. Only W3C trace context is imported, not baggage.
+Trace headers are correlation metadata, not identity or authorization.</p>
+<p>Invalid enabled settings fail validation; collector outages do not block startup.
+Disabled tracing uses a no-op provider and starts no exporter. App instances own
+providers explicitly without replacing OpenTelemetry globals. Independent callers
+use <code>tracing.Open(ctx, cfg, logger)</code> and own <code>provider.Shutdown(ctx)</code>. Opening enabled
+tracing starts its bounded export worker, so cleanup is required even if no spans
+were recorded. Stop producers before shutting it down.</p>
+<h2 id="enable-metrics">Enable metrics<a class="heading-link" href="#enable-metrics" aria-label="Link to Enable metrics">#</a></h2>
+<pre><code class="language-dotenv">METRICS_ENABLED=true
+METRICS_ADDRESS=127.0.0.1:9090
+</code></pre>
+<pre><code class="language-sh">curl http://127.0.0.1:9090/metrics
+</code></pre>
+<p>Metrics work independently of tracing and use an app-owned registry. Disabled mode
+opens no listener. Selected app/worker/scheduler processes and <code>cli serve</code> expose the listener;
+one-off commands do not. Give separate host processes different ports.</p>
+<p>For private scraping across containers, bind <code>:9090</code>. This listener has no auth or
+TLS and should not be publicly exposed. It stores no history itself. It remains
+available during business-service drain and stops before provider cleanup.</p>
+<h2 id="available-metrics">Available metrics<a class="heading-link" href="#available-metrics" aria-label="Link to Available metrics">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Metric family</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>http_server_request_duration_seconds</code></td>
+<td>Completed HTTP latency histogram and request count</td>
+</tr>
+<tr>
+<td><code>http_server_active_requests</code></td>
+<td>Active ordinary requests</td>
+</tr>
+<tr>
+<td><code>db_client_operation_duration_seconds</code></td>
+<td>Bun query latency by operation and outcome</td>
+</tr>
+<tr>
+<td><code>db_pool_connections</code>, <code>db_pool_max_connections</code></td>
+<td>Local pool occupancy and capacity</td>
+</tr>
+<tr>
+<td><code>db_pool_waits_total</code>, <code>db_pool_wait_duration_seconds_total</code></td>
+<td>Pool contention</td>
+</tr>
+<tr>
+<td><code>cache_operation_duration_seconds</code></td>
+<td>Cache operation latency and hit/miss/error outcomes</td>
+</tr>
+<tr>
+<td><code>queue_job_duration_seconds</code></td>
+<td>Task attempts by registered task pattern, queue and outcome</td>
+</tr>
+<tr>
+<td><code>notification_delivery_attempts_total</code></td>
+<td>Persisted channel delivery attempts by channel and outcome</td>
+</tr>
+<tr>
+<td><code>notification_pending_age_seconds</code></td>
+<td>Dispatcher-sampled age of the oldest unsettled notification intent</td>
+</tr>
+<tr>
+<td><code>asynq_queue_size</code>, <code>asynq_queue_latency_seconds</code></td>
+<td>Redis backlog and oldest pending latency</td>
+</tr>
+<tr>
+<td><code>asynq_tasks_enqueued_total</code></td>
+<td>Native state gauge despite its name</td>
+</tr>
+<tr>
+<td><code>watermill_events_*</code></td>
+<td>Official Watermill publication, subscription and handler metrics</td>
+</tr>
+<tr>
+<td><code>go_*</code>, <code>process_*</code>, <code>target_info</code></td>
+<td>Runtime, process and service metadata</td>
+</tr>
+</tbody>
+</table>
+<p>The existing <code>queue_job_*</code> and <code>job_name</code> names remain compatibility surfaces even
+though guides use task terminology. Route templates and registered task patterns
+keep labels bounded. IDs, URLs, keys and payloads are not metric labels.</p>
+<p>HTTP request rate:</p>
+<pre><code class="language-promql">sum by (http_route) (rate(http_server_request_duration_seconds_count[5m]))
+</code></pre>
+<p>HTTP p95 latency:</p>
+<pre><code class="language-promql">histogram_quantile(0.95,
+  sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket[5m]))
+)
+</code></pre>
+<p>Add Prometheus <code>job</code> or <code>instance</code> selectors to isolate a deployment. Counts reset
+on restart; use rates rather than interpreting process counters as business records.</p>
+<h2 id="http-tracing">HTTP tracing<a class="heading-link" href="#http-tracing" aria-label="Link to HTTP tracing">#</a></h2>
+<p>Standard HTTP middleware records method, registered route and final status. Unknown methods
+become <code>_OTHER</code>; unmatched paths are not copied into span names. 5xx responses,
+recovered panics and observed cancellation mark failures; 4xx remains a status
+attribute. Bodies, raw paths, queries, credentials and client IPs are omitted.</p>
+<p>Health requests are included. Streaming spans last until the handler returns.
+WebSocket upgrades are excluded from HTTP spans and metrics; their request logging
+and shutdown still apply. Redirects pass through the same observability boundary.</p>
+<h2 id="correlate-logs-with-the-current-span">Correlate logs with the current span<a class="heading-link" href="#correlate-logs-with-the-current-span" aria-label="Link to Correlate logs with the current span">#</a></h2>
+<p>Use the context-aware slog API supplied by <code>pkg/logging</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;order accepted&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;order_id&#34;</span><span class="go-punctuation">,</span> orderID<span class="go-bracket-0">)</span>
+</code></pre>
+<p>The logger adds <code>trace_id</code>, <code>span_id</code> and <code>trace_sampled</code> from the current context.
+Named channels preserve correlation. <code>Info(...)</code> has no operation context; use
+<code>InfoContext</code>. An unrelated logger or fallback <code>slog.Default()</code> is not automatically
+wrapped. Unsampled contexts still have IDs, but no recorded span.</p>
+<p>Alloy forwards OTLP logs to Loki without collecting duplicate console/file output.
+Request and trace IDs remain metadata, not indexed stream labels. The service label
+comes from <code>APP_NAME</code>; update dashboard selectors when changing it.
+Grafana&#39;s <strong>View trace</strong> uses the <code>trace_id</code> metadata field. Tempo&#39;s logs link also
+filters on metadata, so it does not depend on a trace ID appearing in the message.</p>
+<h2 id="create-a-span">Create a span<a class="heading-link" href="#create-a-span" aria-label="Link to Create a span">#</a></h2>
+<p>In app assembly, create a native tracer and pass it to the service that needs it:</p>
+<pre><code class="language-go" data-highlighted="yes">tracer <span class="go-operator">:=</span> <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>TracerProvider<span class="go-punctuation">.</span><span class="go-function">Tracer</span><span class="go-bracket-0">(</span><span class="go-string">&#34;github.com/wisalgroup/labena/catalog&#34;</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Inside that service operation:</p>
+<pre><code class="language-go" data-highlighted="yes">ctx<span class="go-punctuation">,</span> span <span class="go-operator">:=</span> <span class="go-package">tracer</span><span class="go-punctuation">.</span><span class="go-function">Start</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;catalog.import&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">defer</span> span<span class="go-punctuation">.</span><span class="go-function">End</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-function">importProducts</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    span<span class="go-punctuation">.</span><span class="go-function">SetStatus</span><span class="go-bracket-1">(</span><span class="go-package">codes</span><span class="go-punctuation">.</span>Error<span class="go-punctuation">,</span> <span class="go-string">&#34;import failed&#34;</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>This is a workflow fragment: implement <code>importProducts</code> and import OTel <code>codes</code>.
+Pass the derived context onward. Use stable names and sanitized status descriptions;
+do not record raw provider errors or payloads as span attributes.</p>
+<h2 id="add-a-custom-metric">Add a custom metric<a class="heading-link" href="#add-a-custom-metric" aria-label="Link to Add a custom metric">#</a></h2>
+<p>Create instruments once during app assembly and inject them into the consumer:</p>
+<pre><code class="language-go" data-highlighted="yes">meter <span class="go-operator">:=</span> <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>MeterProvider<span class="go-punctuation">.</span><span class="go-function">Meter</span><span class="go-bracket-0">(</span><span class="go-string">&#34;github.com/wisalgroup/labena/catalog&#34;</span><span class="go-bracket-0">)</span>
+created<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> meter<span class="go-punctuation">.</span><span class="go-function">Int64Counter</span><span class="go-bracket-0">(</span><span class="go-string">&#34;catalog.products.created&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-package">metric</span><span class="go-punctuation">.</span><span class="go-function">WithDescription</span><span class="go-bracket-1">(</span><span class="go-string">&#34;Products successfully created&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>go.opentelemetry.io/otel/metric</code>. Record <code>created.Add(ctx, 1)</code> after success.
+Do not attach a product ID as a label. No-op providers permit the same calls when
+metrics are disabled. The SDK bounds attribute sets; that is a safety limit, not
+a substitute for low-cardinality labels.</p>
+<h2 id="database-queries-and-pool-metrics">Database queries and pool metrics<a class="heading-link" href="#database-queries-and-pool-metrics" aria-label="Link to Database queries and pool metrics">#</a></h2>
+<p>The app instruments its Bun pool once. Queries using the operation context and
+transaction executor retain logging and telemetry. Spans record bounded operation
+names. Recorded spans also include sanitized SQL in <code>db.query.text</code>: literal values
+and parameter placeholders become <code>?</code>, and comments are removed. DSNs, parameter
+values and raw driver errors are never attached. Missing rows are not failures.</p>
+<h3 id="inspect-a-requests-sql-in-grafana">Inspect a request&#39;s SQL in Grafana<a class="heading-link" href="#inspect-a-requests-sql-in-grafana" aria-label="Link to Inspect a request&#39;s SQL in Grafana">#</a></h3>
+<p>After restarting the app with this version, make a request that queries the database
+and copy its <code>X-Request-ID</code> response header. Then:</p>
+<ol>
+<li>Open Grafana <strong>Explore</strong>, select <strong>Loki</strong>, and find the request&#39;s log using its
+request ID. For example: <code>{service_name=&#34;labena&#34;} | request_id=&#34;YOUR_REQUEST_ID&#34;</code>.</li>
+<li>Expand the log and follow <strong>View trace</strong>, or copy its <code>trace_id</code> into a <strong>Tempo</strong>
+trace-ID lookup.</li>
+<li>Select a child database span (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code> or <code>DELETE</code>) and expand
+its attributes. <code>db.query.text</code> contains the query structure, for example
+<code>SELECT &#34;user&#34;.&#34;id&#34; FROM &#34;users&#34; AS &#34;user&#34; WHERE email = ?</code>.</li>
+</ol>
+<p>The span shows the query&#39;s duration and status. SQL is available only for newly
+recorded traces, not historical traces or unsampled requests. Existing tracing
+settings control capture; SQL does not require DEBUG logging. Database logs remain
+metadata-only, and SQL is never used as a metric label.</p>
+<p>Capture supports single read/write statements, including CTEs, for PostgreSQL,
+MySQL and SQLite. Table, column and alias names remain visible, so keep application
+data out of identifiers. SQLite double-quoted tokens are redacted because they can
+also represent string values. For safety, text is omitted for administrative or
+multiple statements, unsupported/malformed tokens, nested block comments,
+ambiguous backslash escapes (quoting depends on connection settings), and SQLite
+bracket/backtick identifiers. Input over 64 KiB or sanitized text over 8 KiB is also
+omitted. PostgreSQL hex literals used by Bun for binary values, such as verification
+digests, are supported and replaced with <code>?</code>. These omissions do not affect
+execution or the span&#39;s timing/status.</p>
+<p>This follows OpenTelemetry&#39;s <a href="https://opentelemetry.io/docs/specs/semconv/db/database-spans/#recording-query-text">sanitized SQL guidance</a>.</p>
+<h3 id="instrument-another-pool">Instrument another pool<a class="heading-link" href="#instrument-another-pool" aria-label="Link to Instrument another pool">#</a></h3>
+<p>Pool measurements read local <code>database/sql</code> statistics without querying the server.
+Direct <code>db.DB</code> calls, connection probes and SQL-only migration paths bypass Bun
+query hooks. Query duration is not necessarily server-only execution time.</p>
+<p>For another app-owned Bun connection, install before concurrent use:</p>
+<pre><code class="language-go" data-highlighted="yes">unregister<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Instrument</span><span class="go-bracket-0">(</span>db<span class="go-punctuation">,</span> <span class="go-string">&#34;reporting&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>TracerProvider<span class="go-punctuation">,</span> <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>MeterProvider<span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Register cleanup immediately. Stop users, call <code>unregister()</code>, then close the pool.
+Unregister removes pool observation; Bun hooks cannot be detached. Do not instrument
+the primary pool twice.</p>
+<h2 id="redis-and-cache-operations">Redis and cache operations<a class="heading-link" href="#redis-and-cache-operations" aria-label="Link to Redis and cache operations">#</a></h2>
+<p>Configured cache drivers get logical operation tracing/metrics. Misses differ
+from failures; keys and values are omitted. App&#39;s cache Redis client can also carry
+the native tracing hook. The Asynq connection is instrumented through task middleware
+and its collector; it does not currently install that Redis command hook.</p>
+<p>For a separately constructed go-redis client, attach once before use:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">client</span><span class="go-punctuation">.</span><span class="go-function">AddHook</span><span class="go-bracket-0">(</span><span class="go-package">redis</span><span class="go-punctuation">.</span><span class="go-function">NewTracingHook</span><span class="go-bracket-1">(</span>
+    <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>TracerProvider<span class="go-punctuation">.</span><span class="go-function">Tracer</span><span class="go-bracket-2">(</span><span class="go-string">&#34;github.com/wisalgroup/labena/redis&#34;</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Here <code>redis</code> imports <code>github.com/wisalgroup/labena/pkg/redis</code>. The hook records allowlisted commands
+and pipelines without keys, arguments or raw errors. It does not add retries.
+<code>cache.WithTelemetry(store, tracerProvider, meterProvider)</code> similarly wraps an
+independent store without taking ownership of its clients.</p>
+<h2 id="trace-queues-and-events">Trace queues and events<a class="heading-link" href="#trace-queues-and-events" aria-label="Link to Trace queues and events">#</a></h2>
+<p>Global Asynq client middleware traces <code>EnqueueContext</code> and injects W3C headers into
+initialized task header maps. Native worker middleware links each consumer attempt
+to its producer, records duration and adds contextual logs. Schedules bypass the
+client chain, so executions have worker spans without a stale startup producer.</p>
+<p>Watermill&#39;s publisher copies propagation metadata; handler middleware preserves
+subscriber cancellation and links each attempt to the producer. Linked consumer
+spans are independently sampled; do not expect one continuous parent/child tree.</p>
+<p>The app uses official Asynq and Watermill Prometheus integrations. Small native
+middleware adapters provide the app&#39;s tracing and sanitization policy; business
+services use native tasks and messages. Asynq scrapes query Redis and can fail when
+Redis is unavailable. Handler metrics alone do not describe backlog or durability.</p>
+<h2 id="trace-outgoing-http-requests">Trace outgoing HTTP requests<a class="heading-link" href="#trace-outgoing-http-requests" aria-label="Link to Trace outgoing HTTP requests">#</a></h2>
+<p>Construct and reuse a client in app assembly for an integration allowed to receive
+trace metadata:</p>
+<pre><code class="language-go" data-highlighted="yes">transport <span class="go-operator">:=</span> <span class="go-package">http</span><span class="go-punctuation">.</span>DefaultTransport<span class="go-punctuation">.</span><span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Transport</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">Clone</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+client <span class="go-operator">:=</span> <span class="go-operator">&amp;</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Client</span><span class="go-bracket-0">{</span>
+    Transport<span class="go-punctuation">:</span> <span class="go-package">tracing</span><span class="go-punctuation">.</span><span class="go-function">NewHTTPTransport</span><span class="go-bracket-1">(</span>transport<span class="go-punctuation">,</span>
+        <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>TracerProvider<span class="go-punctuation">.</span><span class="go-function">Tracer</span><span class="go-bracket-2">(</span><span class="go-string">&#34;github.com/wisalgroup/labena/payments&#34;</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    Timeout<span class="go-punctuation">:</span> <span class="go-number">10</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-punctuation">,</span>
+    CheckRedirect<span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">req</span> <span class="go-operator">*</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Request</span><span class="go-punctuation">,</span> <span class="go-parameter">via</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-operator">*</span><span class="go-type">http</span><span class="go-punctuation">.</span><span class="go-type">Request</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-package">http</span><span class="go-punctuation">.</span>ErrUseLastResponse
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Use <code>net/http</code>, <code>time</code> and <code>github.com/wisalgroup/labena/pkg/tracing</code>. Pass request contexts with
+<code>http.NewRequestWithContext</code>; close response bodies and bound their size. App
+cleanup should call <code>client.CloseIdleConnections()</code> after users stop.</p>
+<p>The wrapper clones headers, injects W3C context and removes baggage. Spans measure
+through response headers, not body consumption. It adds no retry or global client
+changes. If redirects are enabled, authorize each destination for propagation.</p>
+<h2 id="trace-mail-sends">Trace mail sends<a class="heading-link" href="#trace-mail-sends" aria-label="Link to Trace mail sends">#</a></h2>
+<p>The app always constructs mail. Its assembly wraps SMTP sending for tracing; use
+the same wrapper for an independently constructed mailer:</p>
+<pre><code class="language-go" data-highlighted="yes">mailer <span class="go-operator">:=</span> <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">WithTracing</span><span class="go-bracket-0">(</span>smtpMailer<span class="go-punctuation">,</span>
+    <span class="go-package">a</span><span class="go-punctuation">.</span>resources<span class="go-punctuation">.</span>TracerProvider<span class="go-punctuation">.</span><span class="go-function">Tracer</span><span class="go-bracket-1">(</span><span class="go-string">&#34;github.com/wisalgroup/labena/mail&#34;</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+</code></pre>
+<p><code>mail.send</code> measures submission without recipients, bodies or raw provider errors.
+It changes neither ownership nor retries. Success means submission, not inbox delivery.</p>
+<h2 id="console-commands">Console commands<a class="heading-link" href="#console-commands" aria-label="Link to Console commands">#</a></h2>
+<p>With tracing enabled, command execution has a <code>console.execute</code> span carrying its
+registered command path, not arguments or flag values. Commands pass <code>cmd.Context()</code>
+to services. One-off commands flush on cleanup but start no metrics listener.
+All CLI commands use application construction, including help and table publication;
+construction can open exporters but does not start application runners.</p>
+<h2 id="export-and-shutdown-behavior">Export and shutdown behavior<a class="heading-link" href="#export-and-shutdown-behavior" aria-label="Link to Export and shutdown behavior">#</a></h2>
+<p>Spans use a bounded in-memory batch queue. Full queues drop spans; exporters have
+timeouts and no app-side retries. Alloy owns bounded backend retry policy. Failed
+exports are reported through redacted, rate-limited logging. Telemetry is best-effort,
+not a durable audit log.</p>
+<p>App shutdown stops work before flushing tracing and closing logging. Flush deadlines
+and process termination can lose diagnostics. A timed-out exporter can still be
+finishing its bounded network operation. Successful cleanup does not prove storage
+at the backend.</p>
+<h2 id="retention-resources-and-failures">Retention, resources and failures<a class="heading-link" href="#retention-resources-and-failures" aria-label="Link to Retention, resources and failures">#</a></h2>
+<p>Local Prometheus, Tempo and Loki target 24-hour retention. Deletion is asynchronous;
+WALs and in-flight data add overhead. Docker volumes and PVC requests are not reliable
+hard disk limits. Monitor local disk use and consult <code>deployments/observability</code>
+for component memory limits and pinned backend configuration.</p>
+<p>The observability channel sends logs directly; no source file needs rotation.
+Readable daily app files have their own <a href="logging.html#single-or-daily-files">retention policy</a>,
+independent of Loki retention. Alloy does not read or backfill those files.</p>
+<p>Backends are not app readiness dependencies. During an outage, requests continue,
+exports may be lost; local file output follows its configured rotation and retention policy. Local volumes retain data across
+ordinary restarts, but provide neither high availability nor backups.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="heading-link" href="#troubleshooting" aria-label="Link to Troubleshooting">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scrape health is 0</td>
+<td>Metrics enabled, private <code>:9090</code> binding, Prometheus target</td>
+</tr>
+<tr>
+<td>Logs missing</td>
+<td>Observability channel selected, OTLP endpoint reachable, Alloy export status, Loki structured metadata enabled</td>
+</tr>
+<tr>
+<td>Traces missing</td>
+<td>Sampling, reachable OTLP endpoint, Alloy and Tempo readiness</td>
+</tr>
+<tr>
+<td>Trace link missing</td>
+<td>Context-aware logging and valid span context</td>
+</tr>
+<tr>
+<td>Trace ID exists but Tempo has no trace</td>
+<td>Sampling, export loss, retention, time range, and the correct deployment</td>
+</tr>
+<tr>
+<td>Database span has no query text</td>
+<td>Supported single statement and sanitization/size limits; timing still records</td>
+</tr>
+<tr>
+<td>SQL is absent from Loki</td>
+<td>Expected: logs contain metadata; inspect <code>db.query.text</code> in Tempo</td>
+</tr>
+<tr>
+<td>Request ID missing in a metric filter</td>
+<td>Expected: request IDs are not metric labels</td>
+</tr>
+<tr>
+<td>Grafana “Failed to fetch”</td>
+<td>Backend readiness and logs, browser connection, exhausted container resources</td>
+</tr>
+<tr>
+<td>TraceQL reports an empty ring</td>
+<td>Tempo generator/local-block configuration and generator readiness</td>
+</tr>
+<tr>
+<td>Tempo connection refused</td>
+<td>Tempo is listening on the configured OTLP port and has finished startup</td>
+</tr>
+</tbody>
+</table>
+<p>Check the relevant Tilt resource or Compose service logs before changing application
+instrumentation. These messages identify a failing boundary, not one guaranteed cause.</p>
+<h2 id="production-boundary">Production boundary<a class="heading-link" href="#production-boundary" aria-label="Link to Production boundary">#</a></h2>
+<p>The supplied stack is local: anonymous Grafana viewing, no ingestion authentication,
+local storage and no high availability. Wider deployment needs explicit access
+control, TLS, backups, retention, alert ownership and per-replica OTLP delivery.
+No dashboard or metric alone establishes exactly-once processing or data integrity.</p>
+<p>Service identity belongs to <code>config.App.AppName</code>, loaded from
+<code>APP_NAME</code>. Metrics, tracing and log export share it when enabled;
+the application name is exported using the standard <code>service.name</code> resource attribute.</p>
+<h3 id="rate-limiting">Rate limiting<a class="heading-link" href="#rate-limiting" aria-label="Link to Rate limiting">#</a></h3>
+<p>The shared limiter emits <code>ratelimit.decisions</code> and <code>ratelimit.duration</code> when metrics
+are enabled, plus <code>ratelimit allow</code> spans when tracing is enabled. The bounded
+<code>outcome</code> label separates normal admissions (<code>allowed</code>), policy rejections
+(<code>denied</code>), unclassified failures (<code>error</code>), cancellation (<code>canceled</code>) and deadline
+expiry (<code>timeout</code>). An error is not permission to proceed; callers retain their
+existing failure behavior. API and Identity limits share these signals.</p>
+<p>Use rising <code>denied</code> counts to investigate rejected traffic; rising <code>error</code> or
+<code>timeout</code> counts can indicate limiter infrastructure trouble. These aggregate
+signals do not identify a user or policy. Keys, destinations, policy values and
+backend error messages are excluded to avoid exposing personal data or secrets.</p>
+<h3 id="safe-failure-diagnostics">Safe failure diagnostics<a class="heading-link" href="#safe-failure-diagnostics" aria-label="Link to Safe failure diagnostics">#</a></h3>
+<p>HTTP operation, task-attempt and local-event failure logs include <code>error_category</code>: <code>canceled</code>,
+<code>timeout</code>, <code>network</code>, or <code>other</code>. Wrapped causes are recognized without exporting
+error text. Categories describe failures; they do not decide retries. Existing
+<code>error_type</code> fields remain available where already emitted.</p>
+<p>The local-event <code>message processing failed</code> record sits outside the configured
+retry middleware: it reports a failed processing cycle after retries, or early
+cancellation/timeout. It is not proof of durable delivery or a dead-letter queue.
+Use its handler, topic and message ID to investigate; GoChannel events can be lost.
+Attempt spans retain their error status but no longer emit a per-attempt
+<code>retry_budget_exhausted</code> warning. Update queries that depended on that field.
+HTTP failures expose a safe <code>error_code</code> alongside the category, never raw causes.</p>
+<p><code>application shutdown timed out</code> reports that the drain budget expired. Inspect
+active handlers for cancellation support. The app does not claim to have stopped
+uncooperative goroutines or safely closed their dependencies.</p>
+<p>Queue backlog uses the native Asynq Prometheus collector. Scheduler publication
+uses the native post-enqueue callback; worker traces describe execution separately.
+The notification delivery ledger has a separate lifecycle from Asynq. Inspect
+<code>notifications deliveries --status failed</code> and monitor counts/age in
+<code>notification_deliveries</code>; see <a href="notifications.html">Notifications</a>. The notifier
+also records delivery attempts and the age of the oldest unsettled intent when
+metrics are enabled. The dispatcher samples pending age for <code>pending</code>, <code>sending</code>
+and <code>awaiting_receipt</code> rows; an empty ledger records zero. These signals complement
+Asynq backlog because an intent can be waiting in SQL before a task reaches Redis.</p>
+<p>Use the native tracer/meter contracts for extensions. The framework adapters
+supply correlation, sanitization, and lifecycle behavior at shared boundaries.</p>
+<h3 id="operational-signal-coverage">Operational signal coverage<a class="heading-link" href="#operational-signal-coverage" aria-label="Link to Operational signal coverage">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Signal</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP failures and latency</td>
+<td>Route-based request histogram and access logs</td>
+<td>No URL/query values in metric labels</td>
+</tr>
+<tr>
+<td>Limiter rejection or failure</td>
+<td>Decision counter, duration and outcome</td>
+<td>No per-user or per-destination breakdown</td>
+</tr>
+<tr>
+<td>Queue backlog</td>
+<td>Native Asynq collector on the metrics listener</td>
+<td>Requires queue Redis to answer scrapes</td>
+</tr>
+<tr>
+<td>Task attempt failure</td>
+<td>Attempt histogram, trace, task ID and safe error category</td>
+<td>A retryable failure is not terminal completion</td>
+</tr>
+<tr>
+<td>Local event processing failure</td>
+<td>Watermill handler metrics and outer failure log</td>
+<td>Retries are in memory; no durable recovery guarantee</td>
+</tr>
+<tr>
+<td>Scheduled publication failure</td>
+<td><code>scheduled task enqueue failed</code> with safe category</td>
+<td>Publication success does not prove task completion</td>
+</tr>
+<tr>
+<td>Notification delivery backlog</td>
+<td>Delivery attempts and oldest unsettled intent age</td>
+<td>Age is sampled by a running dispatcher; no per-recipient labels</td>
+</tr>
+<tr>
+<td>Shutdown budget exceeded</td>
+<td><code>application shutdown timed out</code></td>
+<td>Does not forcibly stop handlers</td>
+</tr>
+<tr>
+<td>Trace collector failure</td>
+<td>Rate-limited <code>trace export failed; batch discarded</code></td>
+<td>Exported spans may be lost; buffer overflow also drops spans</td>
+</tr>
+<tr>
+<td>Dependency unavailability</td>
+<td>Optional <code>/readyz</code> probes</td>
+<td>Connectivity only; not schema or workflow validation</td>
+</tr>
+</tbody>
+</table>
+<p>Tracing uses an asynchronous bounded buffer. A regression test blocks a real OTLP
+HTTP endpoint, fills the production batch buffer, and completes 4,096 additional
+instrumented HTTP operations while export remains blocked. Separate tests cover
+collector error-response redaction and bounded shutdown. This verifies isolation
+for those paths, not a throughput benchmark or a promise of lossless telemetry.</p>
+<h2 id="verify-a-custom-signal">Verify a custom signal<a class="heading-link" href="#verify-a-custom-signal" aria-label="Link to Verify a custom signal">#</a></h2>
+<p>When adding a business span or metric:</p>
+<ol>
+<li>Create the instrument once during construction and inject it into its consumer.</li>
+<li>Exercise one successful and one failed operation with real operation contexts.</li>
+<li>Check the signal name, attributes, units, and correlation in the intended backend.</li>
+<li>Disable the corresponding exporter and verify business behavior still works.</li>
+<li>Check that IDs, credentials, payloads, and raw provider errors are absent from
+metric labels and routine span/error fields.</li>
+</ol>
+<p>Use stable attributes whose possible values you can enumerate. A telemetry timeout
+or missing export is not evidence that the business action failed. Continue with
+<a href="logging.html">logging</a>, <a href="application-lifecycle.html">application lifecycle</a>, and
+<a href="deployment.html#recovery-and-retained-state">deployment recovery</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="logging.html"><small>← Previous</small>Logging</a>
+<a href="deployment.html"><small>Next →</small>Deployment</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-where-to-start">Choose where to start</a></li><li class="toc-level-2"><a href="#start-the-local-stack">Start the local stack</a></li><li class="toc-level-2"><a href="#follow-your-first-request">Follow your first request</a></li><li class="toc-level-2"><a href="#filter-logs-by-request-metadata">Filter logs by request metadata</a></li><li class="toc-level-3"><a href="#understand-metadata-and-labels">Understand metadata and labels</a></li><li class="toc-level-2"><a href="#configure-log-export">Configure log export</a></li><li class="toc-level-2"><a href="#configure-tracing">Configure tracing</a></li><li class="toc-level-2"><a href="#enable-metrics">Enable metrics</a></li><li class="toc-level-2"><a href="#available-metrics">Available metrics</a></li><li class="toc-level-2"><a href="#http-tracing">HTTP tracing</a></li><li class="toc-level-2"><a href="#correlate-logs-with-the-current-span">Correlate logs with the current span</a></li><li class="toc-level-2"><a href="#create-a-span">Create a span</a></li><li class="toc-level-2"><a href="#add-a-custom-metric">Add a custom metric</a></li><li class="toc-level-2"><a href="#database-queries-and-pool-metrics">Database queries and pool metrics</a></li><li class="toc-level-3"><a href="#inspect-a-requests-sql-in-grafana">Inspect a request&#39;s SQL in Grafana</a></li><li class="toc-level-3"><a href="#instrument-another-pool">Instrument another pool</a></li><li class="toc-level-2"><a href="#redis-and-cache-operations">Redis and cache operations</a></li><li class="toc-level-2"><a href="#trace-queues-and-events">Trace queues and events</a></li><li class="toc-level-2"><a href="#trace-outgoing-http-requests">Trace outgoing HTTP requests</a></li><li class="toc-level-2"><a href="#trace-mail-sends">Trace mail sends</a></li><li class="toc-level-2"><a href="#console-commands">Console commands</a></li><li class="toc-level-2"><a href="#export-and-shutdown-behavior">Export and shutdown behavior</a></li><li class="toc-level-2"><a href="#retention-resources-and-failures">Retention, resources and failures</a></li><li class="toc-level-2"><a href="#troubleshooting">Troubleshooting</a></li><li class="toc-level-2"><a href="#production-boundary">Production boundary</a></li><li class="toc-level-3"><a href="#rate-limiting">Rate limiting</a></li><li class="toc-level-3"><a href="#safe-failure-diagnostics">Safe failure diagnostics</a></li><li class="toc-level-3"><a href="#operational-signal-coverage">Operational signal coverage</a></li><li class="toc-level-2"><a href="#verify-a-custom-signal">Verify a custom signal</a></li></ol></nav><a class="source-link" href="markdown/observability.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

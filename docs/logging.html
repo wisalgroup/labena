@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Logging — Practical guides and Go examples for Labena.">
+<title>Logging — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/logging.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a class="selected" aria-current="page" href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Operations</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#write-your-first-application-log">Write your first application log</a></li><li class="toc-level-2"><a href="#local-log-viewer">Local log viewer</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#http-request-logs">HTTP request logs</a></li><li class="toc-level-2"><a href="#retrieve-the-context-logger">Retrieve the context logger</a></li><li class="toc-level-2"><a href="#add-fields-for-one-operation">Add fields for one operation</a></li><li class="toc-level-2"><a href="#choose-the-output-format">Choose the output format</a></li><li class="toc-level-2"><a href="#configure-named-channels">Configure named channels</a></li><li class="toc-level-2"><a href="#single-or-daily-files">Single or daily files</a></li><li class="toc-level-2"><a href="#log-to-selected-channels">Log to selected channels</a></li><li class="toc-level-2"><a href="#add-a-logging-driver">Add a logging driver</a></li><li class="toc-level-2"><a href="#ownership-and-output-failures">Ownership and output failures</a></li><li class="toc-level-3"><a href="#open-channels-when-needed">Open channels when needed</a></li><li class="toc-level-3"><a href="#resolve-paths-and-permissions">Resolve paths and permissions</a></li><li class="toc-level-3"><a href="#understand-slow-or-failed-outputs">Understand slow or failed outputs</a></li><li class="toc-level-3"><a href="#stop-producers-before-cleanup">Stop producers before cleanup</a></li><li class="toc-level-2"><a href="#set-the-application-working-directory">Set the application working directory</a></li><li class="toc-level-2"><a href="#create-a-standalone-logger">Create a standalone logger</a></li><li class="toc-level-2"><a href="#panics-and-cancellation">Panics and cancellation</a></li><li class="toc-level-2"><a href="#connect-logs-to-traces">Connect logs to traces</a></li><li class="toc-level-2"><a href="#send-logs-to-loki">Send logs to Loki</a></li><li class="toc-level-2"><a href="#troubleshoot-a-missing-or-duplicated-record">Troubleshoot a missing or duplicated record</a></li></ol></nav></details>
+<article><h1 id="logging">Logging</h1>
+<p>Use the logger attached to the execution context. Keep messages short and put useful
+context in structured fields so the same record works in the console, files, and
+Grafana. Logs describe observations; they are not a transactional audit database.</p>
+<h2 id="write-your-first-application-log">Write your first application log<a class="heading-link" href="#write-your-first-application-log" aria-label="Link to Write your first application log">#</a></h2>
+<p>Inside a service, handler, command, or task, use the supplied operation context:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Import github.com/wisalgroup/labena/pkg/logging.</span>
+<span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;profile updated&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;user_id&#34;</span><span class="go-punctuation">,</span> userID<span class="go-bracket-0">)</span>
+</code></pre>
+<p>The app supplies the logger and request/task fields; <code>InfoContext</code> also makes the
+current trace context available. Choose fields that explain the outcome without
+copying the request body. Logging does not require importing application resources.</p>
+<p>Select outputs in the environment:</p>
+<pre><code class="language-dotenv">LOG_CHANNELS=stderr,observability
+</code></pre>
+<p>That keeps a readable console and exports structured logs directly to the collector.
+Add <code>file</code> if you also want local daily files. Formats, levels, paths, and rotation
+are defined once in <code>internal/app/config/observability.go</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Output</th>
+<th>Default level</th>
+<th>Retention/transport</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stderr</code> / <code>stdout</code></td>
+<td>Colored readable console</td>
+<td>INFO</td>
+<td>Process output</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>Readable file without color</td>
+<td>WARN</td>
+<td>UTC daily files, 14 days</td>
+</tr>
+<tr>
+<td><code>observability</code></td>
+<td>OTLP/HTTP records</td>
+<td>INFO</td>
+<td>Bounded export to Alloy/Loki</td>
+</tr>
+</tbody>
+</table>
+<p>The application&#39;s default selection is only <code>stderr</code>; full local profiles select
+more channels. An INFO request may appear in the console and Loki but not the WARN
+file. That is a channel-level choice, not a missing log.</p>
+<h2 id="local-log-viewer">Local log viewer<a class="heading-link" href="#local-log-viewer" aria-label="Link to Local log viewer">#</a></h2>
+<p>Enable the embedded viewer when you want to inspect logs without a collector or
+Grafana. It shares the application HTTP listener at <code>/admin/logs/</code> and has its own
+Basic Auth credentials, independent of Identity and the queue dashboard:</p>
+<pre><code class="language-dotenv">LOG_CHANNELS=stderr,file
+LOG_VIEWER_ENABLED=true
+LOG_VIEWER_USERNAME=operator
+LOG_VIEWER_PASSWORD=replace-with-a-long-random-password
+</code></pre>
+<p>Serve an entry point with <code>app.Processes{HTTP: true}</code> and open
+<code>http://localhost:8080/admin/logs/</code>. The browser prompts for the credentials.
+Set <code>LOG_VIEWER_ENABLED=false</code> to omit the routes and live capture entirely.
+Tracing, metrics and the <code>observability</code> log channel can all remain disabled.
+Keep production access behind HTTPS and an operator-restricted ingress.</p>
+<p>The viewer provides:</p>
+<ul>
+<li>Live refresh every three seconds, pause/resume, and manual refresh.</li>
+<li>Channel/file selection, severity filtering and case-insensitive text search,
+including structured fields and request IDs.</li>
+<li>Newest-first paging, expandable records, copy, and JSONL export of visible entries.</li>
+<li>JSON and readable Tint file previews, with light/dark appearance and keyboard controls.</li>
+</ul>
+<p>Live records are copies of entries accepted by the application&#39;s named stdout,
+stderr and file channels. Their existing minimum levels still apply. A record
+sent to two selected channels appears once for each channel; filter by channel
+when inspecting one output. Context fields and groups are preserved. Successful
+viewer access logs still go to normal outputs but are excluded from live capture
+to avoid polling noise; failed access remains visible.</p>
+<p>Live capture is process-local and starts with application construction. It cannot
+recover earlier stdout/stderr output, intercept unrelated <code>fmt.Print</code> or global
+loggers, or read another process&#39;s stdout. Worker/scheduler history is visible
+through configured files mounted into the web process; use separate paths for
+each writing process. Use centralized observability for multi-instance aggregation.</p>
+<p>File history uses only file channels defined in <code>config/observability.go</code>, including
+their existing single-file or daily names. It does not enable a channel, change
+retention, create directories, or accept arbitrary paths. Missing directories have
+no files to list. Refresh the sources after daily rotation or removal. Text files
+retain their original timestamps in the message; JSON timestamps also appear in
+the time column. Only complete newline-terminated records are shown.</p>
+<p>The default live buffer retains at most 2,000 entries and 8 MiB of record strings,
+plus bounded entry/index overhead. Oldest entries expire when either limit is
+reached; the view reports the number expired. <code>LOG_VIEWER_BUFFER_ENTRIES</code> and
+<code>LOG_VIEWER_BUFFER_BYTES</code> adjust these bounds. Each record preview is limited to
+16 KiB; exports contain those same visible previews, not complete original files.
+Each file query reads at most 1 MiB and returns at most 500 entries. The page requests
+200 at a time and displays up to 1,000; load older or narrow the filters to continue.
+The file directory is limited to fewer than 4,096 entries. Concurrent viewer requests
+are bounded; busy clients receive a retry response. File browsing is a best-effort
+view of changing files, not a retained snapshot or audit archive.</p>
+<p>The UI and every data/asset route require Basic Auth. Responses are non-cacheable,
+cross-origin data reads are rejected, and log text is never rendered as HTML.
+Searches use POST bodies and stay out of page URLs and browser storage. Logs may
+still contain sensitive application data: the viewer does not redact arbitrary
+fields, so keep secrets out of logs and restrict access appropriately.</p>
+<h2 id="preserve-error-identity">Preserve error identity<a class="heading-link" href="#preserve-error-identity" aria-label="Link to Preserve error identity">#</a></h2>
+<p>Return errors with <code>%w</code> and inspect them with <code>errors.Is</code>/<code>errors.As</code>. The canonical
+<a href="errors.html#preserve-error-identity">error handling guide</a> explains classification,
+owned sentinels, validation messages, and cancellation. Avoid logging the same
+returned failure at every layer.</p>
+<h2 id="translate-at-the-boundary">Translate at the boundary<a class="heading-link" href="#translate-at-the-boundary" aria-label="Link to Translate at the boundary">#</a></h2>
+<p>HTTP handlers use <code>response.Error(ctx, err)</code> from
+<code>internal/platform/api/response</code>. The boundary hides raw operational details and
+records safe failure categories. See <a href="errors.html#translate-at-the-boundary">boundary translation</a>
+and <a href="responses.html#return-an-error">response bodies</a>.</p>
+<h2 id="http-request-logs">HTTP request logs<a class="heading-link" href="#http-request-logs" aria-label="Link to HTTP request logs">#</a></h2>
+<p>The app automatically records each completed HTTP request using the context logger.
+Records include the server name, method, route template, status, and duration. Health probes and unmatched routes are included. Successful and
+redirect responses use INFO, client errors WARN, and server errors ERROR.</p>
+<p>The same JSON or tint settings apply to these records. There is one built-in access logger. See <a href="middleware.html#request-logging-is-built-in">Middleware</a>
+for fields and customization.</p>
+<h2 id="retrieve-the-context-logger">Retrieve the context logger<a class="heading-link" href="#retrieve-the-context-logger" aria-label="Link to Retrieve the context logger">#</a></h2>
+<p>Application runners, commands, and HTTP requests receive a logger through their contexts:</p>
+<pre><code class="language-go" data-highlighted="yes">logger <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+logger<span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;operation completed&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-string">&#34;user_id&#34;</span><span class="go-punctuation">,</span> userID<span class="go-punctuation">,</span>
+    <span class="go-string">&#34;event_id&#34;</span><span class="go-punctuation">,</span> eventID<span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+</code></pre>
+<p>The returned value is a standard <code>*slog.Logger</code>. Use structured key-value fields. <code>FromContext</code> falls back to <code>slog.Default()</code> if no logger was attached, which also makes ordinary standalone contexts usable.</p>
+<p>Choose fields appropriate to your data policy. Do not log passwords, connection URLs containing credentials, authorization headers, full configuration structs, or complete request payloads.</p>
+<h2 id="add-fields-for-one-operation">Add fields for one operation<a class="heading-link" href="#add-fields-for-one-operation" aria-label="Link to Add fields for one operation">#</a></h2>
+<p>Derive a logger and pass it through the operation&#39;s context:</p>
+<pre><code class="language-go" data-highlighted="yes">logger <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">With</span><span class="go-bracket-0">(</span><span class="go-string">&#34;component&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;identity&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;user_id&#34;</span><span class="go-punctuation">,</span> userID<span class="go-bracket-0">)</span>
+ctx <span class="go-operator">=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">WithLogger</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> logger<span class="go-bracket-0">)</span>
+logger<span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;starting operation&#34;</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Pass this derived <code>ctx</code> to downstream calls so they can retrieve the same fields. <code>WithLogger</code> does not mutate the parent context. It requires a non-nil logger.</p>
+<p>For HTTP middleware, call <code>next(huma.WithContext(request, ctx))</code>, where <code>request</code> is the Huma context. See the <a href="middleware.html#use-the-context-logger">middleware example</a>.</p>
+<h2 id="choose-the-output-format">Choose the output format<a class="heading-link" href="#choose-the-output-format" aria-label="Link to Choose the output format">#</a></h2>
+<p>Edit each channel&#39;s <code>Options</code> in <code>internal/app/config/observability.go</code>. <code>stderr</code> and <code>stdout</code> use tint with colors; <code>file</code> uses tint without colors. <code>observability</code> uses structured OTLP/HTTP delivery. Console and OTLP channels default to INFO; the readable file channel defaults to WARN. These settings are hardcoded per channel, not loaded from environment variables.</p>
+<p>The Watermill adapter maps routine library info messages to DEBUG, including
+handler registration, routing and pub/sub cleanup. This keeps ordinary CLI help
+and completion free of infrastructure chatter at INFO. Watermill failures still
+use ERROR; application logs retain their chosen severity. Set a channel&#39;s level
+to <code>slog.LevelDebug</code> in Go when those library diagnostics are needed.</p>
+<p>Select a console channel with <code>LOG_CHANNELS=stderr</code> or <code>LOG_CHANNELS=stdout</code>. To use JSON, change that channel&#39;s format to <code>logging.FormatJSON</code>. Rebuild after changing Go channel definitions and restart after changing the selected defaults. Tint affects application output, not Tilt&#39;s own build or Kubernetes event messages.</p>
+<h2 id="configure-named-channels">Configure named channels<a class="heading-link" href="#configure-named-channels" aria-label="Link to Configure named channels">#</a></h2>
+<p>Channel definitions live in <code>internal/app/config/observability.go</code>. A channel is a named output with its own driver, format and minimum level. The built-in drivers are <code>stdout</code>, <code>stderr</code>, <code>file</code> and <code>otlp</code>.</p>
+<p>Select one or more default channels with a comma-separated list:</p>
+<pre><code class="language-dotenv">LOG_CHANNELS=stdout,file
+</code></pre>
+<p>Every normal context log now goes to both outputs. The current file channel uses
+<code>storage/logs/app-YYYY-MM-DD.log</code> with 14-day retention, as defined in Go. Unknown or repeated channel names fail configuration validation.</p>
+<p>Channels are defined in Go; <code>LOG_CHANNELS</code> selects them and
+<code>OTEL_EXPORTER_OTLP_LOGS_ENDPOINT</code> configures direct log delivery. Add another channel inside <code>LoggingConfig.Channels</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">channels<span class="go-bracket-0">[</span><span class="go-string">&#34;audit&#34;</span><span class="go-bracket-0">]</span> <span class="go-operator">=</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Channel</span><span class="go-bracket-0">{</span>
+    Driver<span class="go-punctuation">:</span> <span class="go-string">&#34;file&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>   <span class="go-string">&#34;storage/logs/audit.log&#34;</span><span class="go-punctuation">,</span>
+    Options<span class="go-punctuation">:</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>
+        Format<span class="go-punctuation">:</span>  <span class="go-package">logging</span><span class="go-punctuation">.</span>FormatJSON<span class="go-punctuation">,</span>
+        Level<span class="go-punctuation">:</span>   <span class="go-package">slog</span><span class="go-punctuation">.</span>LevelInfo<span class="go-punctuation">,</span>
+        NoColor<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The configuration file already imports <code>logging</code> and <code>log/slog</code>. You can set different options on each channel, including a readable console and JSON files. Keep paths, formats, levels and color settings in these channel definitions.</p>
+<h2 id="single-or-daily-files">Single or daily files<a class="heading-link" href="#single-or-daily-files" aria-label="Link to Single or daily files">#</a></h2>
+<p>The <code>file</code> driver supports two modes, configured per channel in
+<code>internal/app/config/observability.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">channels<span class="go-bracket-0">[</span><span class="go-string">&#34;file&#34;</span><span class="go-bracket-0">]</span> <span class="go-operator">=</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Channel</span><span class="go-bracket-0">{</span>
+    Driver<span class="go-punctuation">:</span>   <span class="go-string">&#34;file&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>     <span class="go-string">&#34;storage/logs/app.log&#34;</span><span class="go-punctuation">,</span>
+    FileMode<span class="go-punctuation">:</span> <span class="go-package">logging</span><span class="go-punctuation">.</span>FileDaily<span class="go-punctuation">,</span>
+    KeepDays<span class="go-punctuation">:</span> <span class="go-number">7</span><span class="go-punctuation">,</span>
+    Options<span class="go-punctuation">:</span>  <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>Format<span class="go-punctuation">:</span> <span class="go-package">logging</span><span class="go-punctuation">.</span>FormatJSON<span class="go-punctuation">,</span> Level<span class="go-punctuation">:</span> <span class="go-package">slog</span><span class="go-punctuation">.</span>LevelInfo<span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<ul>
+<li><code>FileSingle</code> (also the zero-value default) appends to <code>app.log</code>. <code>KeepDays</code> must
+be zero; records inside a single file cannot be expired individually.</li>
+<li><code>FileDaily</code> appends to <code>app-YYYY-MM-DD.log</code>, using the UTC date at write time.
+With no extension, <code>app</code> becomes <code>app-YYYY-MM-DD</code>. It reuses the day&#39;s file after
+restart and rotates on the first write of a new day.</li>
+<li><code>KeepDays: 7</code> keeps today and the previous six UTC dates. <code>0</code> keeps all dated
+files; negative values are invalid. Retention is based on filename dates, not
+modification times or the number of files.</li>
+</ul>
+<p>Cleanup runs when the channel opens and on daily rotation. No background goroutine
+or scheduler is needed; idle or stopped applications do not perform cleanup.
+Only regular files with that channel&#39;s exact dated naming pattern are eligible;
+undated files, unrelated names, directories and symlinks are left alone.
+Use a distinct path per channel and per application instance, and do not combine
+this writer with external rotation of its files. Writes and rotation are serialized
+within a channel; there is no cross-process rotation coordination.</p>
+<p>A failure to open today&#39;s file fails channel opening. During rotation, it is
+reported through <code>OnError</code> and the next write retries; the failed record is not
+redirected into yesterday&#39;s file. Retention failures are also reported; after a
+successful rotation the current record is still written. Cleanup is retried on the
+next rotation or reopen. Daily retention limits age, not total disk usage.</p>
+<h2 id="log-to-selected-channels">Log to selected channels<a class="heading-link" href="#log-to-selected-channels" aria-label="Link to Log to selected channels">#</a></h2>
+<p>Select outputs from the context logger:</p>
+<pre><code class="language-go" data-highlighted="yes">logger<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">Channels</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;audit&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+logger<span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;order approved&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;user_id&#34;</span><span class="go-punctuation">,</span> userID<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This record goes only to <code>audit</code>. To select several outputs:</p>
+<pre><code class="language-go" data-highlighted="yes">logger<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">Channels</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;audit&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;stdout&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+logger<span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;manual adjustment&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;user_id&#34;</span><span class="go-punctuation">,</span> userID<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Selection preserves fields and groups added through <code>With</code> and <code>WithGroup</code>, including request and job fields. It does not change the default logger. To use the selection throughout an operation, pass <code>logging.WithLogger(ctx, logger)</code> to that operation.</p>
+<p>During dependency assembly, use <code>logging.Select(deps.Logger, &#34;audit&#34;)</code> and inject the resulting <code>*slog.Logger</code> into the service that needs it. No application dependency container is added to context. Selection requires a logger created by the channel manager; a standalone <code>logging.New</code> logger or an unrelated handler has no named channels and returns an error.</p>
+<h2 id="add-a-logging-driver">Add a logging driver<a class="heading-link" href="#add-a-logging-driver" aria-label="Link to Add a logging driver">#</a></h2>
+<p><code>pkg/logging</code> accepts explicit driver functions that return a <code>slog.Handler</code> and an optional owned closer. Add a driver to the configuration returned by <code>LoggingConfig.Channels</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-0">{</span>
+    Default<span class="go-punctuation">:</span> names<span class="go-punctuation">,</span>
+    Channels<span class="go-punctuation">:</span> channels<span class="go-punctuation">,</span>
+    Drivers<span class="go-punctuation">:</span> <span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Driver</span><span class="go-bracket-1">{</span>
+        <span class="go-string">&#34;discard&#34;</span><span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ch</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Channel</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">(</span><span class="go-type">slog</span><span class="go-punctuation">.</span><span class="go-type">Handler</span><span class="go-punctuation">,</span> <span class="go-type">io</span><span class="go-punctuation">.</span><span class="go-type">Closer</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+            logger<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-3">(</span><span class="go-package">io</span><span class="go-punctuation">.</span>Discard<span class="go-punctuation">,</span> <span class="go-parameter">ch</span><span class="go-punctuation">.</span>Options<span class="go-bracket-3">)</span>
+            <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+                <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> err
+            <span class="go-bracket-3">}</span>
+            <span class="go-keyword">return</span> logger<span class="go-punctuation">.</span><span class="go-function">Handler</span><span class="go-bracket-3">(</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+        <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>io</code> for this example and declare a channel with <code>Driver: &#34;discard&#34;</code> to use it. A real integration can return its own concurrency-safe handler and closer. A driver must clean up partial construction before returning an error; return a nil closer for borrowed resources. Built-in driver names cannot be overridden.</p>
+<h2 id="ownership-and-output-failures">Ownership and output failures<a class="heading-link" href="#ownership-and-output-failures" aria-label="Link to Ownership and output failures">#</a></h2>
+<h3 id="open-channels-when-needed">Open channels when needed<a class="heading-link" href="#open-channels-when-needed" aria-label="Link to Open channels when needed">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Resource behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App construction</td>
+<td>Opens selected default channels before other dependencies</td>
+</tr>
+<tr>
+<td>First <code>Channels</code>, <code>Select</code>, or <code>Manager.Logger</code> for another channel</td>
+<td>Opens that channel once; concurrent selections share it</td>
+</tr>
+<tr>
+<td>Derive fields with <code>With</code> / <code>WithGroup</code></td>
+<td>Does not open unused channels</td>
+</tr>
+<tr>
+<td>Default output cannot open</td>
+<td>Startup fails</td>
+</tr>
+<tr>
+<td>Non-default output cannot open</td>
+<td>Selection returns an error and may be retried</td>
+</tr>
+<tr>
+<td>Select after manager Close</td>
+<td>Rejected</td>
+</tr>
+</tbody>
+</table>
+<p>Successfully opened outputs remain manager-owned, including when a later channel
+in the same selection fails. App closes them after other dependencies finish.
+Table-publication commands follow the same rules: stderr/stdout need no writable
+log directory, but a selected file channel does.</p>
+<h3 id="resolve-paths-and-permissions">Resolve paths and permissions<a class="heading-link" href="#resolve-paths-and-permissions" aria-label="Link to Resolve paths and permissions">#</a></h3>
+<p>File paths are converted to absolute paths when the manager opens, using the
+process working directory. Later channel selection keeps that location even if
+the working directory changes. There is no source-tree search or executable-path
+fallback.</p>
+<table>
+<thead>
+<tr>
+<th>File operation</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open an existing file</td>
+<td>Append; preserve existing permissions</td>
+</tr>
+<tr>
+<td>Create missing directories</td>
+<td>Mode <code>0750</code>, subject to process umask</td>
+</tr>
+<tr>
+<td>Create a new file</td>
+<td>Mode <code>0600</code>, subject to process umask</td>
+</tr>
+<tr>
+<td>Single-file mode</td>
+<td>No rotation or reopen after external rotation</td>
+</tr>
+<tr>
+<td>Daily mode</td>
+<td>Open the new UTC date&#39;s file on its first write</td>
+</tr>
+</tbody>
+</table>
+<p>Neither mode syncs every record. Use stdout/stderr or direct OTLP in containers,
+or provide a writable volume for files. See <a href="#single-or-daily-files">daily retention</a>
+for cleanup timing and failure behavior.</p>
+<h3 id="understand-slow-or-failed-outputs">Understand slow or failed outputs<a class="heading-link" href="#understand-slow-or-failed-outputs" aria-label="Link to Understand slow or failed outputs">#</a></h3>
+<p>Outputs run in selection order and apply their own minimum level:</p>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>Logging call behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Console or file</td>
+<td>Synchronous write; a slow writer slows the call</td>
+</tr>
+<tr>
+<td>OTLP</td>
+<td>Enqueue into a bounded asynchronous batch processor</td>
+</tr>
+<tr>
+<td>Synchronous write failure</td>
+<td>Report to stderr and continue to remaining outputs</td>
+</tr>
+</tbody>
+</table>
+<p><code>slog.Logger</code> does not return write errors to business code. These logs are not a
+transactional audit store. OTLP export failures and queue drops have separate
+asynchronous reporting described <a href="#send-logs-to-loki">below</a>.</p>
+<p>For custom synchronous failure reporting, set <code>logging.Config.OnError</code>. It must be
+concurrency-safe and must not log back through these channels, which would recurse.</p>
+<h3 id="stop-producers-before-cleanup">Stop producers before cleanup<a class="heading-link" href="#stop-producers-before-cleanup" aria-label="Link to Stop producers before cleanup">#</a></h3>
+<p>Standalone callers of <code>logging.Open</code> own the returned manager. Stop logging before
+calling <code>Close</code> or <code>Shutdown(ctx)</code>; the latter propagates a cleanup deadline to
+OTLP flushing. The package neither changes <code>slog.Default()</code> nor closes stdout/stderr.</p>
+<h2 id="set-the-application-working-directory">Set the application working directory<a class="heading-link" href="#set-the-application-working-directory" aria-label="Link to Set the application working directory">#</a></h2>
+<p>Launch from the application root. The configured base path <code>storage/logs/app.log</code> then has a predictable location.
+With the current daily mode, its output includes the UTC date:</p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Working directory</th>
+<th>Log file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local <code>go run ./cmd/app</code></td>
+<td>Repository root</td>
+<td><code>&lt;repository&gt;/storage/logs/app-YYYY-MM-DD.log</code></td>
+</tr>
+<tr>
+<td>Installed binary</td>
+<td><code>/opt/myapp</code></td>
+<td><code>/opt/myapp/storage/logs/app-YYYY-MM-DD.log</code></td>
+</tr>
+<tr>
+<td>Docker / Tilt</td>
+<td><code>/app</code> from the Dockerfile</td>
+<td><code>/app/storage/logs/app-YYYY-MM-DD.log</code></td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td><code>/app</code> on both application and migration containers</td>
+<td><code>/app/storage/logs/app-YYYY-MM-DD.log</code></td>
+</tr>
+</tbody>
+</table>
+<p>For local development, run commands from the repository root. Set your IDE&#39;s working directory to that same directory; for VS Code&#39;s Go launch configuration use <code>&#34;cwd&#34;: &#34;${workspaceFolder}&#34;</code>. Running from a nested directory deliberately uses that directory, not the repository root.</p>
+<p>For an installed binary:</p>
+<pre><code class="language-sh">cd /opt/myapp
+./bin/app
+</code></pre>
+<p>For systemd, set both paths explicitly:</p>
+<pre><code class="language-ini">[Service]
+WorkingDirectory=/opt/myapp
+ExecStart=/opt/myapp/bin/app
+</code></pre>
+<p>Docker keeps <code>WORKDIR /app</code>. Kubernetes sets <code>workingDir: /app</code> on both the <code>api</code> and <code>migrate</code> containers. File output requires writable storage at <code>/app/storage/logs</code>; stdout/stderr need no writable log directory. The development containers use a read-only root filesystem and mount storage at <code>/app/storage</code>. Tilt on Docker Desktop kubeadm mounts the local <code>storage/logs</code> directory directly at <code>/app/storage/logs</code>, using your host UID/GID. Writes appear in the same local file without copying. Compose uses a named volume, which is not the local checkout. The full development profile selects <code>stderr,file,observability</code>; the application default remains stderr. See <a href="local-development.html#keep-file-logs-with-tilt-or-compose">Local development</a> for storage details.</p>
+<h2 id="create-a-standalone-logger">Create a standalone logger<a class="heading-link" href="#create-a-standalone-logger" aria-label="Link to Create a standalone logger">#</a></h2>
+<p>Outside the application lifecycle, construct one explicitly. This complete example writes a readable message without changing the global logger:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> main
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">fmt</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">log/</span><span class="go-import-name">slog</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">os</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">logging</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">main</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	logger<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-1">(</span><span class="go-package">os</span><span class="go-punctuation">.</span>Stderr<span class="go-punctuation">,</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-2">{</span>
+		Format<span class="go-punctuation">:</span> <span class="go-package">logging</span><span class="go-punctuation">.</span>FormatTint<span class="go-punctuation">,</span>
+		Level<span class="go-punctuation">:</span>  <span class="go-package">slog</span><span class="go-punctuation">.</span>LevelInfo<span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-package">fmt</span><span class="go-punctuation">.</span><span class="go-function">Fprintln</span><span class="go-bracket-2">(</span><span class="go-package">os</span><span class="go-punctuation">.</span>Stderr<span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
+		<span class="go-package">os</span><span class="go-punctuation">.</span><span class="go-function">Exit</span><span class="go-bracket-2">(</span><span class="go-number">1</span><span class="go-bracket-2">)</span>
+	<span class="go-bracket-1">}</span>
+	ctx <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">WithLogger</span><span class="go-bracket-1">(</span><span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">Background</span><span class="go-bracket-2">(</span><span class="go-bracket-2">)</span><span class="go-punctuation">,</span> logger<span class="go-bracket-1">)</span>
+	<span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span>ctx<span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">InfoContext</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-string">&#34;example started&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;component&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;docs&#34;</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The logger does not own its writer. If you supply an opened file, its creator must close it after logging has finished.</p>
+<h2 id="panics-and-cancellation">Panics and cancellation<a class="heading-link" href="#panics-and-cancellation" aria-label="Link to Panics and cancellation">#</a></h2>
+<p>The API boundary records safe panic diagnostics and preserves transport aborts.
+Cancellation is not proof that an effect never happened. Follow the
+<a href="errors.html#panics-and-streaming-failures">error-handling guarantees</a>, and pass the
+same context through dependent work so logs retain correlation.</p>
+<h2 id="connect-logs-to-traces">Connect logs to traces<a class="heading-link" href="#connect-logs-to-traces" aria-label="Link to Connect logs to traces">#</a></h2>
+<p>When an operation has a valid OpenTelemetry span, context-aware logging calls add
+<code>trace_id</code>, <code>span_id</code>, and <code>trace_sampled</code> automatically. This works with named
+channels, including channels selected later. Use <code>InfoContext(ctx, ...)</code> rather
+than <code>Info(...)</code>; the context determines the current span. See
+<a href="observability.html#correlate-logs-with-the-current-span">observability</a> for examples,
+sampling and grouped loggers.</p>
+<h2 id="send-logs-to-loki">Send logs to Loki<a class="heading-link" href="#send-logs-to-loki" aria-label="Link to Send logs to Loki">#</a></h2>
+<p>The <code>observability</code> channel uses the <code>otlp</code> driver, not a file. Select it alongside
+readable console and daily file output:</p>
+<pre><code class="language-dotenv">LOG_CHANNELS=stderr,file,observability
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:4318/v1/logs
+</code></pre>
+<p>For standalone use, define an OTLP channel with the same public API:</p>
+<pre><code class="language-go" data-highlighted="yes">channels<span class="go-bracket-0">[</span><span class="go-string">&#34;telemetry&#34;</span><span class="go-bracket-0">]</span> <span class="go-operator">=</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Channel</span><span class="go-bracket-0">{</span>
+    Driver<span class="go-punctuation">:</span> <span class="go-string">&#34;otlp&#34;</span><span class="go-punctuation">,</span>
+    Options<span class="go-punctuation">:</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>Level<span class="go-punctuation">:</span> <span class="go-package">slog</span><span class="go-punctuation">.</span>LevelInfo<span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+    OTLP<span class="go-punctuation">:</span> <span class="go-type">logging</span><span class="go-punctuation">.</span><span class="go-type">OTLPOptions</span><span class="go-bracket-1">{</span>
+        Endpoint<span class="go-punctuation">:</span>    <span class="go-string">&#34;http://localhost:4318/v1/logs&#34;</span><span class="go-punctuation">,</span>
+        ServiceName<span class="go-punctuation">:</span> <span class="go-string">&#34;orders&#34;</span><span class="go-punctuation">,</span>
+        Environment<span class="go-punctuation">:</span> <span class="go-string">&#34;development&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>OTLP preserves structured attributes, groups, severity and active trace context.
+It does not use tint or JSON text formatting; its <code>Options.Level</code> still filters
+records. It opens only when selected, does not replace global OTel providers, and
+needs no log directory. The app flushes it after other dependencies close.</p>
+<p>The supplied Alloy configuration forwards OTLP logs to Loki. Request IDs and trace
+IDs are queryable metadata; the message remains the log body. Grafana uses the
+metadata for <strong>View trace</strong> and trace-to-log navigation. No file collector or
+<code>observability.log</code> is needed. Local readable files remain independent.</p>
+<p>Exporter failures are reported through an independent stderr logger, rate-limited
+to once per minute with a cumulative failed-record count. The SDK also reports
+queue drops to stderr. These asynchronous failures do not go through <code>OnError</code>,
+which handles synchronous handler failures. Export has bounded memory and time
+budgets and is best-effort, not a durable delivery guarantee. See
+<a href="observability.html#configure-log-export">observability</a> for limits and deployment settings.</p>
+<h2 id="troubleshoot-a-missing-or-duplicated-record">Troubleshoot a missing or duplicated record<a class="heading-link" href="#troubleshoot-a-missing-or-duplicated-record" aria-label="Link to Troubleshoot a missing or duplicated record">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INFO appears in Loki but not the file</td>
+<td>The built-in file channel defaults to WARN</td>
+</tr>
+<tr>
+<td>Selected channel fails at startup</td>
+<td>Its configuration, path permissions, or driver validation</td>
+</tr>
+<tr>
+<td>Custom channel missing</td>
+<td>Define it in Go and select it explicitly; rebuild after definition changes</td>
+</tr>
+<tr>
+<td>Log lacks a trace ID</td>
+<td>Use the context-aware method and the active operation context</td>
+</tr>
+<tr>
+<td>Duplicate records in Loki</td>
+<td>Ensure no second console/file collector forwards the same records</td>
+</tr>
+<tr>
+<td><code>request_id_extracted</code> appears beside <code>request_id</code></td>
+<td>An extra JSON parser extracted a field already present as metadata; remove the unnecessary parser for new OTLP logs</td>
+</tr>
+<tr>
+<td>Yesterday&#39;s file stops growing</td>
+<td>Daily mode writes the current UTC date&#39;s file</td>
+</tr>
+<tr>
+<td>Old daily files remain</td>
+<td>Retention runs on open/rotation and only targets that channel&#39;s filename pattern</td>
+</tr>
+</tbody>
+</table>
+<p>File logging is independent of OTLP export. An exporter outage does not cause local
+files to be replayed later. See <a href="observability.html#filter-logs-by-request-metadata">observability</a>
+for request-ID filtering and <a href="troubleshooting.html">troubleshooting</a> for operation
+failures beyond logging.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="onboarding.html"><small>← Previous</small>Account onboarding reactions</a>
+<a href="observability.html"><small>Next →</small>Observability</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#write-your-first-application-log">Write your first application log</a></li><li class="toc-level-2"><a href="#local-log-viewer">Local log viewer</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#http-request-logs">HTTP request logs</a></li><li class="toc-level-2"><a href="#retrieve-the-context-logger">Retrieve the context logger</a></li><li class="toc-level-2"><a href="#add-fields-for-one-operation">Add fields for one operation</a></li><li class="toc-level-2"><a href="#choose-the-output-format">Choose the output format</a></li><li class="toc-level-2"><a href="#configure-named-channels">Configure named channels</a></li><li class="toc-level-2"><a href="#single-or-daily-files">Single or daily files</a></li><li class="toc-level-2"><a href="#log-to-selected-channels">Log to selected channels</a></li><li class="toc-level-2"><a href="#add-a-logging-driver">Add a logging driver</a></li><li class="toc-level-2"><a href="#ownership-and-output-failures">Ownership and output failures</a></li><li class="toc-level-3"><a href="#open-channels-when-needed">Open channels when needed</a></li><li class="toc-level-3"><a href="#resolve-paths-and-permissions">Resolve paths and permissions</a></li><li class="toc-level-3"><a href="#understand-slow-or-failed-outputs">Understand slow or failed outputs</a></li><li class="toc-level-3"><a href="#stop-producers-before-cleanup">Stop producers before cleanup</a></li><li class="toc-level-2"><a href="#set-the-application-working-directory">Set the application working directory</a></li><li class="toc-level-2"><a href="#create-a-standalone-logger">Create a standalone logger</a></li><li class="toc-level-2"><a href="#panics-and-cancellation">Panics and cancellation</a></li><li class="toc-level-2"><a href="#connect-logs-to-traces">Connect logs to traces</a></li><li class="toc-level-2"><a href="#send-logs-to-loki">Send logs to Loki</a></li><li class="toc-level-2"><a href="#troubleshoot-a-missing-or-duplicated-record">Troubleshoot a missing or duplicated record</a></li></ol></nav><a class="source-link" href="markdown/logging.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

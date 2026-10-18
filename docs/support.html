@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Support and compatibility — Practical guides and Go examples for Labena.">
+<title>Support and compatibility — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/support.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a class="selected" aria-current="page" href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Reference</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#maintenance-policy">Maintenance policy</a></li><li class="toc-level-2"><a href="#verified-scope">Verified scope</a></li><li class="toc-level-2"><a href="#reusable-packages">Reusable packages</a></li><li class="toc-level-2"><a href="#compatibility-and-release-notes">Compatibility and release notes</a></li><li class="toc-level-2"><a href="#updating-a-customized-application">Updating a customized application</a></li></ol></nav></details>
+<article><h1 id="support-and-compatibility">Support and compatibility</h1>
+<p><a href="https://github.com/wisalgroup/labena">Labena</a> is distributed as a modular Go
+application template. Start from a
+published release, rename the module, and maintain the resulting application in
+your own repository. The <a href="upgrading.html">adoption and update guide</a> explains
+how to record your starting point and apply later fixes.</p>
+<h2 id="maintenance-policy">Maintenance policy<a class="heading-link" href="#maintenance-policy" aria-label="Link to Maintenance policy">#</a></h2>
+<p>Only the latest published non-prerelease version receives bug and security fixes.
+Older versions receive no backports. Before the first such release, development
+checkouts and prereleases are evaluation snapshots with no stable compatibility
+promise.</p>
+<p>Maintenance is best effort. There is no guaranteed response time, resolution time,
+or long-term support window. Wisal Group, the upstream repository owner, is responsible for
+release maintenance and private security-report triage, and may delegate those
+duties to repository maintainers. Application owners are responsible for their
+customizations, deployments and applying upstream fixes.</p>
+<p>Use upstream GitHub issues for reproducible, non-sensitive bugs and feature
+requests. Include the template tag or commit, Go version, relevant configuration
+with secrets removed, and reproduction steps. Report vulnerabilities through the
+private route in the <a href="security.html">security policy</a>.</p>
+<h2 id="verified-scope">Verified scope<a class="heading-link" href="#verified-scope" aria-label="Link to Verified scope">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go toolchain</td>
+<td>The version declared in the release&#39;s <code>go.mod</code></td>
+</tr>
+<tr>
+<td>Core application backends</td>
+<td>PostgreSQL and standalone Redis; core CI currently tests PostgreSQL 17 and Redis 7</td>
+</tr>
+<tr>
+<td>Local events</td>
+<td>Process-local, best-effort delivery with the documented capacity and retry limits</td>
+</tr>
+<tr>
+<td>MySQL and Redis Cluster</td>
+<td>Optional driver paths; outside the required core integration matrix</td>
+</tr>
+<tr>
+<td>Cloud storage, Google sign-in, SMTP and Expo</td>
+<td>Local or fake-provider coverage where present; live compatibility requires provider-specific verification</td>
+</tr>
+<tr>
+<td>Operating systems and architectures</td>
+<td>Only the build/runtime evidence recorded for the particular release; an image build alone does not verify runtime behavior</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="release-readiness.html">release readiness</a> for candidate evidence and its
+limitations. Support does not imply lossless events, exactly-once external effects,
+automatic disaster recovery, or a throughput guarantee.</p>
+<h2 id="reusable-packages">Reusable packages<a class="heading-link" href="#reusable-packages" aria-label="Link to Reusable packages">#</a></h2>
+<p>All <code>pkg</code> packages are maintained with the template and remain independent of
+<code>internal</code>. None is separately released or supported as an external Go dependency
+at present. The template&#39;s module path is <code>github.com/wisalgroup/labena</code>; adopting
+an application includes replacing it with that application&#39;s own module path.</p>
+<p>Reusable implementation and examples are available for application owners to
+retain or extract. Extraction requires maintaining the copied code and its
+dependencies. Any future independently published package must declare its public
+import path, API scope, versioning and verification separately before being
+advertised for <code>go get</code> consumption.</p>
+<h2 id="compatibility-and-release-notes">Compatibility and release notes<a class="heading-link" href="#compatibility-and-release-notes" aria-label="Link to Compatibility and release notes">#</a></h2>
+<p>Version tags identify template snapshots. During <code>v0</code>, documented breaking changes
+may accompany minor releases. From <code>v1</code>, breaking changes to documented contracts
+require a new major version. Patch releases preserve those contracts except where
+a security correction requires rejecting previously accepted unsafe behavior;
+release notes must explain that change and its migration impact.</p>
+<p>The documented contracts include exported <code>pkg</code> APIs, HTTP operations and error
+codes, configuration keys, CLI commands, persisted schemas, task names and payloads,
+and event topics and payloads. Internal source layout and assembly helpers are
+customization points; changes to them must be called out when adopters need to
+adjust their applications. This policy does not promise automatic merges of
+modified template code.</p>
+<p>Each release must state:</p>
+<ul>
+<li>Its source tag and commit, required toolchain, and verified backends/targets.</li>
+<li>Bug and security fixes, with affected and fixed versions when known.</li>
+<li>Breaking changes, including defaults and operational behavior, and concrete
+migration steps for every affected contract.</li>
+<li>Required schema migrations, worker/scheduler rollout order, and handling of
+already queued tasks or stored event/notification payloads.</li>
+<li>Verification performed, skipped checks and known limitations.</li>
+</ul>
+<p>Existing deployed migrations are immutable. Changes use new migrations and
+explicit deployment instructions. A release&#39;s compatibility policy does not
+authorize rewriting an adopter&#39;s schema or replacing their application files.</p>
+<h2 id="updating-a-customized-application">Updating a customized application<a class="heading-link" href="#updating-a-customized-application" aria-label="Link to Updating a customized application">#</a></h2>
+<p>Fixes to this repository do not automatically reach applications created from it.
+Record the upstream tag and commit when adopting the template, follow upstream
+releases and security advisories, then review and port applicable changes into
+your application. Track the last incorporated release and any changes deferred.</p>
+<p>When skipping releases, read every intervening release note and apply required
+migrations in order. Validate the resulting application against its own database,
+queue, storage and provider contracts before deploying. Older applications can
+receive a manually ported fix, but upstream does not maintain their release
+branches. See the <a href="upgrading.html#apply-an-upstream-update">update workflow</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="api-reference.html"><small>← Previous</small>API reference</a>
+<a href="security.html"><small>Next →</small>Security reporting</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#maintenance-policy">Maintenance policy</a></li><li class="toc-level-2"><a href="#verified-scope">Verified scope</a></li><li class="toc-level-2"><a href="#reusable-packages">Reusable packages</a></li><li class="toc-level-2"><a href="#compatibility-and-release-notes">Compatibility and release notes</a></li><li class="toc-level-2"><a href="#updating-a-customized-application">Updating a customized application</a></li></ol></nav><a class="source-link" href="markdown/support.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

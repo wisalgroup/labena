@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Configuration reference — Practical guides and Go examples for Labena.">
+<title>Configuration reference — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/configuration-reference.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a class="selected" aria-current="page" href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Reference</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-the-setting-you-need">Find the setting you need</a></li><li class="toc-level-2"><a href="#application-and-logging">Application and logging</a></li><li class="toc-level-2"><a href="#database">Database</a></li><li class="toc-level-2"><a href="#http-and-cors">HTTP and CORS</a></li><li class="toc-level-2"><a href="#queues-and-local-events">Queues and local events</a></li><li class="toc-level-2"><a href="#optional-cache">Optional cache</a></li><li class="toc-level-2"><a href="#mail-and-mail-views">Mail and mail views</a></li><li class="toc-level-2"><a href="#identity-authentication">Identity authentication</a></li><li class="toc-level-2"><a href="#rate-limits">Rate limits</a></li><li class="toc-level-2"><a href="#notifications-and-push">Notifications and push</a></li><li class="toc-level-2"><a href="#optional-tracing-and-metrics">Optional tracing and metrics</a></li><li class="toc-level-2"><a href="#filesystems">Filesystems</a></li><li class="toc-level-2"><a href="#diagnose-configuration-failures">Diagnose configuration failures</a></li><li class="toc-level-2"><a href="#media-urls">Media URLs</a></li><li class="toc-level-2"><a href="#check-a-configuration-change">Check a configuration change</a></li></ol></nav></details>
+<article><h1 id="application-configuration-reference">Application configuration reference</h1>
+<p>The tables list the environment settings decoded by <code>internal/app/config</code>.
+Defaults come from <code>config.Defaults()</code> without reading files, opening connections
+or starting services. Tests check this reference against those defaults. The
+<a href="configuration.html">configuration guide</a> explains loading and overrides.</p>
+<p>Unset <code>APP_ENV_FILE</code> loads an optional <code>.env</code>; a nonempty process value selects a
+required file; an explicitly empty value disables dotenv loading. Set this selector
+outside the file being selected. Existing process variables win, even when empty;
+empty decoded fields with an <code>envDefault</code> still use that default. <code>unset</code> below
+means an empty value, not a generated credential.</p>
+<p>Lists use commas. Durations use Go units such as <code>250ms</code>, <code>15m</code> or <code>168h</code>, not <code>7d</code>.
+Callbacks, native clients and definitions of named queues, disks and logging
+channels remain Go values. Unknown environment keys are ignored: obsolete names
+are not aliases. Update settings and restart processes; there is no live reload.</p>
+<p>The quickstart overrides several defaults, including disabling storage. Full
+<code>.env.example</code> is a reference, not a ready production profile. Container addresses,
+secrets and enabled features must match the deployment. These tables describe the
+application adapter; independent <code>pkg</code> clients may expose additional native options.</p>
+<h2 id="find-the-setting-you-need">Find the setting you need<a class="heading-link" href="#find-the-setting-you-need" aria-label="Link to Find the setting you need">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Reference</th>
+<th>Usage guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tune process budgets</td>
+<td>Application and logging below</td>
+<td><a href="application-lifecycle.html">Lifecycle</a></td>
+</tr>
+<tr>
+<td>Connect SQL or tune its pool</td>
+<td>Database</td>
+<td><a href="database.html">Connections</a></td>
+</tr>
+<tr>
+<td>Configure listener, CORS, or docs</td>
+<td>HTTP and CORS</td>
+<td><a href="routing.html">Routing</a></td>
+</tr>
+<tr>
+<td>Enable cache</td>
+<td>Optional cache</td>
+<td><a href="cache.html">Cache</a></td>
+</tr>
+<tr>
+<td>Run workers and recurring work</td>
+<td>Queue and event settings</td>
+<td><a href="queues.html">Queues</a>, <a href="scheduling.html">scheduling</a></td>
+</tr>
+<tr>
+<td>Send mail or push</td>
+<td>Mail and push settings</td>
+<td><a href="mail.html">Mail</a>, <a href="push.html">push</a></td>
+</tr>
+<tr>
+<td>Choose asset visibility and URLs</td>
+<td>Filesystems and media settings</td>
+<td><a href="media.html">Media</a></td>
+</tr>
+<tr>
+<td>Investigate a request</td>
+<td>Tracing/metrics plus log channels</td>
+<td><a href="observability.html">Observability</a></td>
+</tr>
+</tbody>
+</table>
+<p>The tables below are the complete environment reference. Usage guides explain when
+to change a value; keeping the Go default is usually enough. Avoid copying every
+row into <code>.env</code>: publish connection information, credentials, intentional feature
+choices, and the overrides your deployment actually needs.</p>
+<h2 id="application-and-logging">Application and logging<a class="heading-link" href="#application-and-logging" aria-label="Link to Application and logging">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APP_NAME</code></td>
+<td><code>labena</code></td>
+</tr>
+<tr>
+<td><code>APP_ENV</code></td>
+<td><code>development</code></td>
+</tr>
+<tr>
+<td><code>APP_STARTUP_TIMEOUT</code></td>
+<td><code>30s</code></td>
+</tr>
+<tr>
+<td><code>APP_SHUTDOWN_TIMEOUT</code></td>
+<td><code>45s</code></td>
+</tr>
+<tr>
+<td><code>APP_CLEANUP_TIMEOUT</code></td>
+<td><code>10s</code></td>
+</tr>
+<tr>
+<td><code>MIGRATION_TIMEOUT</code></td>
+<td><code>5m</code></td>
+</tr>
+<tr>
+<td><code>LOG_CHANNELS</code></td>
+<td><code>stderr</code></td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_LOGS_ENDPOINT</code></td>
+<td><code>http://localhost:4318/v1/logs</code></td>
+</tr>
+<tr>
+<td><code>LOG_VIEWER_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>LOG_VIEWER_USERNAME</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>LOG_VIEWER_PASSWORD</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>LOG_VIEWER_BUFFER_ENTRIES</code></td>
+<td><code>2000</code></td>
+</tr>
+<tr>
+<td><code>LOG_VIEWER_BUFFER_BYTES</code></td>
+<td><code>8388608</code></td>
+</tr>
+</tbody>
+</table>
+<p>Process selection lives in each main.go as explicit <code>app.Processes</code> flags. HTTP
+and workers automatically include their local event consumers; a separate
+<code>cmd/scheduler</code> runs recurring schedules. See <a href="entry-points.html">entry points</a>.</p>
+<p>Startup and cleanup have separate budgets; the shutdown groups share the drain
+budget. Queue shutdown must be shorter than app shutdown. Migration timeout includes
+lock acquisition; <code>migrate --timeout</code> overrides it. Set <code>APP_ENV=production</code> in
+production; <code>migrate refresh</code> is then rejected, including with <code>--force</code>.</p>
+<p><code>LOG_CHANNELS</code> selects named definitions in <code>config/observability.go</code>: stderr, stdout,
+file and observability (OTLP/HTTP). Formats, paths and levels belong to those definitions.
+The observability channel exports directly to the logs endpoint; it does not write
+a file. Its service identity comes from <code>APP_NAME</code> and <code>APP_ENV</code>.
+The optional <code>/admin/logs/</code> viewer needs both credentials and the HTTP process.
+It works without OTLP, tracing or metrics. Buffer entries must be 1–100000; the
+record-byte budget must be 65536–67108864. Keep it behind HTTPS and restrict ingress
+to operators. See the <a href="logging.html#local-log-viewer">local viewer</a> for scope
+and retention details.
+Relative paths resolve against the process working directory. See
+<a href="application-lifecycle.html">lifecycle</a> and <a href="logging.html">logging</a>.</p>
+<h2 id="database">Database<a class="heading-link" href="#database" aria-label="Link to Database">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_NAME</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>DATABASE_DRIVER</code></td>
+<td><code>postgres</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>DATABASE_MAX_OPEN_CONNS</code></td>
+<td><code>20</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_MAX_IDLE_CONNS</code></td>
+<td><code>5</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_CONN_MAX_LIFETIME</code></td>
+<td><code>30m</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_CONN_MAX_IDLE_TIME</code></td>
+<td><code>5m</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_CONNECT_TIMEOUT</code></td>
+<td><code>5s</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_PING_TIMEOUT</code></td>
+<td><code>5s</code></td>
+</tr>
+<tr>
+<td><code>DATABASE_SLOW_QUERY_THRESHOLD</code></td>
+<td><code>500ms</code></td>
+</tr>
+</tbody>
+</table>
+<p>A nonempty <code>DATABASE_URL</code> opens a connection; serving the installed modules requires
+PostgreSQL and their applied migrations. <code>DATABASE_NAME</code> is an optional diagnostic
+name, not a replacement for the database selected by the URL. The reusable database
+package supports MySQL, but the installed Identity, Media and Notification schemas
+are PostgreSQL. Switching the driver does not translate their SQL.</p>
+<p>Budget pool limits across every API, worker and operator process. Startup validates
+and pings configured connections; migrations only run on explicit command. See
+<a href="database.html">database</a> and <a href="migrations.html">migrations</a>.</p>
+<h2 id="http-and-cors">HTTP and CORS<a class="heading-link" href="#http-and-cors" aria-label="Link to HTTP and CORS">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HTTP_READINESS_DEPENDENCIES</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>HTTP_READINESS_TIMEOUT</code></td>
+<td><code>1s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_TRUSTED_PROXIES</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>HTTP_DOCS_ENABLED</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>HTTP_ADDRESS</code></td>
+<td><code>:8080</code></td>
+</tr>
+<tr>
+<td><code>HTTP_READ_HEADER_TIMEOUT</code></td>
+<td><code>5s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_READ_TIMEOUT</code></td>
+<td><code>15s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_WRITE_TIMEOUT</code></td>
+<td><code>15s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_IDLE_TIMEOUT</code></td>
+<td><code>60s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_SHUTDOWN_TIMEOUT</code></td>
+<td><code>10s</code></td>
+</tr>
+<tr>
+<td><code>HTTP_MAX_HEADER_BYTES</code></td>
+<td><code>1048576</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_ENABLED</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_ALLOW_ORIGINS</code></td>
+<td><code>*</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_ALLOW_METHODS</code></td>
+<td><code>GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_ALLOW_HEADERS</code></td>
+<td><code>Origin,Content-Type,Authorization</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_EXPOSE_HEADERS</code></td>
+<td><code>X-Request-ID,X-API-Version</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_ALLOW_CREDENTIALS</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>HTTP_CORS_MAX_AGE</code></td>
+<td><code>12h</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>HTTP_DOCS_ENABLED=true</code> serves <code>/docs</code> and <code>/openapi.json</code> from the registered
+operations. Disable it to hide both endpoints. No file generation is required.</p>
+<p>There is one application listener. <code>HTTP_READINESS_DEPENDENCIES=true</code> probes the
+configured database, queue Redis and limiter Redis under one shared deadline.
+Cache, SMTP and telemetry are excluded; <code>/healthz</code> never probes dependencies.
+A worker-only process has no HTTP health listener. See
+<a href="application-lifecycle.html#startup-and-readiness">readiness</a>.</p>
+<p>Origins, methods and header lists are comma-separated. Wildcard origins cannot
+be combined with credentialed CORS. For a browser that needs to read request IDs,
+<code>X-Request-ID</code> and <code>X-API-Version</code> are exposed by default through <code>HTTP_CORS_EXPOSE_HEADERS</code>. CORS is browser policy, not access
+control; bearer authorization still applies. See <a href="middleware.html">middleware</a>.</p>
+<p>Administrative paths under <code>/admin</code> are excluded from business CORS. Both built-in
+dashboards require their separate Basic Auth credentials, reject cross-origin
+reads and mutations, disable caching and framing, and must be served over HTTPS
+outside local development. Preserve the external Host through your ingress.</p>
+<p><code>HTTP_TRUSTED_PROXIES</code> is a comma-separated list of explicit IPv4/IPv6 CIDRs for
+controlled ingress proxies. It is empty by default; <code>/0</code>, hostnames and wildcard
+trust are rejected. Only a trusted immediate peer can supply <code>X-Forwarded-For</code>.
+The server walks the chain from right to left through trusted hops and selects
+the first untrusted address. It ignores <code>Forwarded</code> and <code>X-Real-IP</code>, never changes
+Host or scheme from forwarding headers, and rejects malformed or duplicate
+<code>X-Forwarded-For</code> fields from a trusted peer (maximum 32 addresses / 4096 bytes).
+A missing header falls back to the immediate peer.</p>
+<p>Secure the proxy-to-backend network and prevent untrusted workloads from using
+trusted source addresses. The public ingress must discard incoming forwarding
+claims and rebuild the chain; later trusted proxies append their observed peer.
+Use exact proxy ranges, not an entire shared cluster network. Client IP affects
+HTTP/OTP rate limits and session client metadata, never user authorization.
+See <a href="deployment.html#ingress-and-readiness">ingress and readiness</a>.</p>
+<h2 id="queues-and-local-events">Queues and local events<a class="heading-link" href="#queues-and-local-events" aria-label="Link to Queues and local events">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>QUEUE_DASHBOARD_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_DASHBOARD_USERNAME</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>QUEUE_DASHBOARD_PASSWORD</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>QUEUE_ROUTES</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>QUEUE_REDIS_URL</code></td>
+<td><code>redis://127.0.0.1:6379/1</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_DEFAULT</code></td>
+<td><code>default</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_CONCURRENCY</code></td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_STRICT_PRIORITY</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_SHUTDOWN_TIMEOUT</code></td>
+<td><code>15s</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_DEFAULT_PRIORITY</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>QUEUE_HIGH_PRIORITY</code></td>
+<td><code>3</code></td>
+</tr>
+<tr>
+<td><code>EVENTS_DRIVER</code></td>
+<td><code>gochannel</code></td>
+</tr>
+<tr>
+<td><code>EVENTS_SHUTDOWN_TIMEOUT</code></td>
+<td><code>10s</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>QUEUE_ROUTES</code> maps exact task names to configured queues, for example
+<code>identity.welcome.v1=high,mail.send.v1=default</code>. Unlisted tasks use <code>QUEUE_DEFAULT</code>.
+The queue names are defined in <code>config/queues.go</code>; <code>QUEUE_&lt;NAME&gt;_PRIORITY</code> overrides
+each weight. Priorities must be positive. Concurrency is total active tasks per
+process, not per queue. Strict priority can starve lower-priority queues.</p>
+<p>Retries and per-attempt timeouts belong to task options, not global environment
+settings. Native retry/classification callbacks can be supplied in Go.
+<code>QUEUE_WEIGHTS</code>, <code>QUEUE_NAME</code> and database-queue settings are not supported.</p>
+<p>Command scheduling enables the <code>app.command</code> handler and allowlisted factories;
+the scheduler switch separately starts recurring enqueue. Enable command handling
+on every consuming worker. The notification dispatcher runs with workers without
+the cron scheduler. Administrative CLI commands and the authenticated Asynq
+HTTP dashboard are separately opt-in. Dashboard credentials are required when enabled.</p>
+<p><code>EVENTS_DRIVER</code> accepts only <code>gochannel</code>. Events and poison messages are process-local
+and ephemeral. NATS/RabbitMQ development containers do not create application drivers.
+See <a href="queue-jobs.html">tasks</a>, <a href="scheduling.html">scheduling</a> and
+<a href="events.html">events</a>.</p>
+<h2 id="optional-cache">Optional cache<a class="heading-link" href="#optional-cache" aria-label="Link to Optional cache">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CACHE_DRIVER</code></td>
+<td><code>disabled</code></td>
+</tr>
+<tr>
+<td><code>CACHE_NAMESPACE</code></td>
+<td><code>default</code></td>
+</tr>
+<tr>
+<td><code>CACHE_MAX_ENTRY_BYTES</code></td>
+<td><code>1048576</code></td>
+</tr>
+<tr>
+<td><code>CACHE_MEMORY_MAX_BYTES</code></td>
+<td><code>67108864</code></td>
+</tr>
+<tr>
+<td><code>CACHE_MEMORY_CAPACITY</code></td>
+<td><code>10000</code></td>
+</tr>
+<tr>
+<td><code>CACHE_REDIS_URL</code></td>
+<td><code>redis://127.0.0.1:6379/0</code></td>
+</tr>
+<tr>
+<td><code>CACHE_DATABASE_TABLE</code></td>
+<td><code>cache_entries</code></td>
+</tr>
+<tr>
+<td><code>CACHE_OPERATION_TIMEOUT</code></td>
+<td><code>5s</code></td>
+</tr>
+</tbody>
+</table>
+<p>Only the selected cache driver&#39;s settings are validated. Redis/database zero
+limits and timeouts resolve to their owner defaults; memory requires positive
+capacity and entry size, while zero memory byte budget selects 64 MiB. Disabled
+cache and unselected driver settings do not require operational configuration.
+Selected namespace/table mistakes fail before connections open.</p>
+<p>Drivers are <code>disabled</code>, <code>memory</code>, <code>database</code> and <code>redis</code>. Memory budgets apply per
+process. Database cache uses the configured Bun pool; publish its table with
+<code>go run ./cmd/cli cache tables</code>, then apply it with <code>migrate up</code>. Changing
+<code>CACHE_DATABASE_TABLE</code> does not rename an existing table. Expired SQL rows need
+explicit <code>PruneExpired</code> work; no cleaner starts automatically.</p>
+<p>Use an explicit namespace per app/environment. Queue, cache and authentication
+limits must not share a Redis database: configuration rejects matching configured
+address/database pairs. Different DB numbers do not isolate resource pressure or
+outages. Do not flush Redis to resolve task or authentication failures. See
+<a href="cache.html">cache</a>.</p>
+<h2 id="mail-and-mail-views">Mail and mail views<a class="heading-link" href="#mail-and-mail-views" aria-label="Link to Mail and mail views">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MAIL_HOST</code></td>
+<td><code>sandbox.smtp.mailtrap.io</code></td>
+</tr>
+<tr>
+<td><code>MAIL_PORT</code></td>
+<td><code>2525</code></td>
+</tr>
+<tr>
+<td><code>MAIL_USERNAME</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>MAIL_PASSWORD</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>MAIL_FROM_ADDRESS</code></td>
+<td><code>no-reply@example.com</code></td>
+</tr>
+<tr>
+<td><code>MAIL_FROM_NAME</code></td>
+<td><code>Labena</code></td>
+</tr>
+<tr>
+<td><code>MAIL_BRAND_NAME</code></td>
+<td><code>Labena</code></td>
+</tr>
+<tr>
+<td><code>MAIL_ACCENT_COLOR</code></td>
+<td><code>#1D4ED8</code></td>
+</tr>
+<tr>
+<td><code>MAIL_LOGO_URL</code></td>
+<td><code>https://placehold.co/80x80/172554/FFFFFF.png?text=L</code></td>
+</tr>
+<tr>
+<td><code>MAIL_WEBSITE_URL</code></td>
+<td><code>https://example.com</code></td>
+</tr>
+<tr>
+<td><code>MAIL_SUPPORT_EMAIL</code></td>
+<td><code>support@example.com</code></td>
+</tr>
+<tr>
+<td><code>MAIL_FOOTER</code></td>
+<td><code>Account updates, thoughtfully delivered.</code></td>
+</tr>
+</tbody>
+</table>
+<p>Immediate SMTP attachments default to 20 MiB total raw bytes. Override
+<code>config.MailConfig.MaxAttachmentBytes</code> in Go if needed; zero uses the default.
+Queued mail still rejects attachment readers and limits its encoded message to
+64 KiB. SMTP options use the same pure validator as standalone mail.
+The sender address is required by app; standalone SMTP may receive From per message.</p>
+<p>Mail is always wired into the app. Startup constructs a verified STARTTLS SMTP sender,
+wraps it with the existing optional Asynq enqueue capability, and registers
+<code>mail.send.v1</code>. Sending opens a connection; startup does not prove SMTP delivery.
+Set username and password together. SMTP and brand settings always validate;
+rendering and previews do not open a connection.</p>
+<p>Send is immediate; Enqueue stores a rendered snapshot in Redis. Both reject caller
+SQL transactions. OTP mail stays immediate. For transactional multi-channel intent,
+use <code>Notifier.Enqueue</code>. Replace example addresses, artwork and branding before
+real delivery. See <a href="mail.html">mail</a> and <a href="templates.html">templates</a>.</p>
+<h2 id="identity-authentication">Identity authentication<a class="heading-link" href="#identity-authentication" aria-label="Link to Identity authentication">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AUTH_GOOGLE_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_CLIENT_ID</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>AUTH_GOOGLE_TRUSTED_PRESENTER_IDS</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>AUTH_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>AUTH_ACCESS_TOKEN_KEY</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>AUTH_TOKEN_ISSUER</code></td>
+<td><code>go-modular</code></td>
+</tr>
+<tr>
+<td><code>AUTH_TOKEN_AUDIENCE</code></td>
+<td><code>go-modular-api</code></td>
+</tr>
+<tr>
+<td><code>AUTH_ACCESS_TTL</code></td>
+<td><code>168h</code></td>
+</tr>
+<tr>
+<td><code>AUTH_REFRESH_TTL</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>AUTH_SESSION_TTL</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><code>AUTH_PHONE_VERIFICATION_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>AUTH_VERIFICATION_KEY</code></td>
+<td>unset</td>
+</tr>
+</tbody>
+</table>
+<p><code>AUTH_ENABLED</code> enables the single email OTP signup/sign-in flow, refresh
+and session endpoints. It requires PostgreSQL, configured mail, both keys and the
+shared Redis limiter. Sending a code returns 202; confirming it returns 201 for a
+new account or 200 for an existing account, with the user and profile-completion state.
+Phone verification is not implemented; enabling it fails validation.</p>
+<p>The two keys must be independently generated, different base64-encoded 32-byte
+values. Store them as secrets and share them across replicas. Access signing-key
+replacement invalidates existing access tokens; overlapping keys are not supported.
+Verification-key replacement invalidates outstanding challenges and changes abuse
+budget keys. Never use example placeholders as credentials.</p>
+<p>Access lifetime must be 1 minute through 7 days (default: <code>168h</code>). Zero refresh/session lifetime
+means no time-based expiry for that limit; rotation, logout and revocation still
+apply. Positive refresh/session bounds are 30/90 days respectively, with access
+no longer than either finite bound and refresh no longer than a finite session.
+Use <code>168h</code> refresh and <code>720h</code> session for seven-day inactivity and a 30-day absolute
+limit. Identity&#39;s SessionPolicy owns validation. Concurrent sessions are controlled
+by <code>domain.AllowConcurrentSessions</code> in Go.</p>
+<p>Google also requires authentication enabled and the configured client ID as token
+audience. Additional trusted presenter IDs authorize <code>azp</code>, not additional audiences.
+Provider linking is not implemented; matching an existing email returns a conflict.
+See <a href="identity.html">Identity</a> for exact routes and account behavior.</p>
+<h2 id="rate-limits">Rate limits<a class="heading-link" href="#rate-limits" aria-label="Link to Rate limits">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>API_RATE_LIMIT_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>RATE_LIMIT_REDIS_URL</code></td>
+<td><code>redis://127.0.0.1:6379/2</code></td>
+</tr>
+<tr>
+<td><code>RATE_LIMIT_NAMESPACE</code></td>
+<td><code>go-modular</code></td>
+</tr>
+<tr>
+<td><code>API_RATE_LIMIT_REQUESTS</code></td>
+<td><code>120</code></td>
+</tr>
+<tr>
+<td><code>API_RATE_LIMIT_BURST</code></td>
+<td><code>120</code></td>
+</tr>
+<tr>
+<td><code>API_RATE_LIMIT_PERIOD</code></td>
+<td><code>1m</code></td>
+</tr>
+</tbody>
+</table>
+<p>The broad <code>/api/v1</code> limiter is opt-in. Identity still requires its narrower service
+limits whenever auth or email verification is enabled. Redis failures fail closed;
+limits are not bypassed. Namespace must match across replicas. Counts describe a
+burst and gradual replenishment over the period. Health routes are exempt.
+See <a href="identity.html#shared-rate-limiting">Identity rate limits</a>.</p>
+<h2 id="notifications-and-push">Notifications and push<a class="heading-link" href="#notifications-and-push" aria-label="Link to Notifications and push">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NOTIFICATION_DISPATCH_INTERVAL</code></td>
+<td><code>1s</code></td>
+</tr>
+<tr>
+<td><code>PUSH_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>PUSH_EXPO_PROJECT_ID</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>PUSH_EXPO_ACCESS_TOKEN</code></td>
+<td>unset</td>
+</tr>
+</tbody>
+</table>
+<p>Notification dispatch runs in worker processes; zero interval selects one second,
+and a positive interval must be at least 100ms. Persistent delivery requires
+PostgreSQL, Redis and a worker; adding email or push requires the corresponding
+sender. Dispatch is independent of the cron scheduler.</p>
+<p>Push is opt-in and uses Expo. A project UUID is required when enabled; the access
+token is required by Expo when enhanced push security is enabled. Keep provider
+credentials only on the server. Receipt polling uses the existing dispatcher and
+worker, not a separate container. See <a href="notifications.html">notifications</a>
+and <a href="push.html">push</a> for subscriptions, receipts and limits.</p>
+<h2 id="optional-tracing-and-metrics">Optional tracing and metrics<a class="heading-link" href="#optional-tracing-and-metrics" aria-label="Link to Optional tracing and metrics">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TRACING_TRUST_INCOMING</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>TRACING_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_TRACES_ENDPOINT</code></td>
+<td><code>http://localhost:4318/v1/traces</code></td>
+</tr>
+<tr>
+<td><code>TRACING_SAMPLE_RATIO</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>TRACING_EXPORT_TIMEOUT</code></td>
+<td><code>5s</code></td>
+</tr>
+<tr>
+<td><code>TRACING_SHUTDOWN_TIMEOUT</code></td>
+<td><code>3s</code></td>
+</tr>
+<tr>
+<td><code>METRICS_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>METRICS_ADDRESS</code></td>
+<td><code>127.0.0.1:9090</code></td>
+</tr>
+</tbody>
+</table>
+<p>Tracing and metrics are independent. The trace endpoint is a complete OTLP HTTP
+traces URL. In containers, localhost means that container; select a reachable
+collector. Trust incoming propagation only at an intentional trusted boundary.
+<code>APP_NAME</code> supplies both telemetry identities.</p>
+<p>Metrics use a separate listener. Give host processes distinct addresses and keep
+metrics private. Tracing export failures do not fail business operations; bounded
+buffers may lose spans. See <a href="observability.html">observability</a>.</p>
+<h2 id="filesystems">Filesystems<a class="heading-link" href="#filesystems" aria-label="Link to Filesystems">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FILESYSTEM_ADDITIONAL_DISKS</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_DISK</code></td>
+<td><code>minio</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>FILESYSTEM_DISK</code> selects a named definition from <code>config/filesystems.go</code>, not a
+driver. <code>disabled</code> omits the default disk. <code>FILESYSTEM_ADDITIONAL_DISKS</code> explicitly
+opens other configured names even when the default is disabled. Unselected disks
+stay unopened. Definitions are local, s3, minio, spaces, gcs and azure; MinIO and
+Spaces use the S3 driver. Adding a named disk in Go exposes its prefixed fields.</p>
+<p>For each definition, substitute its uppercase name for <code>&lt;NAME&gt;</code> below. The selected
+driver uses only relevant fields: local uses ROOT; S3 uses BUCKET, REGION, ENDPOINT,
+USE_PATH_STYLE and its key fields; GCS uses BUCKET and CREDENTIALS_FILE; Azure uses
+BUCKET, ENDPOINT, ACCOUNT_NAME and ACCOUNT_KEY. Other fields are ignored.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_VISIBILITY</code></td>
+<td><code>public</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_URL_MODE</code></td>
+<td><code>internal</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_PUBLIC_URL</code></td>
+<td><code>unset</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_ROOT</code></td>
+<td><code>storage/app</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_BUCKET</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_REGION</code></td>
+<td><code>us-east-1</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_ENDPOINT</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_USE_PATH_STYLE</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_ACCESS_KEY_ID</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_SECRET_ACCESS_KEY</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_SESSION_TOKEN</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_CREDENTIALS_FILE</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_ACCOUNT_NAME</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_&lt;NAME&gt;_ACCOUNT_KEY</code></td>
+<td>unset</td>
+</tr>
+</tbody>
+</table>
+<p>MinIO overrides the generic defaults with these development fixtures:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FILESYSTEM_MINIO_BUCKET</code></td>
+<td><code>uploads</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_MINIO_ENDPOINT</code></td>
+<td><code>http://127.0.0.1:9000</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_MINIO_USE_PATH_STYLE</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_MINIO_ACCESS_KEY_ID</code></td>
+<td><code>demo</code></td>
+</tr>
+<tr>
+<td><code>FILESYSTEM_MINIO_SECRET_ACCESS_KEY</code></td>
+<td><code>local-demo-minio</code></td>
+</tr>
+</tbody>
+</table>
+<p>S3, GCS and Azure support their native credential chains when explicit credentials
+are absent. Mount credential files read-only. Cloud buckets/containers must already
+exist; Compose/Tilt storage setup creates the development MinIO bucket. Host MinIO
+uses the address above; containers use <code>http://minio:9000</code>.</p>
+<p>Local storage needs a writable root and deliberate shared storage for multiple
+replicas. Changing a disk name or location does not migrate existing assets.
+See <a href="filesystems.html">filesystems</a> and <a href="media.html">Media</a>.</p>
+<h2 id="diagnose-configuration-failures">Diagnose configuration failures<a class="heading-link" href="#diagnose-configuration-failures" aria-label="Link to Diagnose configuration failures">#</a></h2>
+<p>Start with the selected file, existing process overrides and the relevant section
+above. Avoid dumping an entire environment or connection URL into a bug report.
+CLI help also constructs the application and can fail on unavailable resources.
+Use the <a href="troubleshooting.html">troubleshooting guide</a> to locate the failing
+stage and choose a recovery action.</p>
+<h2 id="media-urls">Media URLs<a class="heading-link" href="#media-urls" aria-label="Link to Media URLs">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MEDIA_BASE_URL</code></td>
+<td><code>http://localhost:8080/api/v1/media</code></td>
+</tr>
+<tr>
+<td><code>MEDIA_SIGNING_KEY</code></td>
+<td>unset</td>
+</tr>
+</tbody>
+</table>
+<p><code>MEDIA_BASE_URL</code> is the browser-reachable media route prefix, not a bucket URL.
+Set it to your HTTPS API origin and <code>/api/v1/media</code> in production. An absolute
+path is also supported for same-origin clients. Never derive it from request headers.
+<code>MEDIA_SIGNING_KEY</code> is an optional independent base64-encoded 32-byte secret shared
+across replicas. It enables temporary links; without it, public URLs and authenticated
+private downloads still work. Rotation invalidates existing temporary links.</p>
+<h2 id="check-a-configuration-change">Check a configuration change<a class="heading-link" href="#check-a-configuration-change" aria-label="Link to Check a configuration change">#</a></h2>
+<p>After editing a profile, restart the affected process and verify the capability&#39;s
+public boundary: a readiness probe, representative request, queue inspection, or
+provider test appropriate to the change. Environment values do not hot-reload.</p>
+<p>Do not print a full decoded config to diagnose it. DSNs, provider tokens, signing
+keys, and SMTP credentials require private handling even when some structs omit
+them from JSON. CLI help constructs resources too; it is not a connection-free
+validation command.</p>
+<p>When adding or renaming a setting in code, update this reference and its focused
+check:</p>
+<pre><code class="language-sh">go test ./internal/app/config -run TestConfigurationReferenceMatchesDefaults
+</code></pre>
+<p>Then verify the examples, Compose interpolation, and Kubernetes ConfigMap/Secret
+wiring that consume it. An environment key listed in a document but no longer read
+by the code is ignored; there is no automatic alias or migration layer.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="testing-async.html"><small>← Previous</small>Tasks and events</a>
+<a href="api-reference.html"><small>Next →</small>API reference</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#find-the-setting-you-need">Find the setting you need</a></li><li class="toc-level-2"><a href="#application-and-logging">Application and logging</a></li><li class="toc-level-2"><a href="#database">Database</a></li><li class="toc-level-2"><a href="#http-and-cors">HTTP and CORS</a></li><li class="toc-level-2"><a href="#queues-and-local-events">Queues and local events</a></li><li class="toc-level-2"><a href="#optional-cache">Optional cache</a></li><li class="toc-level-2"><a href="#mail-and-mail-views">Mail and mail views</a></li><li class="toc-level-2"><a href="#identity-authentication">Identity authentication</a></li><li class="toc-level-2"><a href="#rate-limits">Rate limits</a></li><li class="toc-level-2"><a href="#notifications-and-push">Notifications and push</a></li><li class="toc-level-2"><a href="#optional-tracing-and-metrics">Optional tracing and metrics</a></li><li class="toc-level-2"><a href="#filesystems">Filesystems</a></li><li class="toc-level-2"><a href="#diagnose-configuration-failures">Diagnose configuration failures</a></li><li class="toc-level-2"><a href="#media-urls">Media URLs</a></li><li class="toc-level-2"><a href="#check-a-configuration-change">Check a configuration change</a></li></ol></nav><a class="source-link" href="markdown/configuration-reference.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

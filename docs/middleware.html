@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Middleware — Practical guides and Go examples for Labena.">
+<title>Middleware — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/middleware.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a class="selected" aria-current="page" href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav></details>
+<article><h1 id="middleware">Middleware</h1>
+<p>Application middleware uses Huma&#39;s <code>func(huma.Context, func(huma.Context))</code> shape.
+Server-wide policies use standard <code>func(http.Handler) http.Handler</code> middleware.</p>
+<h2 id="request-logging-is-built-in">Request logging is built in<a class="heading-link" href="#request-logging-is-built-in" aria-label="Link to Request logging is built in">#</a></h2>
+<p><code>api.New</code> installs one request logger around recovery. Completed and aborted
+requests produce an <code>HTTP request</code> entry with the server, method, route template,
+status and duration. Unmatched routes use <code>unmatched</code>. The context logger supplies
+request/trace correlation. Raw paths, query strings, headers and bodies are excluded.</p>
+<p>Responses below 400 use INFO, 4xx WARN and 5xx ERROR. A stream&#39;s recorded status is
+the status already committed; an aborted transport is marked separately.
+Upgrades record handler lifetime rather than individual messages. Redirects and
+unmatched routes also pass through the same policies. Logging lives in <code>api/http.go</code>. See <a href="logging.html">logging</a> for output settings.</p>
+<h2 id="write-and-scope-middleware">Write and scope middleware<a class="heading-link" href="#write-and-scope-middleware" aria-label="Link to Write and scope middleware">#</a></h2>
+<p>A module can add bounded context fields:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-function">CatalogContext</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">next</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    request <span class="go-operator">:=</span> <span class="go-parameter">ctx</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+    logger <span class="go-operator">:=</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-1">(</span>request<span class="go-bracket-1">)</span><span class="go-punctuation">.</span><span class="go-function">With</span><span class="go-bracket-1">(</span><span class="go-string">&#34;component&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;catalog.http&#34;</span><span class="go-bracket-1">)</span>
+    <span class="go-parameter">next</span><span class="go-bracket-1">(</span><span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">WithContext</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-package">logging</span><span class="go-punctuation">.</span><span class="go-function">WithLogger</span><span class="go-bracket-3">(</span>request<span class="go-punctuation">,</span> logger<span class="go-bracket-3">)</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Imports are Huma and <code>github.com/wisalgroup/labena/pkg/logging</code>. Apply a policy once at the intended scope:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// All subsequently registered operations on this API.</span>
+<span class="go-package">public</span><span class="go-punctuation">.</span><span class="go-function">UseMiddleware</span><span class="go-bracket-0">(</span>CatalogContext<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// Or only operations on a module-owned group.</span>
+catalog <span class="go-operator">:=</span> <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">NewGroup</span><span class="go-bracket-0">(</span>public<span class="go-punctuation">,</span> <span class="go-string">&#34;/catalog&#34;</span><span class="go-bracket-0">)</span>
+catalog<span class="go-punctuation">.</span><span class="go-function">UseMiddleware</span><span class="go-bracket-0">(</span>CatalogContext<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// Or use Operation.Middlewares for one operation.</span>
+</code></pre>
+<p>These are alternatives, not three layers to install together. Use native Huma
+middleware and groups; there is no framework-specific middleware interface.</p>
+<h2 id="reject-a-request">Reject a request<a class="heading-link" href="#reject-a-request" aria-label="Link to Reject a request">#</a></h2>
+<p>Before calling <code>next</code>, write a safe failure and return:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">WriteError</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">Forbidden</span><span class="go-bracket-1">(</span><span class="go-string">&#34;This operation is unavailable.&#34;</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span>
+</code></pre>
+<p><code>response.WriteError</code> uses the same problem details and error classification as handler
+errors. Typed handlers should instead return <code>nil, response.Error(ctx, err)</code> for a service failure. Never write another
+response after headers or stream bytes are committed.</p>
+<h2 id="add-a-standard-http-policy">Add a standard HTTP policy<a class="heading-link" href="#add-a-standard-http-policy" aria-label="Link to Add a standard HTTP policy">#</a></h2>
+<p>Use <code>api.Options.Middleware</code> when a policy must cover infrastructure routes,
+redirects, and unmatched paths too. This example sets a static response header:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> serviceHeader<span class="go-bracket-0">(</span>next http<span class="go-punctuation">.</span>Handler<span class="go-bracket-0">)</span> http<span class="go-punctuation">.</span>Handler <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> http<span class="go-punctuation">.</span>HandlerFunc<span class="go-bracket-1">(</span><span class="go-keyword">func</span><span class="go-bracket-2">(</span>w http<span class="go-punctuation">.</span>ResponseWriter<span class="go-punctuation">,</span> r <span class="go-operator">*</span>http<span class="go-punctuation">.</span>Request<span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+        w<span class="go-punctuation">.</span>Header<span class="go-bracket-3">(</span><span class="go-bracket-3">)</span><span class="go-punctuation">.</span>Set<span class="go-bracket-3">(</span><span class="go-string">&#34;X-Service&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;catalog&#34;</span><span class="go-bracket-3">)</span>
+        next<span class="go-punctuation">.</span>ServeHTTP<span class="go-bracket-3">(</span>w<span class="go-punctuation">,</span> r<span class="go-bracket-3">)</span>
+    <span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// During API construction, before registering routes:</span>
+server<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> api<span class="go-punctuation">.</span>New<span class="go-bracket-0">(</span>api<span class="go-punctuation">.</span>Options<span class="go-bracket-1">{</span>
+    Middleware<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-keyword">func</span><span class="go-bracket-2">(</span>http<span class="go-punctuation">.</span>Handler<span class="go-bracket-2">)</span> http<span class="go-punctuation">.</span>Handler<span class="go-bracket-2">{</span>serviceHeader<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>net/http</code> and the API package, handle the constructor error, and serve
+<code>server</code>. The list runs in declaration order on the way in, then unwinds on return.
+App already supplies its CORS policy; avoid installing another competing layer.</p>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>API</th>
+<th>Typical purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every HTTP request</td>
+<td><code>api.Options.Middleware</code></td>
+<td>Headers, CORS, proxy-specific policy</td>
+</tr>
+<tr>
+<td>Business API group</td>
+<td><code>group.UseMiddleware</code></td>
+<td>Shared authentication or module context</td>
+</tr>
+<tr>
+<td>One operation</td>
+<td><code>huma.Operation.Middlewares</code></td>
+<td>Multipart parsing or an endpoint-specific check</td>
+</tr>
+</tbody>
+</table>
+<h2 id="understand-order">Understand order<a class="heading-link" href="#understand-order" aria-label="Link to Understand order">#</a></h2>
+<p>The application chain is:</p>
+<ol>
+<li>Server correlation, access logging, recovery, tracing/metrics and standard middleware (CORS).</li>
+<li>Huma public API rate limiting.</li>
+<li>Bearer authentication on protected groups.</li>
+<li>Operation middleware, including multipart bounds.</li>
+<li>Huma binding, schema validation, resolvers (including pagination), then the handler.</li>
+</ol>
+<p>Authentication and rate-limit rejection happen before body reads. Policies run once;
+code after <code>next(ctx)</code> runs on return. Use <code>defer</code> for cleanup that must also run
+when an operation panics or aborts a stream.</p>
+<p><code>api.Authenticated</code> combines bearer enforcement and its OpenAPI security declaration.
+It fails closed with a nil authenticator, preserves operational authentication errors,
+and accepts credentials only from one Authorization header. A trusted principal
+lives in <code>context.Context</code>; handlers use <code>api.Principal</code>, <code>CurrentUserID</code> or
+<code>RequireCurrentUser</code>. A principal is not automatic permission to access another user&#39;s resource.</p>
+<p>Broad limits use the direct connection address, hashed before it becomes a key.
+Forwarding headers cannot alter the budget. Identity also has explicit service-level
+challenge limits. Configure CORS through <code>HTTP_CORS_*</code> and broad limits through
+<code>API_RATE_LIMIT_*</code>; see the <a href="configuration-reference.html">configuration reference</a>.
+The API uses bearer headers, not authentication cookies; CSRF middleware is not installed.</p>
+<h2 id="use-the-context-logger">Use the context logger<a class="heading-link" href="#use-the-context-logger" aria-label="Link to Use the context logger">#</a></h2>
+<p><code>huma.WithContext</code> propagates a derived context through the downstream Huma handler. Derived fields do not mutate the outer
+HTTP request or its access logger. Services receive cancellation, tracing and log correlation using the same
+standard context. Do not store a resource container or arbitrary dependencies there.</p>
+<p>Asynq and Watermill keep their own native middleware contracts: these describe
+different execution lifecycles. See <a href="queue-jobs.html">tasks</a> and <a href="events.html">events</a>.</p>
+<h2 id="test-rejection-and-propagation">Test rejection and propagation<a class="heading-link" href="#test-rejection-and-propagation" aria-label="Link to Test rejection and propagation">#</a></h2>
+<p>Exercise middleware through an HTTP request to the configured server. Verify that
+an early rejection does not call the downstream handler, headers are correct on
+both success and failure, and the derived context reaches the service. For
+multipart endpoints, confirm authentication rejects an unauthorized request before
+file parsing.</p>
+<p>Huma middleware only runs for registered operations. To apply a policy to a 404,
+health probe, or dashboard, use the standard HTTP layer. Context fields added
+inside a Huma group do not retroactively change the outer request access log.</p>
+<p>Continue with <a href="requests.html">request validation</a>, <a href="errors.html">error handling</a>, and
+<a href="observability.html">observability</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="responses.html"><small>← Previous</small>Responses</a>
+<a href="http-client.html"><small>Next →</small>HTTP client</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav><a class="source-link" href="markdown/middleware.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

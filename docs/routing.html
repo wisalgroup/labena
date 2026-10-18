@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Routing — Practical guides and Go examples for Labena.">
+<title>Routing — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/routing.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a class="selected" aria-current="page" href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#register-a-route">Register a route</a></li><li class="toc-level-2"><a href="#choose-a-public-or-protected-route">Choose a public or protected route</a></li><li class="toc-level-2"><a href="#group-routes-and-policies">Group routes and policies</a></li><li class="toc-level-2"><a href="#describe-an-operation">Describe an operation</a></li><li class="toc-level-2"><a href="#path-parameters-and-query-values">Path parameters and query values</a></li><li class="toc-level-2"><a href="#trailing-slashes">Trailing slashes</a></li><li class="toc-level-2"><a href="#server-setup-and-infrastructure">Server setup and infrastructure</a></li><li class="toc-level-2"><a href="#inspect-and-verify-routes">Inspect and verify routes</a></li></ol></nav></details>
+<article><h1 id="routing">Routing</h1>
+<p>A route connects an HTTP method and path to a typed Go handler. Register it with
+<code>huma.Register</code>: the same declaration supplies routing, input validation, and
+OpenAPI. Modules receive ready-to-use APIs through <code>dependencies.Targets</code>.</p>
+<p>Start with <a href="modules.html">your first module</a> if you have not added one yet. This page
+explains how its HTTP routes fit together; <a href="handlers.html">handlers</a> covers the code
+that runs after a request has been validated.</p>
+<h2 id="register-a-route">Register a route<a class="heading-link" href="#register-a-route" aria-label="Link to Register a route">#</a></h2>
+<p>Inside the module&#39;s <code>Register</code> function:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span><span class="go-number">HTTP</span> <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-package">targets</span><span class="go-punctuation">.</span><span class="go-number">HTTP</span><span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-2">{</span>
+        OperationID<span class="go-punctuation">:</span> <span class="go-string">&#34;catalog.greet&#34;</span><span class="go-punctuation">,</span>
+        Method<span class="go-punctuation">:</span>      <span class="go-string">&#34;GET&#34;</span><span class="go-punctuation">,</span>
+        Path<span class="go-punctuation">:</span>        <span class="go-string">&#34;/catalog/hello/{name}&#34;</span><span class="go-punctuation">,</span>
+        Summary<span class="go-punctuation">:</span>     <span class="go-string">&#34;Greet a visitor&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">input</span> <span class="go-operator">*</span><span class="go-type">GreetingRequest</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-3">[</span><span class="go-type">GreetingResponse</span><span class="go-bracket-3">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-3">(</span><span class="go-type">GreetingResponse</span><span class="go-bracket-4">{</span>Message<span class="go-punctuation">:</span> <span class="go-string">&#34;Hello, &#34;</span> <span class="go-operator">+</span> <span class="go-parameter">input</span><span class="go-punctuation">.</span>Name<span class="go-bracket-4">}</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+    <span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Imports: <code>context</code>, <code>github.com/danielgtaylor/huma/v2</code>, and
+<code>github.com/wisalgroup/labena/internal/platform/api/response</code>. The request and response types are:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">GreetingRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Name <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;name&#34; minLength:&#34;1&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">type</span> <span class="go-type">GreetingResponse</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Message <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;message&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>App supplies a group prefixed with <code>/api/v1</code>, so this operation is available at:</p>
+<pre><code class="language-sh">curl http://localhost:8080/api/v1/catalog/hello/Ada
+</code></pre>
+<pre><code class="language-json">{
+  &#34;data&#34;: {&#34;message&#34;: &#34;Hello, Ada&#34;}
+}
+</code></pre>
+<p>This is an alternative registration for the existing Catalog example; do not
+register both versions at the same path. The complete compiling starter lives in
+<code>examples/module/catalog/register.go</code>.</p>
+<p>A nil HTTP target means that transport is omitted. Skip its registration and
+continue registering other module capabilities. Registration installs definitions;
+it starts no listeners, goroutines, or business work.</p>
+<h2 id="choose-a-public-or-protected-route">Choose a public or protected route<a class="heading-link" href="#choose-a-public-or-protected-route" aria-label="Link to Choose a public or protected route">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Use it for</th>
+<th>What it supplies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>targets.HTTP</code></td>
+<td>Public operations such as requesting a sign-in code</td>
+<td>The business API prefix and common policies</td>
+</tr>
+<tr>
+<td><code>targets.AuthenticatedHTTP</code></td>
+<td>Operations requiring a signed-in user</td>
+<td>The same prefix plus bearer enforcement and OpenAPI security</td>
+</tr>
+</tbody>
+</table>
+<p>Use the protected target for account-specific routes:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>AuthenticatedHTTP <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-function">registerAccountRoutes</span><span class="go-bracket-1">(</span><span class="go-package">targets</span><span class="go-punctuation">.</span>AuthenticatedHTTP<span class="go-punctuation">,</span> users<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Here <code>registerAccountRoutes</code> is a module-owned helper accepting <code>huma.API</code> and its
+existing service contract. It receives the service directly; it does not look up
+application resources during a request.</p>
+<p>Authentication proves who is calling. The handler or service must still authorize
+the requested resource. See <a href="handlers.html#authentication-and-policy">handler authorization</a>
+and <a href="identity.html">Identity</a>.</p>
+<h2 id="group-routes-and-policies">Group routes and policies<a class="heading-link" href="#group-routes-and-policies" aria-label="Link to Group routes and policies">#</a></h2>
+<p>Create a group for a shared prefix, tag, or policy. This example belongs in a
+registration helper after checking the target is non-nil:</p>
+<pre><code class="language-go" data-highlighted="yes">catalog <span class="go-operator">:=</span> <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">NewGroup</span><span class="go-bracket-0">(</span><span class="go-package">targets</span><span class="go-punctuation">.</span><span class="go-number">HTTP</span><span class="go-punctuation">,</span> <span class="go-string">&#34;/catalog&#34;</span><span class="go-bracket-0">)</span>
+catalog<span class="go-punctuation">.</span><span class="go-function">UseSimpleModifier</span><span class="go-bracket-0">(</span><span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">op</span> <span class="go-operator">*</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+    <span class="go-parameter">op</span><span class="go-punctuation">.</span>Tags <span class="go-operator">=</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;catalog&#34;</span><span class="go-bracket-2">}</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+
+<span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span>catalog<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">{</span>
+    OperationID<span class="go-punctuation">:</span> <span class="go-string">&#34;catalog.listProducts&#34;</span><span class="go-punctuation">,</span>
+    Method<span class="go-punctuation">:</span>      <span class="go-string">&#34;GET&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>        <span class="go-string">&#34;/products&#34;</span><span class="go-punctuation">,</span>
+    Summary<span class="go-punctuation">:</span>     <span class="go-string">&#34;List products&#34;</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">handler</span><span class="go-punctuation">.</span>list<span class="go-bracket-0">)</span>
+</code></pre>
+<p><code>handler.list</code> is the typed handler you implement for that operation. Its effective
+path is <code>/api/v1/catalog/products</code>. Do not repeat <code>/api/v1</code> in the module.</p>
+<p>Install group middleware and modifiers <strong>before</strong> registering operations. Prefer a
+module-owned child group when changing tags or policies, so unrelated modules do
+not inherit them. Use <code>huma.Register</code> and <code>huma.Operation</code> directly; there is no
+second framework registration API.</p>
+<h2 id="describe-an-operation">Describe an operation<a class="heading-link" href="#describe-an-operation" aria-label="Link to Describe an operation">#</a></h2>
+<p>The most useful operation fields are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>When to set it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OperationID</code></td>
+<td>A stable, unique name for generated clients and route identification</td>
+</tr>
+<tr>
+<td><code>Method</code>, <code>Path</code></td>
+<td>The HTTP method and resource path</td>
+</tr>
+<tr>
+<td><code>Summary</code>, <code>Description</code>, <code>Tags</code></td>
+<td>Short purpose, additional contract details, and documentation grouping</td>
+</tr>
+<tr>
+<td><code>DefaultStatus</code></td>
+<td>Fixed successful status other than the inferred default</td>
+</tr>
+<tr>
+<td><code>Errors</code></td>
+<td>Failure statuses you want explicitly listed in OpenAPI</td>
+</tr>
+<tr>
+<td><code>MaxBodyBytes</code>, <code>BodyReadTimeout</code></td>
+<td>Body size and read deadline appropriate to this operation</td>
+</tr>
+<tr>
+<td><code>Middlewares</code></td>
+<td>A policy belonging only to this operation</td>
+</tr>
+</tbody>
+</table>
+<p>For example, registering a create handler:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span>catalog<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">{</span>
+    OperationID<span class="go-punctuation">:</span>     <span class="go-string">&#34;catalog.createProduct&#34;</span><span class="go-punctuation">,</span>
+    Method<span class="go-punctuation">:</span>          <span class="go-string">&#34;POST&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>            <span class="go-string">&#34;/products&#34;</span><span class="go-punctuation">,</span>
+    Summary<span class="go-punctuation">:</span>         <span class="go-string">&#34;Create a product&#34;</span><span class="go-punctuation">,</span>
+    DefaultStatus<span class="go-punctuation">:</span>   <span class="go-number">201</span><span class="go-punctuation">,</span>
+    Errors<span class="go-punctuation">:</span>          <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">int</span><span class="go-bracket-2">{</span><span class="go-number">401</span><span class="go-punctuation">,</span> <span class="go-number">409</span><span class="go-punctuation">,</span> <span class="go-number">422</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    MaxBodyBytes<span class="go-punctuation">:</span>    <span class="go-number">4096</span><span class="go-punctuation">,</span>
+    BodyReadTimeout<span class="go-punctuation">:</span> <span class="go-number">5</span> <span class="go-operator">*</span> <span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">handler</span><span class="go-punctuation">.</span>create<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>time</code> for this fragment. The handler returns <code>response.Created(result)</code>.
+The status constructor controls the actual response; <code>DefaultStatus</code> describes it
+in OpenAPI. For operations returning more than one successful status, see
+<a href="responses.html#declare-multiple-success-statuses">responses</a>.</p>
+<p>Operation IDs are derived when omitted. Use explicit IDs for a public contract and
+keep them stable when only documentation wording changes. Huma registration and
+ServeMux pattern conflicts are programmer errors; validate routes in tests before
+serving.</p>
+<h2 id="path-parameters-and-query-values">Path parameters and query values<a class="heading-link" href="#path-parameters-and-query-values" aria-label="Link to Path parameters and query values">#</a></h2>
+<p>Use <code>{name}</code> for a path parameter and declare its source on the input:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ProductRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    ID     <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;id&#34; minLength:&#34;1&#34; maxLength:&#34;200&#34;`</span>
+    Locale <span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;locale&#34; default:&#34;en&#34; enum:&#34;en,ar&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Register <code>/products/{id}</code>. The handler reads <code>input.ID</code> and <code>input.Locale</code> after
+binding and validation; it does not parse the URL again. Add body or header fields
+to the same input when needed. See <a href="requests.html">requests</a>.</p>
+<h2 id="trailing-slashes">Trailing slashes<a class="heading-link" href="#trailing-slashes" aria-label="Link to Trailing slashes">#</a></h2>
+<p>Register resource paths without a trailing slash. An unregistered trailing-slash
+variant such as <code>/api/v1/auth/otp/send/</code> redirects to <code>/api/v1/auth/otp/send</code> with
+<strong>308</strong>, preserving the method and body. Query strings and escaped path parameters
+are preserved. Use the canonical path to avoid a round trip.</p>
+<p><code>/docs/</code> redirects to <code>/docs</code>, keeping its relative OpenAPI URL correct. Explicit
+trailing-slash and subtree registrations retain ServeMux semantics. Unknown paths
+remain 404. Repeated separators and dot segments follow Go&#39;s standard path
+cleaning; do not use them as alternate resource URLs.</p>
+<h2 id="server-setup-and-infrastructure">Server setup and infrastructure<a class="heading-link" href="#server-setup-and-infrastructure" aria-label="Link to Server setup and infrastructure">#</a></h2>
+<p><code>api.New(api.Options{})</code> constructs a Huma API backed by <code>http.ServeMux</code>. App creates
+the <code>/api/v1</code> group and supplies it to modules. <code>HTTP_ADDRESS</code> selects the listener.
+App owns serving, readiness, and shutdown.</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /healthz</code></td>
+<td>Liveness</td>
+</tr>
+<tr>
+<td><code>GET /readyz</code></td>
+<td>Startup, dependency, and shutdown readiness</td>
+</tr>
+<tr>
+<td><code>/api/v1/*</code></td>
+<td>Typed business operations</td>
+</tr>
+<tr>
+<td><code>GET /docs</code></td>
+<td>Live interactive API reference</td>
+</tr>
+<tr>
+<td><code>GET /openapi.json</code></td>
+<td>OpenAPI from registered operations</td>
+</tr>
+</tbody>
+</table>
+<p>Infrastructure handlers mount on <code>server.Mux</code> using standard <code>http.Handler</code> APIs.
+Serve <strong><code>server</code></strong> so correlation, logging, recovery, and observability also cover
+those handlers. Serving <code>server.Mux</code> directly bypasses the surrounding policies.
+Health, metrics, dashboards, and standard 404/405 responses retain their own formats.</p>
+<p>For use without full app assembly, <a href="handlers.html#independent-use">construct an API server directly</a>
+and supply it to a standard HTTP server or <code>pkg/httpserver</code>. Finish registration
+before accepting requests.</p>
+<h2 id="inspect-and-verify-routes">Inspect and verify routes<a class="heading-link" href="#inspect-and-verify-routes" aria-label="Link to Inspect and verify routes">#</a></h2>
+<pre><code class="language-sh">go run ./cmd/cli route list
+curl --fail http://localhost:8080/openapi.json
+</code></pre>
+<p>The CLI constructs the application and its configured connections; it does not
+start workers merely to inspect routes. The live specification reflects the
+running instance, so restart after Go code changes. See <a href="api-reference.html">API reference</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>404 after adding a route</td>
+<td>The module Register function is called; the HTTP target is non-nil; the prefix is correct</td>
+</tr>
+<tr>
+<td>405</td>
+<td>The path exists but the HTTP method does not match</td>
+</tr>
+<tr>
+<td>401</td>
+<td>The operation uses the protected target and needs a valid bearer token</td>
+</tr>
+<tr>
+<td>New route absent from <code>/docs</code></td>
+<td>Restart the running binary and confirm its feature settings</td>
+</tr>
+<tr>
+<td>Duplicate registration panic</td>
+<td>One method/path is being registered more than once or patterns conflict</td>
+</tr>
+</tbody>
+</table>
+<p>Continue with <a href="handlers.html">handlers</a>, <a href="requests.html">request validation</a>, and
+<a href="middleware.html">middleware</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="errors.html"><small>← Previous</small>Application errors</a>
+<a href="handlers.html"><small>Next →</small>Handlers</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#register-a-route">Register a route</a></li><li class="toc-level-2"><a href="#choose-a-public-or-protected-route">Choose a public or protected route</a></li><li class="toc-level-2"><a href="#group-routes-and-policies">Group routes and policies</a></li><li class="toc-level-2"><a href="#describe-an-operation">Describe an operation</a></li><li class="toc-level-2"><a href="#path-parameters-and-query-values">Path parameters and query values</a></li><li class="toc-level-2"><a href="#trailing-slashes">Trailing slashes</a></li><li class="toc-level-2"><a href="#server-setup-and-infrastructure">Server setup and infrastructure</a></li><li class="toc-level-2"><a href="#inspect-and-verify-routes">Inspect and verify routes</a></li></ol></nav><a class="source-link" href="markdown/routing.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Installation — Practical guides and Go examples for Labena.">
+<title>Installation — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/index.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a class="selected" aria-current="page" href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Getting started</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#requirements">Requirements</a></li><li class="toc-level-2"><a href="#start-local-dependencies">Start local dependencies</a></li><li class="toc-level-2"><a href="#configure-and-migrate">Configure and migrate</a></li><li class="toc-level-2"><a href="#start-the-application">Start the application</a></li><li class="toc-level-2"><a href="#check-the-app-and-enable-signup">Check the app and enable signup</a></li><li class="toc-level-2"><a href="#run-a-console-command">Run a console command</a></li><li class="toc-level-2"><a href="#follow-the-request-through-the-code">Follow the request through the code</a></li><li class="toc-level-2"><a href="#stop-and-verify">Stop and verify</a></li><li class="toc-level-2"><a href="#if-the-first-run-fails">If the first run fails</a></li></ol></nav></details>
+<article><h1 id="installation">Installation</h1>
+<p>Start the application with PostgreSQL and Redis, confirm that it is ready, then
+choose your next feature. You do not need a cloud account, Kubernetes, or email
+credentials for this first run.</p>
+<p>Want to understand a module first? Run <code>go test ./tests/modules -run TestFirstModule</code>
+and follow <a href="modules.html">your first module</a>. That example runs entirely in process.</p>
+<p>This tutorial runs the template as supplied. To make it your own application,
+follow <a href="upgrading.html">adoption and updates</a> to record the source release, rename
+the module and establish how you will incorporate future security fixes.</p>
+<h2 id="requirements">Requirements<a class="heading-link" href="#requirements" aria-label="Link to Requirements">#</a></h2>
+<ul>
+<li>The Go version declared in <code>go.mod</code> (<code>go version</code> shows your installed version).</li>
+<li>Docker for the two disposable services below.</li>
+<li>Two terminals, opened at the repository root.</li>
+</ul>
+<p>The installed application uses PostgreSQL, Redis-backed Asynq tasks, and
+process-local Watermill events. Redis persists tasks; local events do not persist.</p>
+<h2 id="start-local-dependencies">Start local dependencies<a class="heading-link" href="#start-local-dependencies" aria-label="Link to Start local dependencies">#</a></h2>
+<p>These containers use dedicated host ports and disposable data. The credentials
+below are tutorial values only:</p>
+<pre><code class="language-sh">docker run --rm -d --name go-modular-quickstart-postgres \
+  -e POSTGRES_USER=demo -e POSTGRES_PASSWORD=local-demo \
+  -e POSTGRES_DB=go_modular -p 127.0.0.1:55432:5432 postgres:17-alpine
+
+docker run --rm -d --name go-modular-quickstart-redis \
+  -p 127.0.0.1:56379:6379 redis:7-alpine
+</code></pre>
+<p>Check both services before starting the application:</p>
+<pre><code class="language-sh">docker exec go-modular-quickstart-postgres pg_isready -U demo -d go_modular
+docker exec go-modular-quickstart-redis redis-cli ping
+</code></pre>
+<p>Expect <code>accepting connections</code> and <code>PONG</code>. PostgreSQL may need a few seconds;
+repeat the readiness check if it is still starting. For retained data, see
+<a href="local-development.html">local development</a>.</p>
+<h2 id="configure-and-migrate">Configure and migrate<a class="heading-link" href="#configure-and-migrate" aria-label="Link to Configure and migrate">#</a></h2>
+<p>Select the supplied tutorial profile in the first terminal:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env.quickstart.example
+go run ./cmd/cli migrate up
+</code></pre>
+<p>This profile points to the two containers above. It disables authentication,
+cache, storage, push, scheduling and telemetry. Mail is always constructed, but
+SMTP connects only when sending: this tutorial sends no email.</p>
+<p><code>migrate up</code> applies the registered Goose migrations and returns to your prompt.
+Migrations are explicit; starting the server never changes the schema. Confirm
+that there are no pending migrations:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate status
+</code></pre>
+<p>Existing shell variables override the profile. An unexpected database, credential
+error or exporter usually means an inherited override; review
+<a href="configuration.html#understand-precedence">configuration precedence</a>.</p>
+<h2 id="start-the-application">Start the application<a class="heading-link" href="#start-the-application" aria-label="Link to Start the application">#</a></h2>
+<p>In the same terminal:</p>
+<pre><code class="language-sh">go run ./cmd/app
+</code></pre>
+<p>The app main explicitly starts HTTP, queue workers, local event subscribers and the
+notification dispatcher. Run cmd/scheduler separately when recurring maintenance is needed. Leave this
+terminal running.</p>
+<h2 id="check-the-app-and-enable-signup">Check the app and enable signup<a class="heading-link" href="#check-the-app-and-enable-signup" aria-label="Link to Check the app and enable signup">#</a></h2>
+<p>In the second terminal:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/healthz
+curl -i http://127.0.0.1:8080/readyz
+</code></pre>
+<p>Both return <strong>200</strong> after successful startup. <code>/healthz</code> checks the HTTP listener;
+<code>/readyz</code> checks application startup/shutdown state. Dependency probes are a
+separate <a href="application-lifecycle.html#startup-and-readiness">readiness option</a>.</p>
+<p>Open <a href="http://127.0.0.1:8080/docs">the running API documentation</a>, or inspect its
+current schema:</p>
+<pre><code class="language-sh">curl http://127.0.0.1:8080/openapi.json
+</code></pre>
+<p>These routes reflect the registered application immediately. No OpenAPI generation
+command is required after editing a route.</p>
+<p>The quickstart has authentication disabled, so protected routes intentionally
+reject requests. To try signup/sign-in, copy the tutorial profile into your own
+local file, configure SMTP and Identity keys, and follow
+<a href="identity.html#email-otp-configuration-and-security">Identity setup</a>. Do not use
+<code>.env.example</code> without filling its enabled capabilities&#39; credentials.</p>
+<table>
+<thead>
+<tr>
+<th>Ready to try…</th>
+<th>Continue with…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An endpoint you can change</td>
+<td><a href="modules.html">Your first module</a></td>
+</tr>
+<tr>
+<td>Email OTP and social sign-in</td>
+<td><a href="identity.html">Identity</a></td>
+</tr>
+<tr>
+<td>A stored account through HTTP and CLI</td>
+<td><a href="persistent-workflow.html">Persisted operation walkthrough</a></td>
+</tr>
+<tr>
+<td>A background task</td>
+<td><a href="queues.html">Queues</a></td>
+</tr>
+<tr>
+<td>The full container stack</td>
+<td><a href="local-development.html">Local development</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="run-a-console-command">Run a console command<a class="heading-link" href="#run-a-console-command" aria-label="Link to Run a console command">#</a></h2>
+<p>Select the same profile in the second terminal:</p>
+<pre><code class="language-sh">export APP_ENV_FILE=.env.quickstart.example
+go run ./cmd/cli help
+go run ./cmd/cli route list
+</code></pre>
+<p>Help lists nested command paths. <code>route list</code> prints methods, paths and operation
+names without opening another HTTP listener. Ordinary CLI commands construct and
+connect the application but do not run workers, subscribers or schedules.
+See <a href="console.html">console commands</a> for the complete execution model.</p>
+<h2 id="follow-the-request-through-the-code">Follow the request through the code<a class="heading-link" href="#follow-the-request-through-the-code" aria-label="Link to Follow the request through the code">#</a></h2>
+<p>When reading the supplied Identity module, follow this sequence:</p>
+<table>
+<thead>
+<tr>
+<th>Responsibility</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Register an operation and its schema</td>
+<td><code>internal/modules/identity/delivery/http/routes.go</code></td>
+</tr>
+<tr>
+<td>Decode input and map service arguments</td>
+<td><code>internal/modules/identity/delivery/http/requests.go</code></td>
+</tr>
+<tr>
+<td>Authorize and call the operation</td>
+<td><code>internal/modules/identity/delivery/http/*_handler.go</code></td>
+</tr>
+<tr>
+<td>Apply business rules</td>
+<td><code>internal/modules/identity/service</code></td>
+</tr>
+<tr>
+<td>Execute queries</td>
+<td><code>internal/modules/identity/repository</code></td>
+</tr>
+<tr>
+<td>Define the user and its invariants</td>
+<td><code>internal/modules/shared/entities</code></td>
+</tr>
+<tr>
+<td>Construct and connect the module</td>
+<td><code>internal/modules/identity/register.go</code>, <code>internal/app/modules.go</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="structure.html">directory map</a> and <a href="dependency-injection.html">dependency guide</a>
+explain why these pieces are separate and where shared capabilities fit.</p>
+<h2 id="stop-and-verify">Stop and verify<a class="heading-link" href="#stop-and-verify" aria-label="Link to Stop and verify">#</a></h2>
+<p>Press <strong>Ctrl+C</strong> in the application terminal. The application drains admitted work
+within its shutdown budget, then closes owned resources. Remove the tutorial
+containers when finished; this deletes their disposable data:</p>
+<pre><code class="language-sh">docker rm -f go-modular-quickstart-postgres go-modular-quickstart-redis
+</code></pre>
+<p>For a quick source check:</p>
+<pre><code class="language-sh">go test ./tests/modules -run TestFirstModule -count=1
+go vet ./...
+</code></pre>
+<p>Use the <a href="testing.html">testing guide</a> for the full suite and disposable integration
+services. Tests that skip because their service settings are absent have not
+verified those integrations.</p>
+<h2 id="if-the-first-run-fails">If the first run fails<a class="heading-link" href="#if-the-first-run-fails" aria-label="Link to If the first run fails">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Docker reports a name already in use</td>
+<td>A previous tutorial container is still running</td>
+</tr>
+<tr>
+<td>Database connection refused</td>
+<td>PostgreSQL readiness and host port <code>55432</code></td>
+</tr>
+<tr>
+<td>Redis connection refused</td>
+<td>Redis readiness and host port <code>56379</code></td>
+</tr>
+<tr>
+<td>Credentials or unexpected services are required</td>
+<td><code>APP_ENV_FILE</code> and inherited process variables</td>
+</tr>
+<tr>
+<td>HTTP address is already in use</td>
+<td>Another app, Compose or Tilt process owns port <code>8080</code></td>
+</tr>
+<tr>
+<td>Protected endpoint returns an error</td>
+<td>Authentication is intentionally off in this tutorial</td>
+</tr>
+</tbody>
+</table>
+<p>Continue with <a href="configuration.html">configuration</a>, then
+<a href="modules.html">your first module</a>. More detailed symptoms are covered in
+<a href="troubleshooting.html">troubleshooting</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<span></span>
+<a href="upgrading.html"><small>Next →</small>Adoption and updates</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#requirements">Requirements</a></li><li class="toc-level-2"><a href="#start-local-dependencies">Start local dependencies</a></li><li class="toc-level-2"><a href="#configure-and-migrate">Configure and migrate</a></li><li class="toc-level-2"><a href="#start-the-application">Start the application</a></li><li class="toc-level-2"><a href="#check-the-app-and-enable-signup">Check the app and enable signup</a></li><li class="toc-level-2"><a href="#run-a-console-command">Run a console command</a></li><li class="toc-level-2"><a href="#follow-the-request-through-the-code">Follow the request through the code</a></li><li class="toc-level-2"><a href="#stop-and-verify">Stop and verify</a></li><li class="toc-level-2"><a href="#if-the-first-run-fails">If the first run fails</a></li></ol></nav><a class="source-link" href="markdown/index.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Responses — Practical guides and Go examples for Labena.">
+<title>Responses — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/responses.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a class="selected" aria-current="page" href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#return-a-result">Return a result</a></li><li class="toc-level-2"><a href="#declare-multiple-success-statuses">Declare multiple success statuses</a></li><li class="toc-level-2"><a href="#return-a-page">Return a page</a></li><li class="toc-level-2"><a href="#response-headers">Response headers</a></li><li class="toc-level-2"><a href="#return-an-error">Return an error</a></li><li class="toc-level-2"><a href="#multiple-validation-messages">Multiple validation messages</a></li><li class="toc-level-2"><a href="#custom-outputs-and-streams">Custom outputs and streams</a></li><li class="toc-level-2"><a href="#verify-the-response-contract">Verify the response contract</a></li></ol></nav></details>
+<article><h1 id="responses">Responses</h1>
+<p>Application JSON endpoints return <code>response.JSON[T]</code> from
+<code>internal/platform/api/response</code>. The payload stays typed under <code>data</code>, with
+optional operation-specific <code>meta</code>. Request IDs and API versions are response
+headers only. Huma owns
+serialization and OpenAPI; handlers still register directly with <code>huma.Register</code>.</p>
+<p>A normal handler constructs a response; it does not write JSON or headers itself.
+Huma writes the returned output after the handler finishes. Custom files and streams
+can retain their own body format.</p>
+<h2 id="return-a-result">Return a result<a class="heading-link" href="#return-a-result" aria-label="Link to Return a result">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// In a handler returning (*response.JSON[UserResponse], error):</span>
+<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-0">(</span>result<span class="go-bracket-0">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+
+<span class="go-comment">// Optional metadata is a JSON object. Use serializable values.</span>
+<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-0">(</span>result<span class="go-bracket-0">)</span><span class="go-punctuation">.</span><span class="go-function">WithMeta</span><span class="go-bracket-0">(</span><span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-builtin-type">any</span><span class="go-bracket-1">{</span><span class="go-string">&#34;source&#34;</span><span class="go-punctuation">:</span> <span class="go-string">&#34;cache&#34;</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+</code></pre>
+<pre><code class="language-json">{
+  &#34;meta&#34;: {&#34;source&#34;: &#34;cache&#34;},
+  &#34;data&#34;: {&#34;id&#34;: &#34;&lt;resource-id&gt;&#34;, &#34;name&#34;: &#34;Ada Example&#34;}
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Helper</th>
+<th>Handler output</th>
+<th>HTTP status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>response.OK(data)</code></td>
+<td><code>*response.JSON[T]</code></td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>response.Created(data)</code></td>
+<td><code>*response.JSON[T]</code></td>
+<td>201</td>
+</tr>
+<tr>
+<td><code>response.Accepted(data)</code></td>
+<td><code>*response.JSON[T]</code></td>
+<td>202</td>
+</tr>
+<tr>
+<td><code>response.NewJSON(data, status)</code></td>
+<td><code>*response.JSON[T]</code></td>
+<td>Explicit success status permitting a body</td>
+</tr>
+<tr>
+<td><code>response.NoContent()</code></td>
+<td><code>*response.Empty</code></td>
+<td>204, with no body</td>
+</tr>
+</tbody>
+</table>
+<p>Use the constructors: Huma reads <code>JSON.Status</code> directly, so a literal with an
+unset status is invalid. <code>NewJSON</code> panics on a non-success status or 204/205;
+these are programmer errors. Return failures with <code>response.Error</code> instead.
+For <code>NoContent</code>, omit <code>Operation.DefaultStatus</code> or set it to 204.</p>
+<p>Set <code>Operation.DefaultStatus: 201</code> or <code>202</code> for those fixed outcomes. A constructor
+runs at request time, so it cannot update the OpenAPI operation defined at startup.
+For dynamic success statuses, document each status explicitly; Identity sign-in
+returns 200 for existing accounts and 201 for new ones. Its route group shares
+the generated success schema between both statuses.</p>
+<p>Always select public response fields instead of exposing persistence entities.
+<code>data</code> is always present, including <code>null</code> for a nil payload. <code>meta</code> is omitted
+when empty. <code>WithMeta</code> copies the outer map; nested values remain caller-owned.
+Do not modify a response while another goroutine is sending it.</p>
+<p>Pagination stays under <code>data</code> with its typed <code>items</code>, <code>page</code>, <code>per_page</code>, <code>total</code>
+and <code>total_pages</code>. Extra metadata does not replace that established page contract.
+Identity sign-in uses the same token-and-user response for both 201 (new account)
+and 200 (existing account). The frontend checks <code>data.user.profile_complete</code> after
+either status to decide whether to request profile details.</p>
+<h2 id="declare-multiple-success-statuses">Declare multiple success statuses<a class="heading-link" href="#declare-multiple-success-statuses" aria-label="Link to Declare multiple success statuses">#</a></h2>
+<p>Some operations have more than one successful outcome. Identity&#39;s OTP and social
+verification return 201 for a new account and 200 for an existing one, using the
+same body schema. Its registration group declares the additional status:</p>
+<pre><code class="language-go" data-highlighted="yes">signIns <span class="go-operator">:=</span> <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">NewGroup</span><span class="go-bracket-0">(</span>routes<span class="go-bracket-0">)</span>
+signIns<span class="go-punctuation">.</span><span class="go-function">UseSimpleModifier</span><span class="go-bracket-0">(</span><span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">op</span> <span class="go-operator">*</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">)</span> <span class="go-bracket-1">{</span>
+    created <span class="go-operator">:=</span> <span class="go-operator">*</span><span class="go-parameter">op</span><span class="go-punctuation">.</span>Responses<span class="go-bracket-2">[</span><span class="go-string">&#34;200&#34;</span><span class="go-bracket-2">]</span>
+    created<span class="go-punctuation">.</span>Description <span class="go-operator">=</span> <span class="go-string">&#34;New account created&#34;</span>
+    <span class="go-parameter">op</span><span class="go-punctuation">.</span>Responses<span class="go-bracket-2">[</span><span class="go-string">&#34;201&#34;</span><span class="go-bracket-2">]</span> <span class="go-operator">=</span> <span class="go-operator">&amp;</span>created
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-comment">// Register only operations with that same 200/201 body contract on signIns.</span>
+</code></pre>
+<p>This fragment imports Huma and assumes <code>routes</code> is the module&#39;s API. The handler
+chooses <code>response.Created(result)</code> or <code>response.OK(result)</code> at runtime. The modifier
+copies the generated 200 response after Huma has built its typed schema; do not
+apply it to bodyless or differently shaped operations.</p>
+<h2 id="return-a-page">Return a page<a class="heading-link" href="#return-a-page" aria-label="Link to Return a page">#</a></h2>
+<p>Return a typed page under <code>data</code>, preserving <code>pagination.Pagination</code> as the paging
+input. This handler fragment assumes <code>page</code> is <code>*pagination.Page[*entities.User]</code>
+and uses Identity&#39;s existing public response conversion:</p>
+<pre><code class="language-go" data-highlighted="yes">items <span class="go-operator">:=</span> <span class="go-function">make</span><span class="go-bracket-0">(</span><span class="go-bracket-1">[</span><span class="go-bracket-1">]</span>UserResponse<span class="go-punctuation">,</span> <span class="go-function">len</span><span class="go-bracket-1">(</span><span class="go-package">page</span><span class="go-punctuation">.</span>Items<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">for</span> i<span class="go-punctuation">,</span> user <span class="go-operator">:=</span> <span class="go-keyword">range</span> <span class="go-package">page</span><span class="go-punctuation">.</span>Items <span class="go-bracket-0">{</span>
+    items<span class="go-bracket-1">[</span>i<span class="go-bracket-1">]</span> <span class="go-operator">=</span> <span class="go-function">newUserResponse</span><span class="go-bracket-1">(</span>user<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+paging <span class="go-operator">:=</span> <span class="go-package">pagination</span><span class="go-punctuation">.</span><span class="go-function">NewPagination</span><span class="go-bracket-0">(</span><span class="go-package">page</span><span class="go-punctuation">.</span>Page<span class="go-punctuation">,</span> <span class="go-package">page</span><span class="go-punctuation">.</span>PerPage<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-0">(</span><span class="go-package">pagination</span><span class="go-punctuation">.</span><span class="go-function">NewPage</span><span class="go-bracket-1">(</span>items<span class="go-punctuation">,</span> paging<span class="go-punctuation">,</span> <span class="go-package">page</span><span class="go-punctuation">.</span>Total<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/pkg/pagination</code>. An empty result has this shape:</p>
+<pre><code class="language-json">{
+  &#34;data&#34;: {
+    &#34;items&#34;: [], &#34;page&#34;: 1, &#34;per_page&#34;: 20, &#34;total&#34;: 0, &#34;total_pages&#34;: 0
+  }
+}
+</code></pre>
+<p><code>pagination.NewPage</code> makes <code>items</code> a non-nil slice and calculates <code>total_pages</code>.
+It does not query the database. See <a href="requests.html#pagination">page requests</a> and
+<a href="database-queries.html#return-a-page">page queries</a> for the other two steps.</p>
+<h2 id="response-headers">Response headers<a class="heading-link" href="#response-headers" aria-label="Link to Response headers">#</a></h2>
+<p>The API server generates a fresh request ID and returns it in <code>X-Request-ID</code>.
+Incoming request IDs are not trusted. The same ID is attached to request logs;
+use <code>response.RequestID(ctx)</code> when an HTTP handler needs the correlation ID.
+It is not inserted into JSON bodies.</p>
+<p><code>X-API-Version</code> defaults to <code>v1</code>. Set <code>api.Options.APIVersion</code>
+when constructing a server for another API version. This setting does not change
+route prefixes; keep the Huma group&#39;s path consistent with it. <code>Options.Version</code>
+is the application release shown in OpenAPI and does not change <code>X-API-Version</code>.
+The API version is scoped to the server, not inferred from arbitrary request paths.</p>
+<p>Successes, errors, empty responses and streams receive both headers. This requires
+serving the platform server itself, not bypassing it through <code>server.Mux</code>.
+The default CORS configuration exposes both headers to browser clients.
+Preserve that exposure when customizing CORS. Clients should capture <code>X-Request-ID</code>
+alongside an error; a copied JSON body alone has no correlation ID.</p>
+<h2 id="return-an-error">Return an error<a class="heading-link" href="#return-an-error" aria-label="Link to Return an error">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Services use transport-independent <code>apperror</code> errors; see <a href="errors.html">error ownership and wrapping</a>. At the HTTP boundary,
+<code>response.Error(ctx, err)</code> recognizes wrapped errors, preserves their causes and hides
+private operational diagnostics. Huma handles the returned status error.
+Use <code>response.WriteError</code> to reject an application failure inside Huma middleware
+and return without calling <code>next</code>. Native Huma status errors and their headers
+remain supported when returned from typed handlers.
+Standard <code>net/http</code> handlers can use <code>response.WriteHTTPError(ctx, w, err)</code> before
+committing their response. These writers share the same service-error mapping,
+safe logging. The API server supplies the response headers and installs Huma&#39;s
+error-sanitization hook automatically; ordinary handlers need no extra setup.</p>
+<p>Both application and Huma validation errors use <code>application/problem+json</code> with
+flat RFC 9457 fields and optional operation-specific <code>meta</code>. There is no outer
+<code>error</code> or <code>data</code> field on a problem. OpenAPI describes this body without
+<code>request_id</code> or <code>api_version</code>, and Huma&#39;s global error hooks remain unchanged.</p>
+<h2 id="multiple-validation-messages">Multiple validation messages<a class="heading-link" href="#multiple-validation-messages" aria-label="Link to Multiple validation messages">#</a></h2>
+<p>Collect application validation messages in the existing <code>apperror.InvalidFields</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// In a service; no Huma or response imports are needed.</span>
+<span class="go-keyword">return</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">InvalidFields</span><span class="go-bracket-0">(</span><span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span><span class="go-bracket-1">{</span>
+    <span class="go-string">&#34;email&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;Use your work email.&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;This address is not eligible.&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    <span class="go-string">&#34;profile.name&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;Choose a display name.&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>The handler returns <code>nil, response.Error(ctx, err)</code>. Its response is:</p>
+<pre><code class="language-json">{
+  &#34;type&#34;: &#34;urn:go-modular:error:validation_failed&#34;,
+  &#34;title&#34;: &#34;Unprocessable Entity&#34;,
+  &#34;status&#34;: 422,
+  &#34;detail&#34;: &#34;The given data was invalid.&#34;,
+  &#34;errors&#34;: [
+    {&#34;message&#34;: &#34;Use your work email.&#34;, &#34;location&#34;: &#34;body.email&#34;},
+    {&#34;message&#34;: &#34;This address is not eligible.&#34;, &#34;location&#34;: &#34;body.email&#34;},
+    {&#34;message&#34;: &#34;Choose a display name.&#34;, &#34;location&#34;: &#34;body.profile.name&#34;}
+  ]
+}
+</code></pre>
+<p>Every message becomes a separate Huma error detail. Field keys are sorted for
+stable ordering; message order within each field is preserved. Bare names refer
+to the body, including nested paths such as <code>items[0].name</code>. Explicit HTTP paths
+such as <code>query.page</code>, <code>path.id</code>, <code>header.X-Client</code> or <code>body.email</code> are preserved.
+Keep transport-specific paths at the HTTP boundary when possible. An empty key
+refers to the whole body. Use one <code>InvalidFields</code> to aggregate field messages;
+<code>errors.Join</code> is not a validation collection API.</p>
+<p>Clients branch on <code>type</code> and HTTP status, not human-readable messages. Both native
+and application validation expose an <code>errors</code> array with <code>message</code> and <code>location</code>.
+Submitted values and parser internals are omitted. Huma schema diagnostics are
+redacted; application messages are deliberately public and preserved. Never put
+provider text, credentials or submitted secrets in those messages. Huma may report
+several native validation errors before the handler runs; business validation runs
+after that stage succeeds.</p>
+<table>
+<thead>
+<tr>
+<th>Error category</th>
+<th>HTTP status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Invalid JSON/input</td>
+<td>400</td>
+</tr>
+<tr>
+<td>Unauthenticated / forbidden</td>
+<td>401 / 403</td>
+</tr>
+<tr>
+<td>Not found / conflict</td>
+<td>404 / 409</td>
+</tr>
+<tr>
+<td>Body too large / unsupported media</td>
+<td>413 / 415</td>
+</tr>
+<tr>
+<td>Schema or application validation</td>
+<td>422</td>
+</tr>
+<tr>
+<td>Rate limited</td>
+<td>429</td>
+</tr>
+<tr>
+<td>Internal or unknown failure</td>
+<td>500</td>
+</tr>
+<tr>
+<td>Unavailable</td>
+<td>503</td>
+</tr>
+</tbody>
+</table>
+<p>Huma documents a default problem response. Use <code>Operation.Errors</code> for explicit
+failure statuses when clients need them in the schema.</p>
+<h2 id="custom-outputs-and-streams">Custom outputs and streams<a class="heading-link" href="#custom-outputs-and-streams" aria-label="Link to Custom outputs and streams">#</a></h2>
+<p>Use native Huma outputs for custom headers. Declare special fields explicitly;
+do not embed <code>response.JSON[T]</code> into an output struct.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">CreatedUserOutput</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Location <span class="go-builtin-type">string</span> <span class="go-string">`header:&#34;Location&#34;`</span>
+    Body     <span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-type">Envelope</span><span class="go-bracket-1">[</span><span class="go-type">UserResponse</span><span class="go-bracket-1">]</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// Register with Operation.DefaultStatus: 201.</span>
+<span class="go-keyword">return</span> <span class="go-operator">&amp;</span><span class="go-type">CreatedUserOutput</span><span class="go-bracket-0">{</span>
+    Location<span class="go-punctuation">:</span> <span class="go-string">&#34;/api/v1/users/&#34;</span> <span class="go-operator">+</span> <span class="go-package">result</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    Body<span class="go-punctuation">:</span>     <span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-type">Envelope</span><span class="go-bracket-1">[</span><span class="go-type">UserResponse</span><span class="go-bracket-1">]</span><span class="go-bracket-1">{</span>Data<span class="go-punctuation">:</span> result<span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+</code></pre>
+<p>The envelope receives automatic metadata. Native bare bodies are also supported
+when an endpoint deliberately needs a different wire contract; they are not
+silently wrapped. File streams use <code>Body func(huma.Context)</code> and keep their bytes.
+Health probes, dashboards, metrics and standard router 404/405 responses retain
+their native formats, with metadata headers. The request logger covers them too.</p>
+<p>Once a response is committed, a later failure must abort the transport rather
+than append a problem body. See <a href="handlers.html">handlers</a> for streaming cleanup.
+Cancellation does not undo a committed transaction or accepted task; retries must
+account for duplicate or uncertain outcomes.</p>
+<h2 id="verify-the-response-contract">Verify the response contract<a class="heading-link" href="#verify-the-response-contract" aria-label="Link to Verify the response contract">#</a></h2>
+<p>For an endpoint, check the runtime status and body <strong>and</strong> its <code>/openapi.json</code>
+entry. Common mistakes have straightforward fixes:</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime 201 but docs show 200</td>
+<td>Set <code>DefaultStatus: 201</code> on the operation</td>
+</tr>
+<tr>
+<td>Unset or invalid status</td>
+<td>Construct <code>response.JSON[T]</code> with its helper instead of a zero-valued literal</td>
+</tr>
+<tr>
+<td>Missing response headers in an integration test</td>
+<td>Serve the platform <code>server</code>, not only <code>server.Mux</code></td>
+</tr>
+<tr>
+<td><code>items: null</code></td>
+<td>Construct the page with <code>pagination.NewPage</code></td>
+</tr>
+<tr>
+<td>Private entity fields appear</td>
+<td>Map to a transport-owned response type</td>
+</tr>
+<tr>
+<td>Client cannot find validation messages</td>
+<td>Read the top-level problem <code>errors</code> array; errors have no <code>data</code> envelope</td>
+</tr>
+</tbody>
+</table>
+<p>Success clients read <code>data</code>; problem clients read top-level fields. Use
+the <code>X-Request-ID</code> response header to investigate failures through
+<a href="observability.html">observability</a>. Continue with <a href="errors.html">error handling</a> and
+<a href="api-reference.html">live API documentation</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="requests.html"><small>← Previous</small>Requests &amp; validation</a>
+<a href="middleware.html"><small>Next →</small>Middleware</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#return-a-result">Return a result</a></li><li class="toc-level-2"><a href="#declare-multiple-success-statuses">Declare multiple success statuses</a></li><li class="toc-level-2"><a href="#return-a-page">Return a page</a></li><li class="toc-level-2"><a href="#response-headers">Response headers</a></li><li class="toc-level-2"><a href="#return-an-error">Return an error</a></li><li class="toc-level-2"><a href="#multiple-validation-messages">Multiple validation messages</a></li><li class="toc-level-2"><a href="#custom-outputs-and-streams">Custom outputs and streams</a></li><li class="toc-level-2"><a href="#verify-the-response-contract">Verify the response contract</a></li></ol></nav><a class="source-link" href="markdown/responses.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Mail and mail views — Practical guides and Go examples for Labena.">
+<title>Mail and mail views — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/mail.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a class="selected" aria-current="page" href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Communication</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#preview-without-sending">Preview without sending</a></li><li class="toc-level-2"><a href="#send-now-or-enqueue">Send now or enqueue</a></li><li class="toc-level-2"><a href="#configure-delivery-and-branding">Configure delivery and branding</a></li><li class="toc-level-2"><a href="#send-a-message">Send a message</a></li><li class="toc-level-2"><a href="#render-an-email">Render an email</a></li><li class="toc-level-2"><a href="#define-a-module-mail-view">Define a module mail view</a></li><li class="toc-level-2"><a href="#queue-a-rendered-mail-view">Queue a rendered mail view</a></li><li class="toc-level-3"><a href="#delay-a-message-or-retain-its-result">Delay a message or retain its result</a></li><li class="toc-level-2"><a href="#attach-files">Attach files</a></li><li class="toc-level-2"><a href="#headers-and-delivery-results">Headers and delivery results</a></li><li class="toc-level-2"><a href="#send-through-a-task">Send through a task</a></li><li class="toc-level-2"><a href="#reuse-the-layout">Reuse the layout</a></li><li class="toc-level-2"><a href="#reuse-components">Reuse components</a></li><li class="toc-level-2"><a href="#use-mail-independently">Use mail independently</a></li><li class="toc-level-2"><a href="#configure-smtp">Configure SMTP</a></li><li class="toc-level-2"><a href="#trace-a-send">Trace a send</a></li><li class="toc-level-2"><a href="#test-without-sending-real-mail">Test without sending real mail</a></li><li class="toc-level-2"><a href="#troubleshoot-delivery">Troubleshoot delivery</a></li></ol></nav></details>
+<article><h1 id="mail">Mail</h1>
+<p>Send an email now, queue its rendered content for later, or reuse the same content
+inside a notification. Business modules supply message content; the platform owns
+SMTP and optional Asynq delivery. App constructs <code>Resources.Mailer</code> and
+<code>Resources.MailRenderer</code> once. Neither construction nor CLI help sends mail.</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Module <code>mailviews</code></td>
+<td>Named content builders</td>
+<td><code>mailviews.NewWelcome(name)</code></td>
+</tr>
+<tr>
+<td><code>pkg/mailview</code></td>
+<td>Escaped HTML, plain text and shared branding</td>
+<td><code>views.Render(content)</code></td>
+</tr>
+<tr>
+<td><code>internal/platform/mail</code></td>
+<td>Immediate SMTP or queued rendered messages</td>
+<td><code>mailer.Send</code> / <code>mailer.Enqueue</code></td>
+</tr>
+<tr>
+<td><a href="notifications.html">Notifications</a></td>
+<td>Recipients, multiple channels and SQL delivery intent</td>
+<td><code>notifier.Enqueue</code></td>
+</tr>
+</tbody>
+</table>
+<p>Start with a local preview to learn the content model without SMTP. Then configure
+a sandbox sender and choose immediate or queued delivery.</p>
+<h2 id="preview-without-sending">Preview without sending<a class="heading-link" href="#preview-without-sending" aria-label="Link to Preview without sending">#</a></h2>
+<p>The repository includes real Identity welcome and sign-in views. Run:</p>
+<pre><code class="language-sh">APP_ENV_FILE=.env.quickstart.example go run ./examples/mail
+</code></pre>
+<p>Open <code>storage/app/mail-preview/welcome.html</code> and <code>otp.html</code>. Their <code>.txt</code> companions
+show the plain-text alternatives. The preview uses configured branding and a sample
+code, creates no authentication challenge and never connects to SMTP.</p>
+<p>Use <code>-output /path/to/previews</code> to select a different directory. Review both HTML
+and plain text, desktop and narrow layouts. Browser previews and escaping tests do
+not establish compatibility with every inbox: send sandbox messages to the actual
+email clients you support before launching a branded campaign.</p>
+<h2 id="send-now-or-enqueue">Send now or enqueue<a class="heading-link" href="#send-now-or-enqueue" aria-label="Link to Send now or enqueue">#</a></h2>
+<p>Send immediately at the call site:</p>
+<pre><code class="language-go" data-highlighted="yes">err <span class="go-operator">:=</span> <span class="go-package">mailer</span><span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Or enqueue that message for an existing Asynq worker:</p>
+<pre><code class="language-go" data-highlighted="yes">info<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mailer</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+</code></pre>
+<p>These are separate function-body fragments. <code>mailer</code> is the borrowed
+<code>internal/platform/mail.Mailer</code>; <code>message</code> is a <code>mail.Message</code>. Check errors
+before using <code>info</code>. A nil queue permits <code>Send</code>; <code>Enqueue</code> returns <code>ErrQueueUnavailable</code>
+and never falls back to sending. Services that only send immediately can keep
+using the narrower <code>mail.Sender</code> contract from the same package.</p>
+<p>The app always constructs its mailer and installs <code>mail.send.v1</code> in its normal
+task mux. SMTP connects only when sending, never during construction or CLI help.
+Queued sending requires a worker sharing the queue. Routing, tracing and worker
+metrics use the existing Asynq integration. <code>Resources.Mailer</code> is available after
+normal app assembly; standalone capability callers still provide their own sender.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Success means</th>
+<th>Transaction behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mailer.Send</td>
+<td>Immediate transport accepted the attempt</td>
+<td>Rejects a caller SQL transaction</td>
+</tr>
+<tr>
+<td>Mailer.Enqueue</td>
+<td>Redis accepted the task</td>
+<td>Rejects a caller SQL transaction</td>
+</tr>
+<tr>
+<td>Notifier.Enqueue</td>
+<td>Notification intent persisted, subject to commit</td>
+<td>Can join the business SQL transaction</td>
+</tr>
+</tbody>
+</table>
+<p>Use <a href="notifications.html">Notifications</a> for recipient models, database read state,
+multiple channels, or delivery intent that must commit with SQL. Ordinary queued
+mail does not need a notification recipient, occurrence key, or SQL table.
+Identity&#39;s OTP mail remains synchronous and is never queued automatically.</p>
+<h2 id="configure-delivery-and-branding">Configure delivery and branding<a class="heading-link" href="#configure-delivery-and-branding" aria-label="Link to Configure delivery and branding">#</a></h2>
+<p>Settings live in <code>internal/app/config/mail.go</code>. Delivery is always configured; rendering and startup do not connect to SMTP.</p>
+<pre><code class="language-dotenv">MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your-sandbox-username
+MAIL_PASSWORD=your-sandbox-password
+MAIL_FROM_ADDRESS=no-reply@example.com
+MAIL_FROM_NAME=&#34;Labena&#34;
+MAIL_BRAND_NAME=&#34;Labena&#34;
+MAIL_ACCENT_COLOR=&#34;#1D4ED8&#34;
+MAIL_LOGO_URL=&#34;https://placehold.co/80x80/172554/FFFFFF.png?text=L&#34;
+MAIL_WEBSITE_URL=https://example.com
+MAIL_SUPPORT_EMAIL=support@example.com
+MAIL_FOOTER=&#34;Account updates, thoughtfully delivered.&#34;
+</code></pre>
+<p>Keep credentials in ignored <code>.env</code> for local runs or a secret manager for deployment. The accent accepts a six-digit hex color; logo, website and action links require HTTPS. Replace the placeholder image and example addresses before real delivery. Brand text remains visible when images are blocked. A renderer with an empty <code>LogoURL</code> omits the image entirely.</p>
+<p>Tilt also loads an optional, ignored <code>.env.mail.yaml</code> Kubernetes Secret named <code>app-mail</code> in namespace <code>go-modular-dev</code>. Its <code>stringData</code> contains the same <code>MAIL_*</code> keys. Both the migration container and application reference it. Local <code>.env</code> values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.</p>
+<p>App SMTP uses verified STARTTLS on the configured port (2525 by default) and a
+ten-second connection timeout. A username/password pair enables automatic
+authentication negotiation; omitting both permits a relay that requires no SMTP
+authentication. Supplying only one is rejected before connection. Mailtrap Sandbox captures test mail; switch to a delivery provider and verified sender for real recipients. Sending opens and closes its connection; construction does not connect.</p>
+<h2 id="send-a-message">Send a message<a class="heading-link" href="#send-a-message" aria-label="Link to Send a message">#</a></h2>
+<p>This complete service function borrows the mailer and sets a deadline:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> service
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">time</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">mail</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">SendWelcome</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">mailer</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Sender</span><span class="go-punctuation">,</span> <span class="go-parameter">recipient</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+	<span class="go-parameter">ctx</span><span class="go-punctuation">,</span> cancel <span class="go-operator">:=</span> <span class="go-package">context</span><span class="go-punctuation">.</span><span class="go-function">WithTimeout</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-number">15</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span>
+	<span class="go-keyword">defer</span> <span class="go-callable">cancel</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> <span class="go-parameter">mailer</span><span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-2">{</span>
+		To<span class="go-punctuation">:</span>       <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Address</span><span class="go-bracket-3">{</span><span class="go-bracket-4">{</span>Email<span class="go-punctuation">:</span> <span class="go-parameter">recipient</span><span class="go-bracket-4">}</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+		Subject<span class="go-punctuation">:</span>  <span class="go-string">&#34;Welcome&#34;</span><span class="go-punctuation">,</span>
+		TextBody<span class="go-punctuation">:</span> <span class="go-string">&#34;Your account is ready.&#34;</span><span class="go-punctuation">,</span>
+		HTMLBody<span class="go-punctuation">:</span> <span class="go-string">&#34;&lt;p&gt;Your account is ready.&lt;/p&gt;&#34;</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>A message requires a To recipient, subject, and at least one body. Providing both bodies creates plain text with an HTML alternative. <code>From</code> overrides the configured sender when provided. <code>CC</code>, <code>BCC</code>, and <code>ReplyTo</code> accept address slices.</p>
+<p>Use <a href="#render-an-email">mail views</a> to render variable HTML with escaping. Do not concatenate untrusted text into HTML bodies.</p>
+<h2 id="render-an-email">Render an email<a class="heading-link" href="#render-an-email" aria-label="Link to Render an email">#</a></h2>
+<p>The app supplies a shared renderer as <code>Resources.MailRenderer</code>. A module passes that
+specific dependency to the service that renders messages. This function-body
+fragment assumes <code>views</code>, <code>mailer</code>, a destination <code>address</code> and a caller <code>ctx</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">content<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">views</span><span class="go-punctuation">.</span><span class="go-function">Render</span><span class="go-bracket-0">(</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Email</span><span class="go-bracket-1">{</span>
+    Subject<span class="go-punctuation">:</span> <span class="go-string">&#34;Your report is ready&#34;</span><span class="go-punctuation">,</span>
+    Title<span class="go-punctuation">:</span> <span class="go-string">&#34;Report ready&#34;</span><span class="go-punctuation">,</span>
+    Paragraphs<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;Your monthly report is available in your account.&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    Action<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Action</span><span class="go-bracket-2">{</span>
+        Label<span class="go-punctuation">:</span> <span class="go-string">&#34;View report&#34;</span><span class="go-punctuation">,</span>
+        URL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://example.com/reports&#34;</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">return</span> <span class="go-package">mailer</span><span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>
+    To<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Address</span><span class="go-bracket-2">{</span><span class="go-bracket-3">{</span>Email<span class="go-punctuation">:</span> address<span class="go-bracket-3">}</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    Subject<span class="go-punctuation">:</span> content<span class="go-punctuation">.</span>Subject<span class="go-punctuation">,</span>
+    HTMLBody<span class="go-punctuation">:</span> content<span class="go-punctuation">.</span>HTML<span class="go-punctuation">,</span>
+    TextBody<span class="go-punctuation">:</span> content<span class="go-punctuation">.</span>Text<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/pkg/mailview</code> and <code>github.com/wisalgroup/labena/internal/platform/mail</code>.
+Rendering returns a subject plus both body formats; it performs no delivery.
+Use the destination validated and authorized by your operation.</p>
+<table>
+<thead>
+<tr>
+<th><code>mailview.Email</code> field</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Subject</code></td>
+<td>Required, single-line subject</td>
+</tr>
+<tr>
+<td><code>Title</code></td>
+<td>Required visible heading</td>
+</tr>
+<tr>
+<td><code>Preheader</code></td>
+<td>Inbox preview text; never put an OTP or secret here</td>
+</tr>
+<tr>
+<td><code>Eyebrow</code></td>
+<td>Short contextual label above the title</td>
+</tr>
+<tr>
+<td><code>Paragraphs</code></td>
+<td>Escaped text paragraphs</td>
+</tr>
+<tr>
+<td><code>Code</code></td>
+<td>Optional value, label and hint; value must be nonempty, single-line and at most 32 bytes</td>
+</tr>
+<tr>
+<td><code>Action</code></td>
+<td>Optional button label and absolute HTTPS URL, with a plain-text link</td>
+</tr>
+<tr>
+<td><code>Note</code></td>
+<td>Optional supporting or security note</td>
+</tr>
+</tbody>
+</table>
+<p>All text is escaped in HTML. Raw HTML and CSS are intentionally not accepted by
+this content model. This does not sanitize an arbitrary <code>mail.Message.HTMLBody</code>
+that you construct yourself.</p>
+<h2 id="define-a-module-mail-view">Define a module mail view<a class="heading-link" href="#define-a-module-mail-view" aria-label="Link to Define a module mail view">#</a></h2>
+<p>Keep named content beside its owning module. There is no base class or view registry.
+This is the existing <strong>File:</strong> <code>internal/modules/identity/mailviews/welcome.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package mailviews defines Identity email content for the default branded layout.</span>
+<span class="go-keyword">package</span> mailviews
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">strings</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">mailview</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// NewWelcome is Identity&#39;s mailable content builder. The shared Renderer supplies</span>
+<span class="go-comment">// layout, logo, colors, footer, escaping and a plain-text alternative. This content</span>
+<span class="go-comment">// can be rendered for a local preview, sent directly, or snapshotted by a Notifier.</span>
+<span class="go-keyword">func</span> <span class="go-function">NewWelcome</span><span class="go-bracket-0">(</span><span class="go-parameter">name</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Email</span> <span class="go-bracket-0">{</span>
+	greeting <span class="go-operator">:=</span> <span class="go-string">&#34;Welcome aboard.&#34;</span>
+	<span class="go-keyword">if</span> <span class="go-parameter">name</span> <span class="go-operator">=</span> <span class="go-package">strings</span><span class="go-punctuation">.</span><span class="go-function">TrimSpace</span><span class="go-bracket-1">(</span><span class="go-parameter">name</span><span class="go-bracket-1">)</span><span class="go-punctuation">;</span> <span class="go-parameter">name</span> <span class="go-operator">!=</span> <span class="go-string">&#34;&#34;</span> <span class="go-bracket-1">{</span>
+		greeting <span class="go-operator">=</span> <span class="go-string">&#34;Welcome, &#34;</span> <span class="go-operator">+</span> <span class="go-parameter">name</span> <span class="go-operator">+</span> <span class="go-string">&#34;.&#34;</span>
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Email</span><span class="go-bracket-1">{</span>
+		Subject<span class="go-punctuation">:</span>   <span class="go-string">&#34;Welcome to your account&#34;</span><span class="go-punctuation">,</span>
+		Preheader<span class="go-punctuation">:</span> <span class="go-string">&#34;Your account is ready. Here are your next steps.&#34;</span><span class="go-punctuation">,</span>
+		Eyebrow<span class="go-punctuation">:</span>   <span class="go-string">&#34;YOUR ACCOUNT&#34;</span><span class="go-punctuation">,</span>
+		Title<span class="go-punctuation">:</span>     greeting<span class="go-punctuation">,</span>
+		Paragraphs<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span>
+			<span class="go-string">&#34;Your account is ready to use.&#34;</span><span class="go-punctuation">,</span>
+			<span class="go-string">&#34;Review your profile and keep your sign-in methods up to date. You can review and sign out your active sessions from your account settings.&#34;</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+		Note<span class="go-punctuation">:</span> <span class="go-string">&#34;We will never ask you to share a sign-in code by email.&#34;</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Call <code>views.Render(mailviews.NewWelcome(user.Name))</code> for a preview or direct mail.
+A notification builder can use <code>Email: &amp;content</code> after constructing the same value.
+It does not need to render or send it itself: the notifier prepares the snapshot.
+Keep eligibility, business policy and recipient selection outside the layout.</p>
+<h2 id="queue-a-rendered-mail-view">Queue a rendered mail view<a class="heading-link" href="#queue-a-rendered-mail-view" aria-label="Link to Queue a rendered mail view">#</a></h2>
+<p>This complete, compiled example is <code>examples/mail/delivery/delivery.go</code>. Module
+mailviews can supply the same <code>mailview.Email</code> value instead of building it inline.</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Package delivery demonstrates queued mail using borrowed application clients.</span>
+<span class="go-keyword">package</span> delivery
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/hibiken/</span><span class="go-import-name">asynq</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">mail</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/pkg/</span><span class="go-import-name">mailview</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// EnqueueReport renders once before Redis accepts the immutable message snapshot.</span>
+<span class="go-comment">// The caller authorizes and validates the destination before invoking this operation.</span>
+<span class="go-keyword">func</span> <span class="go-function">EnqueueReport</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">mailer</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Mailer</span><span class="go-punctuation">,</span> <span class="go-parameter">views</span> <span class="go-operator">*</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Renderer</span><span class="go-punctuation">,</span> <span class="go-parameter">address</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">asynq</span><span class="go-punctuation">.</span><span class="go-type">TaskInfo</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	content<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">views</span><span class="go-punctuation">.</span><span class="go-function">Render</span><span class="go-bracket-1">(</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Email</span><span class="go-bracket-2">{</span>
+		Subject<span class="go-punctuation">:</span> <span class="go-string">&#34;Your monthly report is ready&#34;</span><span class="go-punctuation">,</span>
+		Title<span class="go-punctuation">:</span>   <span class="go-string">&#34;Report ready&#34;</span><span class="go-punctuation">,</span>
+		Paragraphs<span class="go-punctuation">:</span> <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-builtin-type">string</span><span class="go-bracket-3">{</span>
+			<span class="go-string">&#34;Your monthly report is available in your account.&#34;</span><span class="go-punctuation">,</span>
+		<span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+		Action<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Action</span><span class="go-bracket-3">{</span>Label<span class="go-punctuation">:</span> <span class="go-string">&#34;View report&#34;</span><span class="go-punctuation">,</span> URL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://example.com/reports&#34;</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+		<span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> err
+	<span class="go-bracket-1">}</span>
+	<span class="go-keyword">return</span> <span class="go-parameter">mailer</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-2">{</span>
+		To<span class="go-punctuation">:</span>       <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Address</span><span class="go-bracket-3">{</span><span class="go-bracket-4">{</span>Email<span class="go-punctuation">:</span> <span class="go-parameter">address</span><span class="go-bracket-4">}</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+		Subject<span class="go-punctuation">:</span>  content<span class="go-punctuation">.</span>Subject<span class="go-punctuation">,</span>
+		HTMLBody<span class="go-punctuation">:</span> content<span class="go-punctuation">.</span>HTML<span class="go-punctuation">,</span>
+		TextBody<span class="go-punctuation">:</span> content<span class="go-punctuation">.</span>Text<span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The worker sends the saved subject and bodies without rerendering a changed
+view. If From is omitted, the worker transport&#39;s configured sender applies.
+Enqueue forwards native Asynq options, including <code>ProcessIn</code>, <code>MaxRetry</code>,
+<code>TaskID</code> and <code>Retention</code>. Its defaults are three retries and a 30-second attempt.
+Successful tasks are removed unless a retention option is supplied.</p>
+<p>Queued messages support From, To, CC, BCC, ReplyTo, subject, text/HTML bodies,
+headers and transport tags. The full encoded payload is limited to 64 KiB.
+Attachment readers and <code>CloseAttachments</code> are rejected before enqueue. Immediate
+sending retains attachment support. For large reports or attachments, use a
+module-owned job containing an authorized storage reference and reopen bounded
+readers in that job; do not serialize readers or temporary file paths.</p>
+<p>Redis stores recipient addresses and rendered content. Restrict queue, dashboard,
+backup and inspection access accordingly; never enqueue credentials or OTPs.
+Worker errors omit provider response text while preserving wrapped causes for retry
+policies. Successful Redis acceptance does not guarantee delivery, and an uncertain
+SMTP result or worker crash can cause duplicate email on retry. Task uniqueness
+limits enqueue duplication; it cannot make SMTP exactly-once.</p>
+<h3 id="delay-a-message-or-retain-its-result">Delay a message or retain its result<a class="heading-link" href="#delay-a-message-or-retain-its-result" aria-label="Link to Delay a message or retain its result">#</a></h3>
+<p>This fragment uses the same <code>mailer</code>, <code>message</code> and caller context as above:</p>
+<pre><code class="language-go" data-highlighted="yes">info<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mailer</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> message<span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">ProcessIn</span><span class="go-bracket-1">(</span><span class="go-number">5</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Minute<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">MaxRetry</span><span class="go-bracket-1">(</span><span class="go-number">3</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Timeout</span><span class="go-bracket-1">(</span><span class="go-number">30</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Second<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    <span class="go-package">asynq</span><span class="go-punctuation">.</span><span class="go-function">Retention</span><span class="go-bracket-1">(</span><span class="go-number">24</span><span class="go-operator">*</span><span class="go-package">time</span><span class="go-punctuation">.</span>Hour<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// Persist or return info.ID when the caller needs to inspect task state.</span>
+</code></pre>
+<p>Import <code>time</code> and Asynq. Delaying changes eligibility, not an exact delivery time.
+Use the same queue routing settings on the producer and worker. The normal module
+registration already installs <code>mail.send.v1</code>; no per-email worker registration is
+needed. See <a href="queues.html#configure-options-and-delays">queues</a> for options and retries.</p>
+<h2 id="attach-files">Attach files<a class="heading-link" href="#attach-files" aria-label="Link to Attach files">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">message</span><span class="go-punctuation">.</span>Attachments <span class="go-operator">=</span> <span class="go-bracket-0">[</span><span class="go-bracket-0">]</span><span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Attachment</span><span class="go-bracket-0">{</span>
+    <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">NewAttachment</span><span class="go-bracket-1">(</span><span class="go-string">&#34;invoice.pdf&#34;</span><span class="go-punctuation">,</span> <span class="go-string">&#34;application/pdf&#34;</span><span class="go-punctuation">,</span> <span class="go-package">bytes</span><span class="go-punctuation">.</span><span class="go-function">NewReader</span><span class="go-bracket-2">(</span>pdf<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This fragment assumes <code>message</code> and bounded <code>pdf</code> bytes already exist. Import <code>bytes</code>. SMTP buffers attachments under one aggregate raw-byte budget: 20 MiB by default.
+<code>SMTPConfig.MaxAttachmentBytes</code> overrides it; zero uses the default and negative
+values are invalid. App callers can set <code>cfg.Mail.MaxAttachmentBytes</code> in Go before
+assembly. No new environment variable is required. MIME encoding, message bodies
+and library overhead are additional memory. Oversized input returns
+<code>mail.ErrAttachmentsTooLarge</code> before SMTP delivery, after reading at most the
+remaining budget plus one byte.</p>
+<p>Seekable readers are rewound. Other readers are consumed, so recreate them before retries. A nil body is skipped, while the filename is required. Empty content type defaults to <code>application/octet-stream</code>.</p>
+<p>Prefer caller-owned cleanup for file readers, usually a <code>defer file.Close()</code> in
+the operation that opened them, with close errors handled there. With
+<code>CloseAttachments=true</code>, SMTP closes every closable input once on every return
+path, including validation, read and transport failures. Do not list the same
+owned reader twice. Close errors join the returned error, even after SMTP accepted
+the message; do not blindly resend on a cleanup failure.</p>
+<p>Already canceled calls read nothing. Cooperative cancellation is checked before
+and between reads. An arbitrary reader blocked inside <code>Read</code> or <code>Seek</code> cannot be
+interrupted by context alone; give remote readers their own deadlines. SMTP starts
+no detached reader goroutine. The Mailer wrapper may reject a transaction before
+entering the SMTP transport, so keep caller-owned cleanup when rejection can occur.</p>
+<h2 id="headers-and-delivery-results">Headers and delivery results<a class="heading-link" href="#headers-and-delivery-results" aria-label="Link to Headers and delivery results">#</a></h2>
+<p><code>Headers</code> adds SMTP headers. Supply only trusted names and values; the wrapper does not define an application allowlist. <code>Tags</code> is currently unused by the SMTP implementation.</p>
+<p>A successful Send means the SMTP operation succeeded, not that the recipient read
+the message or that it reached an inbox. Immediate SMTP sending does not retry;
+queued mail uses its configured Asynq retry policy. There is no built-in bounce
+handling, tracking or provider event consumer.</p>
+<h2 id="send-through-a-task">Send through a task<a class="heading-link" href="#send-through-a-task" aria-label="Link to Send through a task">#</a></h2>
+<p>Inject the mailer into a task&#39;s service and send using the handler context. Enqueue identifiers and serializable data; do not place readers or client instances in the payload. Workers reconstruct attachment readers for each attempt.</p>
+<p>A timeout or connection failure can leave delivery uncertain. Retrying may send another email; queue uniqueness cannot make SMTP effects atomic with task completion. Choose retry behavior appropriate to the message.</p>
+<p>Use <code>logging.FromContext(ctx)</code> at the boundary responsible for reporting failures. Avoid recording message bodies, credentials, or recipient lists in routine logs. The mail package itself does not install logging or persistent delivery storage.</p>
+<h2 id="reuse-the-layout">Reuse the layout<a class="heading-link" href="#reuse-the-layout" aria-label="Link to Reuse the layout">#</a></h2>
+<p>The shared templates live in <code>pkg/mailview/templates</code> and are embedded in the
+binary. Change these files for a framework-wide layout change; change a module&#39;s
+builder for one message. Rebuild after changing templates.</p>
+<p>The layout uses semantic headings and paragraphs inside presentation tables,
+inline CSS, a mobile enhancement and an Outlook width fallback. Each render
+produces HTML and plain text. No JavaScript, remote stylesheet or CSS build step is
+required. Branding remains visible when images are blocked; an empty logo URL omits
+the image.</p>
+<p>Identity&#39;s sign-in view uses a code block with an expiry hint and safety note. It
+keeps the code out of the subject and preheader. Rendering does not generate,
+store or validate a challenge; those rules remain in the Identity service. OTP
+mail is sent synchronously after the challenge is prepared, with its own failure
+policy. See <a href="identity.html">authentication</a> for the complete operation.</p>
+<h2 id="reuse-components">Reuse components<a class="heading-link" href="#reuse-components" aria-label="Link to Reuse components">#</a></h2>
+<p>Use <code>mailview.Email</code>, <code>Code</code> and <code>Action</code> for semantic content instead of copying
+layout HTML. The renderer parses templates once, copies its brand settings and is
+safe for concurrent rendering. Changing brand configuration requires constructing
+a new renderer (normally an application restart).</p>
+<p>For an unrelated HTML template, use Go&#39;s <code>html/template</code> with embedded files owned
+by the module. For plain text, use <code>text/template</code>. There is no generic application
+template engine to configure; <code>mailview</code> is deliberately email-specific.</p>
+<h2 id="use-mail-independently">Use mail independently<a class="heading-link" href="#use-mail-independently" aria-label="Link to Use mail independently">#</a></h2>
+<p>Construct an SMTP sender with <code>mail.NewSMTP(mail.SMTPConfig{...})</code>, or provide any
+<code>mail.Sender</code>. Then compose it with an optional native or instrumented Asynq client:</p>
+<pre><code class="language-go" data-highlighted="yes">mailer<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span>sender<span class="go-punctuation">,</span> queue<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+handler<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">NewHandler</span><span class="go-bracket-0">(</span>mailer<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-package">mux</span><span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-package">mail</span><span class="go-punctuation">.</span>SendTask<span class="go-punctuation">,</span> handler<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This function-body fragment imports <code>mail</code> from
+<code>github.com/wisalgroup/labena/internal/platform/mail</code>. The caller owns <code>sender</code>, <code>queue</code>, the native
+Asynq <code>mux</code>, and worker execution/cleanup. Use <code>New(sender, nil)</code> for immediate-only
+mail. Application modules borrow the already configured <code>deps.Mailer</code>; they do
+not construct another worker or register the platform handler again.</p>
+<p>The mail package is under this application&#39;s <code>internal</code> boundary. These examples
+mean “without app bootstrap inside this repository,” not a public package another
+unrelated Go module can import. The reusable rendering package <code>pkg/mailview</code> has
+no dependency on application internals.</p>
+<p>Construct an independent renderer with public branding only:</p>
+<pre><code class="language-go" data-highlighted="yes">views<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mailview</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Brand</span><span class="go-bracket-1">{</span>
+    Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Example&#34;</span><span class="go-punctuation">,</span>
+    AccentColor<span class="go-punctuation">:</span> <span class="go-string">&#34;#2563eb&#34;</span><span class="go-punctuation">,</span>
+    WebsiteURL<span class="go-punctuation">:</span> <span class="go-string">&#34;https://example.com&#34;</span><span class="go-punctuation">,</span>
+    SupportEmail<span class="go-punctuation">:</span> <span class="go-string">&#34;support@example.com&#34;</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>LogoURL</code> is optional. The website and optional logo require HTTPS; the accent is a
+six-digit hex color. Credentials belong to the SMTP sender, never to the renderer.</p>
+<h2 id="configure-smtp">Configure SMTP<a class="heading-link" href="#configure-smtp" aria-label="Link to Configure SMTP">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes">mailer<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">NewSMTP</span><span class="go-bracket-0">(</span><span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">SMTPConfig</span><span class="go-bracket-1">{</span>
+    Host<span class="go-punctuation">:</span> <span class="go-string">&#34;smtp.example.com&#34;</span><span class="go-punctuation">,</span>
+    Port<span class="go-punctuation">:</span> <span class="go-number">587</span><span class="go-punctuation">,</span>
+    Username<span class="go-punctuation">:</span> username<span class="go-punctuation">,</span>
+    Password<span class="go-punctuation">:</span> password<span class="go-punctuation">,</span>
+    From<span class="go-punctuation">:</span> <span class="go-type">mail</span><span class="go-punctuation">.</span><span class="go-type">Address</span><span class="go-bracket-2">{</span>Email<span class="go-punctuation">:</span> <span class="go-string">&#34;notifications@example.com&#34;</span><span class="go-punctuation">,</span> Name<span class="go-punctuation">:</span> <span class="go-string">&#34;Example&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    UseTLS<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span>
+    InsecureSkipVerify<span class="go-punctuation">:</span> <span class="go-keyword">false</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/internal/platform/mail</code>. These host and address values are placeholders; credentials should come from your typed configuration. Construction validates settings and creates the client; sending performs network I/O.</p>
+<p><code>UseTLS</code> sets the SMTP client&#39;s mandatory TLS policy. It is not an implicit-TLS port selector; this wrapper exposes no separate implicit-TLS option. Configure and verify the connection mode your provider requires.</p>
+<p>Use <code>NewSMTP</code> with explicit verification settings. Mailtrap Sandbox works through SMTP; no Mailtrap API driver is implemented.</p>
+<h2 id="trace-a-send">Trace a send<a class="heading-link" href="#trace-a-send" aria-label="Link to Trace a send">#</a></h2>
+<p>App assembly already wraps the configured mailer with the borrowed tracer. For a separately constructed mailer, use:</p>
+<pre><code class="language-go" data-highlighted="yes">mailer <span class="go-operator">:=</span> <span class="go-package">mail</span><span class="go-punctuation">.</span><span class="go-function">WithTracing</span><span class="go-bracket-0">(</span>smtpMailer<span class="go-punctuation">,</span> tracer<span class="go-bracket-0">)</span>
+err <span class="go-operator">:=</span> mailer<span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+</code></pre>
+<p>This fragment borrows <code>smtpMailer</code>, an OpenTelemetry <code>tracer</code>, <code>ctx</code> and <code>message</code>.
+It records timing and failure without mail content or recipient data. It adds no
+retries or ownership. Successful submission does not prove delivery to the inbox.
+See <a href="observability.html#trace-mail-sends">observability</a> for the full contract.</p>
+<h2 id="test-without-sending-real-mail">Test without sending real mail<a class="heading-link" href="#test-without-sending-real-mail" aria-label="Link to Test without sending real mail">#</a></h2>
+<p>Use a test sender implementing the package-owned <code>mail.Sender</code>; do not redefine
+that contract in a module. Capture the message passed to <code>Send</code>, then assert its
+recipient, subject and content in the owning module&#39;s external test suite. A
+sender returning a chosen error lets you verify the operation&#39;s failure policy.</p>
+<pre><code class="language-sh">go test ./pkg/mailview/...
+go test ./tests/platform -run &#39;Mail|SMTP&#39;
+go test ./tests/queue -run Mail
+go test ./tests/modules -run TestWorkflowGuidesMatchCompiledSources -count=1
+</code></pre>
+<p>Rendering tests check escaping and content. Mail tests cover serialization,
+limits, transaction rejection and retry classification without contacting your
+SMTP provider. The compiled <code>examples/mail/delivery</code> example is checked against
+the guide. Real provider connectivity and inbox rendering need a separate sandbox
+send using your credentials.</p>
+<h2 id="troubleshoot-delivery">Troubleshoot delivery<a class="heading-link" href="#troubleshoot-delivery" aria-label="Link to Troubleshoot delivery">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App starts but SMTP cannot send</td>
+<td>Construction makes no SMTP connection; verify host, port, credentials and provider TLS mode</td>
+</tr>
+<tr>
+<td>SMTP accepts mail but no inbox message appears</td>
+<td>Sandbox capture, sender verification, provider delivery/bounce reports and spam filtering</td>
+</tr>
+<tr>
+<td><code>ErrQueueUnavailable</code></td>
+<td>Independent mailer was constructed with no queue; supply one or explicitly call <code>Send</code></td>
+</tr>
+<tr>
+<td>Queued message never runs</td>
+<td>Worker, Redis database, routing and <code>mail.send.v1</code> registration</td>
+</tr>
+<tr>
+<td>Enqueue rejects attachments</td>
+<td>Use immediate <code>Send</code> or a module task that reopens an authorized file reference</td>
+</tr>
+<tr>
+<td>Message exceeds 64 KiB</td>
+<td>Reduce rendered payload or use a job with an external artifact reference</td>
+</tr>
+<tr>
+<td>Email appears twice</td>
+<td>Uncertain SMTP outcome, worker crash, task replay or repeated original call</td>
+</tr>
+<tr>
+<td>A template action fails validation</td>
+<td>Absolute HTTPS URL and nonempty action label</td>
+</tr>
+<tr>
+<td>A transaction guard fails</td>
+<td>Move SMTP/Redis calls after commit, or persist <a href="transactional-notifications.html">notification intent</a> in the transaction</td>
+</tr>
+</tbody>
+</table>
+<p>Mail submission, inbox delivery and reading are separate states. The mail facade
+has no built-in bounce receiver, tracking pixel or provider event consumer. For
+recipient read state use the <a href="notifications.html#read-stored-notifications">database notification channel</a>.
+For worker inspection use the <a href="queues.html#inspection-and-administration">queue guide</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="scheduling.html"><small>← Previous</small>Recurring schedules</a>
+<a href="notifications.html"><small>Next →</small>Notifications</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#preview-without-sending">Preview without sending</a></li><li class="toc-level-2"><a href="#send-now-or-enqueue">Send now or enqueue</a></li><li class="toc-level-2"><a href="#configure-delivery-and-branding">Configure delivery and branding</a></li><li class="toc-level-2"><a href="#send-a-message">Send a message</a></li><li class="toc-level-2"><a href="#render-an-email">Render an email</a></li><li class="toc-level-2"><a href="#define-a-module-mail-view">Define a module mail view</a></li><li class="toc-level-2"><a href="#queue-a-rendered-mail-view">Queue a rendered mail view</a></li><li class="toc-level-3"><a href="#delay-a-message-or-retain-its-result">Delay a message or retain its result</a></li><li class="toc-level-2"><a href="#attach-files">Attach files</a></li><li class="toc-level-2"><a href="#headers-and-delivery-results">Headers and delivery results</a></li><li class="toc-level-2"><a href="#send-through-a-task">Send through a task</a></li><li class="toc-level-2"><a href="#reuse-the-layout">Reuse the layout</a></li><li class="toc-level-2"><a href="#reuse-components">Reuse components</a></li><li class="toc-level-2"><a href="#use-mail-independently">Use mail independently</a></li><li class="toc-level-2"><a href="#configure-smtp">Configure SMTP</a></li><li class="toc-level-2"><a href="#trace-a-send">Trace a send</a></li><li class="toc-level-2"><a href="#test-without-sending-real-mail">Test without sending real mail</a></li><li class="toc-level-2"><a href="#troubleshoot-delivery">Troubleshoot delivery</a></li></ol></nav><a class="source-link" href="markdown/mail.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

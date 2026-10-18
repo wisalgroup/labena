@@ -1,0 +1,20 @@
+{{define "brand"}}<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+{{if .Brand.LogoURL}}<td width="44" valign="middle" style="width:44px;padding-right:12px;"><a href="{{.Brand.WebsiteURL}}" style="text-decoration:none;"><img src="{{.Brand.LogoURL}}" width="40" height="40" alt="{{.Brand.Name}} logo" style="display:block;width:40px;height:40px;border-radius:8px;"></a></td>{{end}}
+<td valign="middle"><a href="{{.Brand.WebsiteURL}}" style="color:#182230;text-decoration:none;font-size:18px;line-height:24px;font-weight:bold;">{{.Brand.Name}}</a></td>
+</tr></table>{{end}}
+
+{{define "code"}}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 28px;">
+<tr><td align="center" style="padding:24px 12px;background-color:#f8f9fb;border:1px solid #e0e4e9;border-radius:10px;">
+<p style="margin:0 0 12px;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1.5px;color:#667085;">{{.Email.Code.Label}}</p>
+<p class="code" style="margin:0 0 12px;font-family:Consolas,'Courier New',monospace;font-size:38px;line-height:48px;font-weight:bold;letter-spacing:8px;color:#182230;">{{.Email.Code.Value}}</p>
+<p style="margin:0;font-size:13px;line-height:20px;color:#667085;">{{.Email.Code.Hint}}</p>
+</td></tr></table>{{end}}
+
+{{define "action"}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 28px;">
+<tr><td align="center" bgcolor="{{.Brand.AccentColor}}" style="background-color:{{.Brand.AccentColor}};border-radius:8px;mso-padding-alt:14px 24px;">
+<a href="{{.Email.Action.URL}}" style="display:inline-block;padding:14px 24px;font-size:15px;line-height:22px;font-weight:bold;color:{{.OnAccent}};text-decoration:none;border-radius:8px;">{{.Email.Action.Label}}</a>
+</td></tr></table>
+<p style="margin:0 0 24px;font-size:12px;line-height:20px;color:#667085;word-break:break-all;">Button not working? <a href="{{.Email.Action.URL}}" style="color:#344054;text-decoration:underline;">{{.Email.Action.URL}}</a></p>{{end}}
+
+{{define "footer"}}<p style="margin:0 0 10px;font-size:12px;line-height:20px;color:#667085;text-align:center;">Sent by <a href="{{.Brand.WebsiteURL}}" style="color:#475467;text-decoration:underline;">{{.Brand.Name}}</a>{{if .Brand.SupportEmail}} &middot; <a href="mailto:{{.Brand.SupportEmail}}" style="color:#475467;text-decoration:underline;">Contact support</a>{{end}}</p>
+{{if .Brand.Footer}}<p style="margin:0;font-size:11px;line-height:18px;color:#667085;text-align:center;">{{.Brand.Footer}}</p>{{end}}{{end}}

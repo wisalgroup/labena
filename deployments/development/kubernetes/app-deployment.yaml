@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: go-modular-dev
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 70
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      # Deployment setup owns bucket provisioning; application startup does not.
+      - name: minio-init
+        image: go-modular-minio
+        command: [/bin/sh, -ec]
+        args:
+        - |
+          attempt=0
+          until mc --config-dir /tmp/mc alias set dev "$FILESYSTEM_MINIO_ENDPOINT" "$FILESYSTEM_MINIO_ACCESS_KEY_ID" "$FILESYSTEM_MINIO_SECRET_ACCESS_KEY"; do
+            attempt=$((attempt + 1))
+            if [ "$attempt" -ge 30 ]; then exit 1; fi
+            sleep 2
+          done
+          mc --config-dir /tmp/mc mb --ignore-existing "dev/$FILESYSTEM_MINIO_BUCKET"
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: [ALL]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      - name: migrate
+        image: go-modular-app
+        workingDir: /app
+        command:
+        - /app/cli
+        - migrate
+        - up
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: app-mail
+            optional: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: storage
+          mountPath: /app/storage
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+      containers:
+      - name: api
+        image: go-modular-app
+        workingDir: /app
+        ports:
+        - name: http
+          containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: app-mail
+            optional: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: storage
+          mountPath: /app/storage
+        - name: tmp
+          mountPath: /tmp
+        # startupProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: http
+        #   periodSeconds: 5
+        #   timeoutSeconds: 2
+        #   failureThreshold: 30
+        # readinessProbe:
+        #   httpGet:
+        #     path: /readyz
+        #     port: http
+        #   periodSeconds: 5
+        #   timeoutSeconds: 2
+        #   failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: http
+        #   periodSeconds: 5
+        #   timeoutSeconds: 2
+        #   failureThreshold: 3
+        command:
+        - /app/app
+      volumes:
+      - name: storage
+        hostPath:
+          # Tilt sets the absolute checkout path and the developer's UID/GID.
+          path: /set-by-tilt/storage
+          type: Directory
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: go-modular-dev
+spec:
+  selector:
+    app: api
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http

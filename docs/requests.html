@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Requests &amp; validation — Practical guides and Go examples for Labena.">
+<title>Requests &amp; validation — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/requests.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a class="selected" aria-current="page" href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> HTTP APIs</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#json-inputs">JSON inputs</a></li><li class="toc-level-3"><a href="#declare-constraints-next-to-fields">Declare constraints next to fields</a></li><li class="toc-level-2"><a href="#path-query-and-headers">Path, query and headers</a></li><li class="toc-level-2"><a href="#optional-fields-and-partial-updates">Optional fields and partial updates</a></li><li class="toc-level-2"><a href="#map-to-a-service-input">Map to a service input</a></li><li class="toc-level-2"><a href="#pagination">Pagination</a></li><li class="toc-level-2"><a href="#json-decoding-and-limits">JSON decoding and limits</a></li><li class="toc-level-2"><a href="#multipart-bodies">Multipart bodies</a></li><li class="toc-level-2"><a href="#application-validation-errors">Application validation errors</a></li><li class="toc-level-2"><a href="#verify-the-boundary">Verify the boundary</a></li></ol></nav></details>
+<article><h1 id="requests-and-validation">Requests and validation</h1>
+<p>Declare HTTP inputs as Go structs. Huma binds path, query, header, and body values,
+then validates them before calling the handler. The same fields and tags describe
+the request in the live OpenAPI document.</p>
+<p>Services still enforce business rules. CLI commands, jobs, and event handlers call
+them without passing through HTTP validation.</p>
+<h2 id="json-inputs">JSON inputs<a class="heading-link" href="#json-inputs" aria-label="Link to JSON inputs">#</a></h2>
+<p>This complete registration helper echoes a validated name. Add it to a transport
+package and call it from module registration with the chosen <code>huma.API</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> http
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/danielgtaylor/huma/</span><span class="go-import-name">v2</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/api/</span><span class="go-import-name">response</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">type</span> <span class="go-type">NameRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+	Name <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34; minLength:&#34;1&#34; maxLength:&#34;100&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">RegisterEcho</span><span class="go-bracket-0">(</span><span class="go-parameter">router</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-number">API</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+	<span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-parameter">router</span><span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-2">{</span>
+		OperationID<span class="go-punctuation">:</span>  <span class="go-string">&#34;example.echoName&#34;</span><span class="go-punctuation">,</span>
+		Method<span class="go-punctuation">:</span>       <span class="go-string">&#34;POST&#34;</span><span class="go-punctuation">,</span>
+		Path<span class="go-punctuation">:</span>         <span class="go-string">&#34;/examples/name&#34;</span><span class="go-punctuation">,</span>
+		Summary<span class="go-punctuation">:</span>      <span class="go-string">&#34;Echo a validated name&#34;</span><span class="go-punctuation">,</span>
+		MaxBodyBytes<span class="go-punctuation">:</span> <span class="go-number">4096</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">input</span> <span class="go-operator">*</span><span class="go-keyword">struct</span><span class="go-bracket-3">{</span> <span class="go-type">Body</span> <span class="go-type">NameRequest</span> <span class="go-bracket-3">}</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-3">[</span><span class="go-type">NameRequest</span><span class="go-bracket-3">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-2">)</span> <span class="go-bracket-2">{</span>
+		<span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-3">(</span><span class="go-parameter">input</span><span class="go-punctuation">.</span>Body<span class="go-bracket-3">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>With the app&#39;s <code>/api/v1</code> target:</p>
+<pre><code class="language-sh">curl --fail-with-body http://localhost:8080/api/v1/examples/name \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;name&#34;:&#34;Ada&#34;}&#39;
+</code></pre>
+<p>The response is 200 with <code>data: {&#34;name&#34;:&#34;Ada&#34;}</code> and request metadata. This example
+echoes input; it does not save an account. Remove the example route when it has
+served its learning purpose.</p>
+<h3 id="declare-constraints-next-to-fields">Declare constraints next to fields<a class="heading-link" href="#declare-constraints-next-to-fields" aria-label="Link to Declare constraints next to fields">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>minLength</code>, <code>maxLength</code></td>
+<td><code>maxLength:&#34;100&#34;</code></td>
+<td>String length bounds</td>
+</tr>
+<tr>
+<td><code>minimum</code>, <code>maximum</code></td>
+<td><code>minimum:&#34;1&#34;</code></td>
+<td>Numeric bounds</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td><code>format:&#34;uuid&#34;</code></td>
+<td>A supported formatted value</td>
+</tr>
+<tr>
+<td><code>pattern</code></td>
+<td><code>pattern:&#34;^[0-9]{6}$&#34;</code></td>
+<td>A string pattern, useful for OTPs with leading zeroes</td>
+</tr>
+<tr>
+<td><code>enum</code></td>
+<td><code>enum:&#34;ios,android,web&#34;</code></td>
+<td>Accepted values</td>
+</tr>
+<tr>
+<td><code>default</code></td>
+<td><code>default:&#34;20&#34;</code></td>
+<td>A default for an omitted value</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td><code>required:&#34;false&#34;</code></td>
+<td>Explicitly allow omission</td>
+</tr>
+<tr>
+<td><code>nullable</code></td>
+<td><code>nullable:&#34;true&#34;</code></td>
+<td>Explicitly allow JSON null</td>
+</tr>
+<tr>
+<td><code>doc</code>, <code>example</code></td>
+<td><code>doc:&#34;Display name&#34;</code></td>
+<td>Schema explanation and example</td>
+</tr>
+</tbody>
+</table>
+<p>Keep validation tags on HTTP inputs. A maximum name length in the schema improves
+client feedback; the service must still enforce the same business rule for its
+other callers. Avoid separate validator frameworks for the same request.</p>
+<h2 id="path-query-and-headers">Path, query and headers<a class="heading-link" href="#path-query-and-headers" aria-label="Link to Path, query and headers">#</a></h2>
+<p>Combine sources in one input:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ShowRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    ID     <span class="go-builtin-type">string</span> <span class="go-string">`path:&#34;id&#34; format:&#34;uuid&#34;`</span>
+    Locale <span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;locale&#34; default:&#34;en&#34; enum:&#34;en,ar&#34;`</span>
+    Client <span class="go-builtin-type">string</span> <span class="go-string">`header:&#34;X-Client&#34; required:&#34;false&#34; maxLength:&#34;100&#34;`</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Register a path such as <code>/items/{id}</code>. Add a <code>Body</code> field when JSON is also needed.
+The handler receives already bound values; do not look them up again in a second
+query parser. A valid UUID does not establish ownership. Read the principal from
+context and authorize the resource before the protected operation.</p>
+<p>Credential handling belongs to the protected route policy. Do not add an access
+token body/query field to replace the standard <code>Authorization: Bearer …</code> header.</p>
+<h2 id="optional-fields-and-partial-updates">Optional fields and partial updates<a class="heading-link" href="#optional-fields-and-partial-updates" aria-label="Link to Optional fields and partial updates">#</a></h2>
+<p>Use pointers when the service must distinguish an omitted field from its zero
+value. Identity&#39;s <code>PATCH /users/me</code> request is:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">UpdateProfileRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    Body <span class="go-keyword">struct</span> <span class="go-bracket-1">{</span>
+        <span class="go-type">Name</span> <span class="go-operator">*</span><span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;name&#34; maxLength:&#34;100&#34; nullable:&#34;true&#34; required:&#34;false&#34;`</span>
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Its current service behavior is:</p>
+<table>
+<thead>
+<tr>
+<th>JSON body</th>
+<th>Mapped value</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{}</code></td>
+<td><code>Name == nil</code></td>
+<td>422: provide at least one profile field</td>
+</tr>
+<tr>
+<td><code>{&#34;name&#34;:null}</code></td>
+<td><code>Name == nil</code></td>
+<td>422: provide at least one profile field</td>
+</tr>
+<tr>
+<td><code>{&#34;name&#34;:&#34;Ada&#34;}</code></td>
+<td>Pointer to <code>&#34;Ada&#34;</code></td>
+<td>Validate and update the name</td>
+</tr>
+<tr>
+<td><code>{&#34;name&#34;:&#34;&#34;}</code></td>
+<td>Pointer to empty string</td>
+<td>422: the entity requires a nonempty display name</td>
+</tr>
+</tbody>
+</table>
+<p>A pointer distinguishes missing from empty, but this request deliberately treats
+omitted and null alike: neither supplies a change, so the current single-field
+operation rejects both. If a future operation requires three states—omit, clear,
+and set—design an explicit representation and test all three. Do not assume a
+plain pointer preserves that distinction.</p>
+<p>Huma handles the input pointer; mapping methods may also use pointer receivers,
+as Identity does. That convention does not move mutation or business rules into
+the request type.</p>
+<h2 id="map-to-a-service-input">Map to a service input<a class="heading-link" href="#map-to-a-service-input" aria-label="Link to Map to a service input">#</a></h2>
+<p>Keep simple conversion beside the request. Identity&#39;s existing mapper in
+<code>internal/modules/identity/delivery/http/requests.go</code> is:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-bracket-0">(</span>req <span class="go-operator">*</span><span class="go-type">UpdateProfileRequest</span><span class="go-bracket-0">)</span> <span class="go-function">Input</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UpdateProfileInput</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UpdateProfileInput</span><span class="go-bracket-1">{</span>Name<span class="go-punctuation">:</span> req<span class="go-punctuation">.</span>Body<span class="go-punctuation">.</span>Name<span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>The file imports <code>github.com/wisalgroup/labena/internal/modules/identity/service</code>. The handler supplies the
+trusted account ID separately:</p>
+<pre><code class="language-go" data-highlighted="yes">user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>svc<span class="go-punctuation">.</span><span class="go-function">UpdateProfile</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> userID<span class="go-punctuation">,</span> <span class="go-package">req</span><span class="go-punctuation">.</span><span class="go-function">Input</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>For sign-in, <code>SignInRequest.Input(ip)</code> also receives the peer address extracted at
+the HTTP boundary. The request mapper does structural conversion. Authentication,
+authorization, external calls, and business orchestration remain in the handler
+and service where their context is explicit.</p>
+<p>Do not add HTTP schema tags to <code>service.UpdateProfileInput</code>. That type is also
+usable by a command, task, or another module.</p>
+<h2 id="pagination">Pagination<a class="heading-link" href="#pagination" aria-label="Link to Pagination">#</a></h2>
+<p>Embed the shared input instead of implementing page parsing again:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">ListProductsRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    <span class="go-type">api</span><span class="go-punctuation">.</span><span class="go-type">PaginationInput</span>
+    Search <span class="go-builtin-type">string</span> <span class="go-string">`query:&#34;search&#34; maxLength:&#34;100&#34;`</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-comment">// Inside the handler:</span>
+page <span class="go-operator">:=</span> <span class="go-package">input</span><span class="go-punctuation">.</span><span class="go-function">Pagination</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-comment">// pagination.Pagination</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/internal/platform/api</code>. Pass <code>page</code> to the service. Its Huma
+resolver runs automatically; no pagination middleware registration is required.</p>
+<table>
+<thead>
+<tr>
+<th>Request</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No pagination parameters</td>
+<td>Page 1, 20 items per page</td>
+</tr>
+<tr>
+<td><code>?page=2&amp;per_page=10</code></td>
+<td>Validated <code>pagination.Pagination{Page: 2, PerPage: 10}</code></td>
+</tr>
+<tr>
+<td><code>?per_page=101</code></td>
+<td>422; HTTP rejects values above 100</td>
+</tr>
+<tr>
+<td><code>?page=</code>, <code>?page=1&amp;page=2</code>, malformed integer</td>
+<td>422</td>
+</tr>
+<tr>
+<td>Page too large to represent its SQL offset</td>
+<td>422</td>
+</tr>
+</tbody>
+</table>
+<p><code>pagination.NewPagination</code> normalizes programmatic values for non-HTTP callers;
+the HTTP layer rejects invalid input instead of silently normalizing it.
+Repositories still need stable ordering. See <a href="database-queries.html#return-a-page">page queries</a>.</p>
+<h2 id="json-decoding-and-limits">JSON decoding and limits<a class="heading-link" href="#json-decoding-and-limits" aria-label="Link to JSON decoding and limits">#</a></h2>
+<p>A request contains exactly one JSON value matching its declared body type. The
+platform applies these rules before the handler runs:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Malformed JSON, duplicate members including case variants, trailing JSON value, invalid UTF-8</td>
+<td>400</td>
+</tr>
+<tr>
+<td>Unknown object fields or schema/type violations</td>
+<td>422</td>
+</tr>
+<tr>
+<td>Full body exceeds the operation&#39;s limit</td>
+<td>413</td>
+</tr>
+<tr>
+<td>Unsupported media type, compression, or non-UTF-8 charset</td>
+<td>415</td>
+</tr>
+</tbody>
+</table>
+<p>JSON objects, arrays, and scalar bodies are supported. JSON and structured <code>+json</code>
+media types are accepted; an absent Content-Type defaults to JSON. Compression is
+not enabled. Content-Encoding may be absent or <code>identity</code>.</p>
+<p>The default body limit is <strong>1 MiB</strong>, including trailing whitespace. Nested JSON is
+bounded to <strong>1,000 container levels</strong>. Huma&#39;s default body-read timeout is <strong>five
+seconds</strong>. Set <code>Operation.MaxBodyBytes</code> and <code>BodyReadTimeout</code> for each operation that
+needs different bounds. A file-content limit and a whole multipart-request limit
+are separate budgets.</p>
+<h2 id="multipart-bodies">Multipart bodies<a class="heading-link" href="#multipart-bodies" aria-label="Link to Multipart bodies">#</a></h2>
+<p>Use Huma&#39;s raw multipart form together with the platform&#39;s bounded parser:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Import mime/multipart.</span>
+<span class="go-keyword">type</span> <span class="go-type">UploadRequest</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    RawBody <span class="go-type">multipart</span><span class="go-punctuation">.</span><span class="go-type">Form</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Register after authentication. This example uses a one-file operation with a 2 MiB
+whole-request limit and a handler you implement:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-0">(</span>protected<span class="go-punctuation">,</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Operation</span><span class="go-bracket-1">{</span>
+    OperationID<span class="go-punctuation">:</span>   <span class="go-string">&#34;example.upload&#34;</span><span class="go-punctuation">,</span>
+    Method<span class="go-punctuation">:</span>        <span class="go-string">&#34;POST&#34;</span><span class="go-punctuation">,</span>
+    Path<span class="go-punctuation">:</span>          <span class="go-string">&#34;/uploads&#34;</span><span class="go-punctuation">,</span>
+    DefaultStatus<span class="go-punctuation">:</span> <span class="go-number">201</span><span class="go-punctuation">,</span>
+    MaxBodyBytes<span class="go-punctuation">:</span>  <span class="go-number">2</span> <span class="go-operator">&lt;&lt;</span> <span class="go-number">20</span><span class="go-punctuation">,</span>
+    Middlewares<span class="go-punctuation">:</span>   <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Middlewares</span><span class="go-bracket-2">{</span><span class="go-package">api</span><span class="go-punctuation">.</span>Multipart<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    RequestBody<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">RequestBody</span><span class="go-bracket-2">{</span>Required<span class="go-punctuation">:</span> <span class="go-keyword">true</span><span class="go-punctuation">,</span> Content<span class="go-punctuation">:</span> <span class="go-keyword">map</span><span class="go-bracket-3">[</span><span class="go-builtin-type">string</span><span class="go-bracket-3">]</span><span class="go-operator">*</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">MediaType</span><span class="go-bracket-3">{</span>
+        <span class="go-string">&#34;multipart/form-data&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-4">{</span>Schema<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Schema</span><span class="go-bracket-5">{</span>
+            Type<span class="go-punctuation">:</span> <span class="go-string">&#34;object&#34;</span><span class="go-punctuation">,</span> Required<span class="go-punctuation">:</span> <span class="go-bracket-0">[</span><span class="go-bracket-0">]</span><span class="go-builtin-type">string</span><span class="go-bracket-0">{</span><span class="go-string">&#34;file&#34;</span><span class="go-bracket-0">}</span><span class="go-punctuation">,</span> AdditionalProperties<span class="go-punctuation">:</span> <span class="go-keyword">false</span><span class="go-punctuation">,</span>
+            Properties<span class="go-punctuation">:</span> <span class="go-keyword">map</span><span class="go-bracket-0">[</span><span class="go-builtin-type">string</span><span class="go-bracket-0">]</span><span class="go-operator">*</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Schema</span><span class="go-bracket-0">{</span>
+                <span class="go-string">&#34;file&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-1">{</span>Type<span class="go-punctuation">:</span> <span class="go-string">&#34;string&#34;</span><span class="go-punctuation">,</span> Format<span class="go-punctuation">:</span> <span class="go-string">&#34;binary&#34;</span><span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+            <span class="go-bracket-0">}</span><span class="go-punctuation">,</span>
+        <span class="go-bracket-5">}</span><span class="go-bracket-4">}</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-3">}</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-package">handler</span><span class="go-punctuation">.</span>upload<span class="go-bracket-0">)</span>
+</code></pre>
+<p>The schema describes the upload. The handler still checks the permitted parts:</p>
+<pre><code class="language-go" data-highlighted="yes">form <span class="go-operator">:=</span> <span class="go-operator">&amp;</span><span class="go-package">input</span><span class="go-punctuation">.</span>RawBody
+<span class="go-keyword">if</span> <span class="go-function">len</span><span class="go-bracket-0">(</span>form<span class="go-punctuation">.</span>File<span class="go-bracket-0">)</span> <span class="go-operator">!=</span> <span class="go-number">1</span> <span class="go-operator">||</span> <span class="go-function">len</span><span class="go-bracket-0">(</span>form<span class="go-punctuation">.</span>File<span class="go-bracket-1">[</span><span class="go-string">&#34;file&#34;</span><span class="go-bracket-1">]</span><span class="go-bracket-0">)</span> <span class="go-operator">!=</span> <span class="go-number">1</span> <span class="go-operator">||</span> <span class="go-function">len</span><span class="go-bracket-0">(</span>form<span class="go-punctuation">.</span>Value<span class="go-bracket-0">)</span> <span class="go-operator">!=</span> <span class="go-number">0</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">Validation</span><span class="go-bracket-2">(</span><span class="go-string">&#34;Provide one file part named file.&#34;</span><span class="go-bracket-2">)</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+file<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> form<span class="go-punctuation">.</span>File<span class="go-bracket-0">[</span><span class="go-string">&#34;file&#34;</span><span class="go-bracket-0">]</span><span class="go-bracket-0">[</span><span class="go-number">0</span><span class="go-bracket-0">]</span><span class="go-punctuation">.</span><span class="go-function">Open</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+<span class="go-keyword">defer</span> file<span class="go-punctuation">.</span><span class="go-function">Close</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span>
+<span class="go-comment">// Pass file and ctx to the owning capability, then return its public result.</span>
+</code></pre>
+<p>Imports include <code>github.com/wisalgroup/labena/pkg/apperror</code> and the response package. The middleware
+bounds the full request, spools files above 1 MiB to disk, and removes temporary
+files after the handler returns or panics. It does not decide content policy,
+ownership, allowed filenames, or business authorization.</p>
+<p>For the installed Media endpoint, use its existing integration instead of writing
+another upload controller:</p>
+<pre><code class="language-sh">curl --fail-with-body http://localhost:8080/api/v1/media \
+  -H &#34;Authorization: Bearer $ACCESS_TOKEN&#34; \
+  -F &#39;file=@./avatar.png&#39; \
+  -F &#39;visibility=private&#39;
+</code></pre>
+<p>Set <code>ACCESS_TOKEN</code> to your current access token. See <a href="media.html">Media</a> for its
+20 MiB file policy, default visibility, and returned URL.</p>
+<h2 id="application-validation-errors">Application validation errors<a class="heading-link" href="#application-validation-errors" aria-label="Link to Application validation errors">#</a></h2>
+<p>Huma handles structural validation. After it succeeds, a service can return one
+or more safe business validation messages:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">InvalidFields</span><span class="go-bracket-0">(</span><span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span><span class="go-bracket-1">{</span>
+    <span class="go-string">&#34;name&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;Choose a display name.&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    <span class="go-string">&#34;email&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;Use an eligible email address.&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>The HTTP boundary translates these into the same <code>errors</code> list shape as native
+Huma validation. Huma&#39;s own diagnostic values are redacted; application messages
+are intentionally public. See <a href="errors.html#return-several-validation-messages">error handling</a>
+and the <a href="responses.html#multiple-validation-messages">wire response</a>.</p>
+<h2 id="verify-the-boundary">Verify the boundary<a class="heading-link" href="#verify-the-boundary" aria-label="Link to Verify the boundary">#</a></h2>
+<p>Test through <code>server.ServeHTTP</code>, not only by invoking the handler. Include a valid
+request, an omitted optional field, a boundary value, unknown fields, malformed
+JSON, an oversized body, and unauthorized access where applicable. For uploads,
+include unexpected parts and cleanup after failure.</p>
+<p>The installed HTTP behavior is covered by <code>internal/platform/api</code> and
+<code>docs/api/contract_test.go</code>; business scenarios belong in <code>tests/&lt;module&gt;</code>.
+Continue with <a href="responses.html">responses</a> and <a href="middleware.html">middleware</a>.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="handlers.html"><small>← Previous</small>Handlers</a>
+<a href="responses.html"><small>Next →</small>Responses</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#json-inputs">JSON inputs</a></li><li class="toc-level-3"><a href="#declare-constraints-next-to-fields">Declare constraints next to fields</a></li><li class="toc-level-2"><a href="#path-query-and-headers">Path, query and headers</a></li><li class="toc-level-2"><a href="#optional-fields-and-partial-updates">Optional fields and partial updates</a></li><li class="toc-level-2"><a href="#map-to-a-service-input">Map to a service input</a></li><li class="toc-level-2"><a href="#pagination">Pagination</a></li><li class="toc-level-2"><a href="#json-decoding-and-limits">JSON decoding and limits</a></li><li class="toc-level-2"><a href="#multipart-bodies">Multipart bodies</a></li><li class="toc-level-2"><a href="#application-validation-errors">Application validation errors</a></li><li class="toc-level-2"><a href="#verify-the-boundary">Verify the boundary</a></li></ol></nav><a class="source-link" href="markdown/requests.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

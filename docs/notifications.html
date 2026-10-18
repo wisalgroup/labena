@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Notifications — Practical guides and Go examples for Labena.">
+<title>Notifications — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/notifications.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a class="selected" aria-current="page" href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Communication</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#create-your-first-database-notification">Create your first database notification</a></li><li class="toc-level-2"><a href="#define-a-module-notification">Define a module notification</a></li><li class="toc-level-3"><a href="#omit-the-key-for-a-new-occurrence-on-every-call">Omit the key for a new occurrence on every call</a></li><li class="toc-level-2"><a href="#select-channels">Select channels</a></li><li class="toc-level-2"><a href="#address-any-model">Address any model</a></li><li class="toc-level-2"><a href="#send-immediately-or-queue-durably">Send immediately or queue durably</a></li><li class="toc-level-2"><a href="#handle-partial-immediate-results">Handle partial immediate results</a></li><li class="toc-level-2"><a href="#read-stored-notifications">Read stored notifications</a></li><li class="toc-level-3"><a href="#read-from-go">Read from Go</a></li><li class="toc-level-3"><a href="#read-from-http">Read from HTTP</a></li><li class="toc-level-2"><a href="#push-and-database-notifications">Push and database notifications</a></li><li class="toc-level-2"><a href="#register-and-detach-a-push-installation">Register and detach a push installation</a></li><li class="toc-level-2"><a href="#expo-acceptance-and-receipts">Expo acceptance and receipts</a></li><li class="toc-level-2"><a href="#delivery-lifecycle">Delivery lifecycle</a></li><li class="toc-level-2"><a href="#inspect-and-retry-deliveries">Inspect and retry deliveries</a></li><li class="toc-level-2"><a href="#use-each-capability-independently">Use each capability independently</a></li><li class="toc-level-2"><a href="#extend-when-a-provider-is-ready">Extend when a provider is ready</a></li><li class="toc-level-2"><a href="#development-migration-and-identity-example">Development migration and Identity example</a></li><li class="toc-level-2"><a href="#test-and-troubleshoot-notifications">Test and troubleshoot notifications</a></li><li class="toc-level-2"><a href="#package-responsibilities">Package responsibilities</a></li></ol></nav></details>
+<article><h1 id="notifications">Notifications</h1>
+<p>Send a message through database, email or mobile push channels using one
+<code>notification.Message</code>. Business modules choose the recipient, content and eligible
+channels. <code>notification.Notifier</code> stores read state and manages delivery.</p>
+<p>Start with a database notification. Add email or push only when the operation needs
+it. For ordinary email without recipient state or SQL delivery intent, use
+<a href="mail.html">mail</a>. For direct provider push without SQL, use
+<a href="push.html">push</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Choose it when</th>
+<th>Successful return means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Send</code></td>
+<td>You want one immediate attempt</td>
+<td>Selected channels were attempted; inspect all results</td>
+</tr>
+<tr>
+<td><code>Enqueue</code></td>
+<td>Intent must survive process failure or join a SQL write</td>
+<td>PostgreSQL accepted immutable channel intents, subject to commit</td>
+</tr>
+<tr>
+<td><code>List</code> / <code>UnreadCount</code> / <code>MarkRead</code></td>
+<td>You are building in-app notification UI</td>
+<td>Recipient-scoped database state was read or changed</td>
+</tr>
+</tbody>
+</table>
+<p>App constructs the notifier once as <code>Resources.Notifier</code>. Modules borrow it; they
+do not start dispatchers, register providers or implement another notifier contract.</p>
+<h2 id="create-your-first-database-notification">Create your first database notification<a class="heading-link" href="#create-your-first-database-notification" aria-label="Link to Create your first database notification">#</a></h2>
+<p>Apply the normal application migrations and use the existing <code>Resources.Notifier</code>.
+Database-only <code>Send</code> needs PostgreSQL; it does not need a running worker, Redis,
+SMTP or Expo.</p>
+<p>Inside an existing operation, after authorizing the UUID <code>userID</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">recipient <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Recipient</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-1">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    ID<span class="go-punctuation">:</span> <span class="go-package">userID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+message <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-string">&#34;identity.profile_updated&#34;</span><span class="go-punctuation">,</span>
+    Database<span class="go-punctuation">:</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">RawMessage</span><span class="go-bracket-1">(</span><span class="go-string">`{&#34;title&#34;:&#34;Profile updated&#34;,&#34;body&#34;:&#34;Your changes were saved.&#34;}`</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+_<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> err
+</code></pre>
+<p>Import <code>encoding/json</code>, <code>github.com/wisalgroup/labena/internal/modules/shared/entities</code> and
+<code>github.com/wisalgroup/labena/internal/platform/notification</code>. <code>ctx</code> and <code>notifier</code> are borrowed by
+the operation. With no surrounding transaction, success makes the database record
+available immediately through <code>List</code> or the authenticated HTTP routes. Inside a
+transaction, visibility still depends on its commit.</p>
+<p>This example omits <code>Key</code>, so every invocation creates a new occurrence. Read the
+<a href="#omit-the-key-for-a-new-occurrence-on-every-call">key rules below</a> before making
+an operation retryable. For a real profile write plus notification, follow the
+<a href="transactional-notifications.html">compiled transactional workflow</a>.</p>
+<h2 id="define-a-module-notification">Define a module notification<a class="heading-link" href="#define-a-module-notification" aria-label="Link to Define a module notification">#</a></h2>
+<p>Modules keep a plural <code>notifications</code> package; the shared capability is singular
+<code>notification</code>. Both imports work without aliases. A builder is an ordinary Go
+function, with no base class, service registration or per-notification handler.
+For an illustrative Orders module, put this complete function in its <code>notifications</code>
+package and import <code>encoding/json</code>, <code>internal/platform/notification</code> and <code>pkg/mailview</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-function">NewOrderShipped</span><span class="go-bracket-0">(</span><span class="go-parameter">orderID</span> <span class="go-builtin-type">string</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    data<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">Marshal</span><span class="go-bracket-1">(</span><span class="go-keyword">struct</span> <span class="go-bracket-2">{</span>
+        <span class="go-type">OrderID</span> <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;order_id&#34;`</span>
+        <span class="go-type">Title</span>   <span class="go-builtin-type">string</span> <span class="go-string">`json:&#34;title&#34;`</span>
+    <span class="go-bracket-2">}</span><span class="go-bracket-2">{</span>OrderID<span class="go-punctuation">:</span> <span class="go-parameter">orderID</span><span class="go-punctuation">,</span> Title<span class="go-punctuation">:</span> <span class="go-string">&#34;Your order has shipped&#34;</span><span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span> <span class="go-keyword">return</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-2">{</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span> err <span class="go-bracket-1">}</span>
+
+    <span class="go-keyword">return</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>
+        Key<span class="go-punctuation">:</span> <span class="go-string">&#34;shipment:&#34;</span> <span class="go-operator">+</span> <span class="go-parameter">orderID</span><span class="go-punctuation">,</span>
+        Type<span class="go-punctuation">:</span> <span class="go-string">&#34;order.shipped&#34;</span><span class="go-punctuation">,</span>
+        Database<span class="go-punctuation">:</span> data<span class="go-punctuation">,</span>
+        Email<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">mailview</span><span class="go-punctuation">.</span><span class="go-type">Email</span><span class="go-bracket-2">{</span>
+            Subject<span class="go-punctuation">:</span> <span class="go-string">&#34;Your order has shipped&#34;</span><span class="go-punctuation">,</span>
+            Title<span class="go-punctuation">:</span> <span class="go-string">&#34;On its way&#34;</span><span class="go-punctuation">,</span>
+            Paragraphs<span class="go-punctuation">:</span> <span class="go-bracket-3">[</span><span class="go-bracket-3">]</span><span class="go-builtin-type">string</span><span class="go-bracket-3">{</span><span class="go-string">&#34;Your order has shipped.&#34;</span><span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+        <span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p><code>Key</code> optionally identifies one business occurrence per recipient, not an attempt. Include a
+shipment version when an order can ship more than once. A retry reuses its key;
+a new occurrence uses a new key. <code>Type</code> is a stable module-owned name used by clients
+and operators. Types require no central registration. Explicit keys allow 1–200 UTF-8 bytes;
+types allow 1–100, without surrounding whitespace or control characters.</p>
+<h3 id="omit-the-key-for-a-new-occurrence-on-every-call">Omit the key for a new occurrence on every call<a class="heading-link" href="#omit-the-key-for-a-new-occurrence-on-every-call" aria-label="Link to Omit the key for a new occurrence on every call">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes">message <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-string">&#34;announcement.published&#34;</span><span class="go-punctuation">,</span>
+    Database<span class="go-punctuation">:</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">RawMessage</span><span class="go-bracket-1">(</span><span class="go-string">`{&#34;title&#34;:&#34;A new announcement is available&#34;}`</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+receipt<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+</code></pre>
+<p>When <code>Key</code> is empty, each <code>Send</code> or <code>Enqueue</code> call generates a fresh UUID key.
+All selected channels share that key, and queued worker retries reuse the persisted
+key. The caller&#39;s Message is not modified. Repeating the original call, even with
+the same Message value, creates a new occurrence and can produce another notification.
+Use an explicit stable key when an event, job or request may be retried, especially
+after an uncertain enqueue result. Only the empty string requests generation;
+whitespace-only or otherwise invalid explicit keys are rejected.</p>
+<p><code>Enqueue</code> deduplicates by recipient, key and channel, including completed deliveries.
+<code>Send</code> deduplicates database records, but attempts external channels immediately—even
+with an explicit key. Use <code>Enqueue</code> when email retries need persisted deduplication.</p>
+<h2 id="select-channels">Select channels<a class="heading-link" href="#select-channels" aria-label="Link to Select channels">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Message field</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ChannelDatabase</code> (<code>database</code>)</td>
+<td><code>Database json.RawMessage</code></td>
+<td>Store JSON data with recipient ownership and read state</td>
+</tr>
+<tr>
+<td><code>ChannelEmail</code> (<code>email</code>)</td>
+<td><code>Email *mailview.Email</code></td>
+<td>Render branded text/HTML using <code>pkg/mailview</code>, then send with <code>internal/platform/mail</code></td>
+</tr>
+<tr>
+<td><code>ChannelPush</code> (<code>push</code>)</td>
+<td><code>Push *push.Message</code></td>
+<td>Send to the recipient’s registered installations</td>
+</tr>
+</tbody>
+</table>
+<p>Non-nil content selects a channel. <code>message.Channels()</code> returns the typed channels
+in delivery order. Set <code>message.Email = nil</code> for a database-only notification, or
+<code>message.Database = nil</code> for email-only delivery. A message needs at least one
+channel; there is no separate <code>Via</code> list to keep synchronized with the content.</p>
+<p>The <code>database</code> name follows <a href="https://laravel.com/docs/13.x/notifications#database-notifications">Laravel&#39;s database channel</a>:
+notification type and JSON data are stored for the application&#39;s interface.
+Database content must be a valid UTF-8 JSON <strong>object</strong>, at most <code>MaxDataSize</code> (32 KiB).
+An empty object is valid; null, arrays, scalars and invalid JSON are rejected.
+Titles, text, links, identifiers and nested values belong inside this object.
+There is no fixed <code>Body</code> field and no double JSON encoding. Build dynamic data with
+<code>json.Marshal</code>; do not interpolate untrusted values into a JSON string.</p>
+<p>Email accepts the existing <code>mailview.Email</code> directly. Module <code>mailviews</code> builders
+can compose it with the shared branded layout. Rendering and address validation
+happen before either channel has effects. Queued email snapshots its rendered
+subject, text, HTML and destination; a retry does not rerender newer templates.
+Each encoded channel snapshot is limited to 64 KiB. Rich synchronous attachments
+remain available through <code>internal/platform/mail</code>; queued content contains no open files or readers.
+PostgreSQL normalizes JSONB formatting and numbers. Separate storage limits allow
+64 KiB for normalized database data and 128 KiB for a normalized channel snapshot;
+oversized numeric expansion is rejected by database constraints during persistence.</p>
+<h2 id="address-any-model">Address any model<a class="heading-link" href="#address-any-model" aria-label="Link to Address any model">#</a></h2>
+<pre><code class="language-go" data-highlighted="yes">recipient <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Recipient</span><span class="go-bracket-0">{</span>
+    Type<span class="go-punctuation">:</span> <span class="go-builtin-type">string</span><span class="go-bracket-1">(</span><span class="go-package">entities</span><span class="go-punctuation">.</span>UserEntityType<span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    ID<span class="go-punctuation">:</span> <span class="go-package">user</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+    Email<span class="go-punctuation">:</span> <span class="go-package">user</span><span class="go-punctuation">.</span>Email<span class="go-punctuation">.</span><span class="go-function">String</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+receipt<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// receipt.DeliveryIDs identifies the persisted channel intents.</span>
+</code></pre>
+<p>This fragment assumes an authorized, loaded <code>user</code>, a prepared <code>message</code>, <code>ctx</code>
+and the borrowed notifier. Import <code>internal/modules/shared/entities</code>; do not make up
+module-local discriminators. Add stable admin or other model constants to
+<code>internal/modules/shared/entities/entity_types.go</code> when introducing those models.</p>
+<p><code>Recipient.Type</code> is a stable logical model name, matching <code>[a-z][a-z0-9_.-]{0,63}</code>.
+<code>Recipient.ID</code> is a canonical UTF-8 string of 1–200 bytes without surrounding
+whitespace or control characters. Numeric IDs use decimal strings; UUIDs use their
+standard form. <code>(type, id)</code> scopes persistence, duplicate suppression and read state.
+Email is only a destination and is excluded from database-channel snapshots and
+stored records. Platform code never imports a model to discover its address.</p>
+<p>The caller authorizes recipients and owns existence/deletion policy. There is no
+foreign key to arbitrary model tables. Stop new publication and coordinate workers
+before purging a deleted recipient; process-local pub/sub is not durable cleanup.</p>
+<h2 id="send-immediately-or-queue-durably">Send immediately or queue durably<a class="heading-link" href="#send-immediately-or-queue-durably" aria-label="Link to Send immediately or queue durably">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Guarantee and dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Send(ctx, recipient, message)</code></td>
+<td>One attempt per selected channel; returns <code>[]Result</code> with typed channel and error</td>
+</tr>
+<tr>
+<td><code>Enqueue(ctx, recipient, message)</code></td>
+<td>Atomically persists channel intents; returns <code>Receipt.DeliveryIDs</code></td>
+</tr>
+<tr>
+<td><code>Dispatch(ctx)</code></td>
+<td>Submits a bounded batch of due IDs to Asynq; database and queue required</td>
+</tr>
+<tr>
+<td><code>Deliver(ctx, id)</code></td>
+<td>Claims and attempts one persisted channel; called by the worker</td>
+</tr>
+</tbody>
+</table>
+<p><code>Send</code> validates all content before effects. Database-only messages join the
+caller&#39;s SQL transaction, replacing a separate record/write API. Messages containing
+email or push must run outside transactions. A failed channel does not prevent independent
+channels from being attempted; inspect the results before deciding what to retry.
+SMTP acceptance does not prove that a message reached the recipient.</p>
+<p><code>Enqueue</code> needs a database but no queue client in the calling process. It performs
+no Redis, SMTP or pub/sub calls. Its receipt means intent is persisted, subject to
+the caller&#39;s commit. Put business changes and notification intent in the same transaction:</p>
+<p>See the <a href="transactional-notifications.html">complete, compiled profile update</a>
+for this transaction pattern with real framework services. All participating SQL
+collaborators must share the same database pool. A receipt returned inside a
+transaction is not proof that its outer caller eventually committed.</p>
+<p>App exposes the same instance as <code>dependencies.Resources.Notifier</code>. Construct
+with <code>New(db, Options{})</code> for database-only use or <code>New(nil, Options{Mailer: sender, MailRenderer: views})</code> for email-only sends. Missing SQL returns <code>database.ErrNilDB</code>;
+missing email/queue configuration returns <code>ErrUnavailable</code>. A configured Mailer
+requires MailRenderer at construction. No instance owns or closes its borrowed clients.</p>
+<section class="walkthrough" aria-label="Step-by-step explanation"><h3>Follow a durable notification</h3><p>Each step has a different guarantee. A saved intent, a queued task and an
+accepted provider call are not the same outcome.</p>
+<ol>
+<li>
+<p><strong>Save intent.</strong> The business operation calls Enqueue in its SQL transaction.
+PostgreSQL stores one snapshot per selected channel and destination.</p>
+<p>No Redis or provider call happens here. A rollback removes both the business
+changes and the new notification intents.</p>
+</li>
+<li>
+<p><strong>Commit.</strong> The outer transaction makes both the business change and its
+notification intent visible together.</p>
+<p>A receipt returned inside the transaction still depends on that commit.
+A successful commit does not mean a notification has been delivered.</p>
+</li>
+<li>
+<p><strong>Dispatch.</strong> The worker-owned dispatcher scans due ledger rows and submits
+delivery IDs to Asynq in Redis.</p>
+<p>The ledger remains the source of pending work if Redis is unavailable.
+Dispatch does not require the cron scheduler.</p>
+</li>
+<li>
+<p><strong>Attempt delivery.</strong> A worker claims one channel with a lease, reads the
+saved content and attempts the database, email or push operation.</p>
+<p>Channels progress independently. A failure in email does not undo a stored
+database notification.</p>
+</li>
+<li>
+<p><strong>Record or retry.</strong> Persist the result. Failed attempts wait until due;
+expired claims can recover and exhausted deliveries need deliberate retry.</p>
+<p>A crash after an external provider accepts the message can still cause a
+duplicate. A lease cannot undo a message already sent.</p>
+</li>
+</ol>
+</section>
+<h2 id="handle-partial-immediate-results">Handle partial immediate results<a class="heading-link" href="#handle-partial-immediate-results" aria-label="Link to Handle partial immediate results">#</a></h2>
+<p><code>Send</code> validates the whole message before effects, then attempts channels
+independently. A later failure does not roll back an earlier successful channel.
+In a function that returns <code>([]notification.Result, error)</code>, preserve both outputs:</p>
+<pre><code class="language-go" data-highlighted="yes">results<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Send</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> results<span class="go-punctuation">,</span> err
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Caller responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validation error with no results</td>
+<td>Fix content, destination or configuration before trying again</td>
+</tr>
+<tr>
+<td>Database succeeded, email failed</td>
+<td>Do not assume the database record disappeared; decide which effect to retry</td>
+</tr>
+<tr>
+<td>Push has <code>PushTicketID</code></td>
+<td>Persist/check its receipt if required; <code>Send</code> does not poll it</td>
+</tr>
+<tr>
+<td>External result is uncertain</td>
+<td>A repeat attempt may duplicate the external message</td>
+</tr>
+</tbody>
+</table>
+<p>A stable <code>Key</code> deduplicates database records even for immediate sends. It does not
+suppress repeated immediate email/push attempts. Prefer <code>Enqueue</code> for persistent,
+independent channel retries. Never retry the entire multi-channel call blindly.</p>
+<h2 id="read-stored-notifications">Read stored notifications<a class="heading-link" href="#read-stored-notifications" aria-label="Link to Read stored notifications">#</a></h2>
+<p><code>List</code>, <code>UnreadCount</code> and <code>MarkRead</code> operate on <code>notification.Record</code> values. Reads
+are bounded and newest-first; marking read preserves the first timestamp. HTTP
+routes are <code>GET /notifications</code>, <code>GET /notifications/unread-count</code>, and
+<code>PATCH /notifications/{id}/read</code>. Default routes use the authenticated Identity user;
+other model types require their own authorized handlers.</p>
+<p>Responses include <code>type</code>, <code>data</code>, <code>recipient_type</code>, <code>recipient_id</code> and timestamps.
+<code>data</code> is a JSON object, including nested values. The payload schema is owned by the module, while read state is owned by the
+notification capability.</p>
+<h3 id="read-from-go">Read from Go<a class="heading-link" href="#read-from-go" aria-label="Link to Read from Go">#</a></h3>
+<p>These function-body fragments assume an authorized <code>recipient</code>, <code>ctx</code> and notifier:</p>
+<pre><code class="language-go" data-highlighted="yes">page<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">List</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> <span class="go-package">pagination</span><span class="go-punctuation">.</span><span class="go-function">NewPagination</span><span class="go-bracket-1">(</span><span class="go-number">1</span><span class="go-punctuation">,</span> <span class="go-number">20</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// page.Items contains records; page.Total is the matching record count.</span>
+</code></pre>
+<pre><code class="language-go" data-highlighted="yes">count<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">UnreadCount</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// count is an integer, independent of pagination.</span>
+</code></pre>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">MarkRead</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> notificationID<span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>github.com/wisalgroup/labena/pkg/pagination</code> for the first example. <code>notificationID</code> is a UUID.
+Repeated <code>MarkRead</code> preserves the first read time. Passing another recipient&#39;s ID
+does not grant access to their record. There is no implicit “mark all read” action.</p>
+<h3 id="read-from-http">Read from HTTP<a class="heading-link" href="#read-from-http" aria-label="Link to Read from HTTP">#</a></h3>
+<p>With an Identity access token stored in <code>$ACCESS_TOKEN</code>:</p>
+<pre><code class="language-sh">curl -H &#34;Authorization: Bearer $ACCESS_TOKEN&#34; \
+  &#39;http://localhost:8080/api/v1/notifications?page=1&amp;per_page=20&#39;
+curl -H &#34;Authorization: Bearer $ACCESS_TOKEN&#34; \
+  http://localhost:8080/api/v1/notifications/unread-count
+curl -X PATCH -H &#34;Authorization: Bearer $ACCESS_TOKEN&#34; \
+  http://localhost:8080/api/v1/notifications/NOTIFICATION_ID/read
+</code></pre>
+<p>The list returns the framework&#39;s <code>data</code> envelope containing <code>items</code>, <code>page</code>,
+<code>per_page</code>, <code>total</code> and <code>total_pages</code>. Unread count returns <code>data: {&#34;count&#34;: N}</code>;
+marking read returns <strong>204</strong> with no body. Normal request metadata is still
+provided by the <a href="responses.html">response layer</a>.</p>
+<p>The caller cannot select recipient type or ID through these default routes.
+They derive it from the authenticated user. An Admin module supplies its own
+authorized handlers and calls the same recipient-scoped methods.</p>
+<h2 id="push-and-database-notifications">Push and database notifications<a class="heading-link" href="#push-and-database-notifications" aria-label="Link to Push and database notifications">#</a></h2>
+<p>This fragment assumes <code>exportID</code>, JSON-object <code>data</code>, expiry <code>expires</code>, an
+authorized recipient and a borrowed notifier. Import <code>github.com/wisalgroup/labena/pkg/push</code>:</p>
+<pre><code class="language-go" data-highlighted="yes">message <span class="go-operator">:=</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-0">{</span>
+    Key<span class="go-punctuation">:</span> <span class="go-string">&#34;export:&#34;</span> <span class="go-operator">+</span> exportID <span class="go-operator">+</span> <span class="go-string">&#34;:ready&#34;</span><span class="go-punctuation">,</span>
+    Type<span class="go-punctuation">:</span> <span class="go-string">&#34;export.ready&#34;</span><span class="go-punctuation">,</span>
+    Database<span class="go-punctuation">:</span> data<span class="go-punctuation">,</span>
+    Push<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span><span class="go-type">push</span><span class="go-punctuation">.</span><span class="go-type">Message</span><span class="go-bracket-1">{</span>
+        Title<span class="go-punctuation">:</span> <span class="go-string">&#34;Your export is ready&#34;</span><span class="go-punctuation">,</span>
+        Body<span class="go-punctuation">:</span> <span class="go-string">&#34;Open the application to download it.&#34;</span><span class="go-punctuation">,</span>
+        Data<span class="go-punctuation">:</span> <span class="go-keyword">map</span><span class="go-bracket-2">[</span><span class="go-builtin-type">string</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;export_id&#34;</span><span class="go-punctuation">:</span> exportID<span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+        ExpiresAt<span class="go-punctuation">:</span> <span class="go-operator">&amp;</span>expires<span class="go-punctuation">,</span>
+    <span class="go-bracket-1">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-0">}</span>
+receipt<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Enqueue</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> message<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// Persist or return receipt.DeliveryIDs when the operation needs delivery tracking.</span>
+</code></pre>
+<p>Queued and synchronous notification push automatically includes reserved string data
+fields <code>notification_key</code> and <code>notification_type</code>; caller values for these fields are
+overwritten in a copied payload. Push works without selecting Database.
+Channel delivery order is not guaranteed.</p>
+<p><code>Enqueue</code> freezes the push target set once under a transaction lock. Each destination
+has an independent delivery row. Repeating the key cannot add newly registered
+installations or replace content. Registration rotation, reassignment, unsubscribe,
+expiry or logout prevents an old queued version from following the new destination.
+Refreshing an unchanged registration only updates its freshness. No registration
+produces a skipped delivery, rather than a job that later targets new devices.
+A recipient may have at most 100 active installations per push project. Subscribe
+enforces this atomically, including concurrent registrations. Existing installations
+can rotate at capacity. <code>ErrInstallationLimit</code> asks the caller to unsubscribe a device
+before adding another; it is also returned when legacy data already exceeds the
+limit. Resolve legacy excess with recipient-scoped Unsubscribe (or DetachSession
+for a deliberate logout), then retry. Delivery never silently truncates destinations.</p>
+<p><code>Subscribe</code>, <code>Unsubscribe</code>, <code>DetachSession</code> and <code>PruneSubscriptions</code> work for any
+model; callers authorize recipients. HTTP defaults serve Identity users only. Active
+installations cannot be reassigned to a different recipient without detachment.
+The provider/project scopes registrations and uniqueness. Device registration is
+private and never included in HTTP responses, operator responses or logs.</p>
+<p>Identity&#39;s explicit session-revocation methods detach registrations atomically with
+logout. Before each new provider send, session-bound destinations also call
+<code>Options.SessionActive</code>. App supplies Identity&#39;s authoritative account/session check,
+so replay revocation, single-session displacement, suspension and expiry prevent new
+push attempts. A false result disables only the checked subscription version and
+skips delivery; a backend error is retried without detaching the registration. This
+also protects already queued intents. A concurrent registration for a fresh session
+survives the stale check. The check cannot retract an in-flight provider request.</p>
+<p>Standalone session-bound callers must supply SessionActive; missing checks fail
+closed. Sessionless recipients remain supported without that callback. Callers still
+own recipient authorization and may explicitly detach on deletion. Push registration
+is not itself an authentication credential. App centrally schedules
+<code>notifications.prune_subscriptions.v1</code> hourly when push is enabled. Each run disables
+up to 1000 registrations inactive for 90 days; the cutoff is computed at execution.
+Delivery/receipt polling does not perform retention cleanup and needs no cron.
+Workers-only deployments need a scheduler owner or the CLI command
+<code>notifications prune-subscriptions</code> for retention. See the
+<a href="scheduling.html">scheduling guide</a> for rollout and backlog handling.</p>
+<p>Invalid registrations are disabled, permanent failures stop automatic retries, and
+transient failures retry independently. Provider Retry-After is respected. Expired
+messages are skipped. Logs contain delivery ID/channel/attempt only. Optional OTel
+metrics expose <code>notification.delivery.attempts</code> with channel/outcome and
+<code>notification.pending.age</code> in seconds; alert on growing backlog age, permanent
+failures, throttling, and invalid registrations. Retention of delivery history remains
+an application/operator policy because purging it also removes deduplication.</p>
+<h2 id="register-and-detach-a-push-installation">Register and detach a push installation<a class="heading-link" href="#register-and-detach-a-push-installation" aria-label="Link to Register and detach a push installation">#</a></h2>
+<p>The default authenticated routes are:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path under <code>/api/v1</code></th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/notifications/subscriptions</code></td>
+<td>Register or refresh a device installation; returns ID, installation ID and update time</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/notifications/subscriptions/{id}</code></td>
+<td>Detach a recipient-owned installation; returns 204</td>
+</tr>
+</tbody>
+</table>
+<p>The POST body contains only <code>installation_id</code> (a client-persisted UUID) and
+<code>registration</code> (the Expo push token). Identity supplies recipient and session
+identity from the access token. The provider registration is never echoed back.</p>
+<p>Use <a href="push.html#expo-mobile-client">the Expo client example</a> for
+permissions, token acquisition and the authenticated request. Refresh unchanged
+registrations on application startup so inactivity pruning reflects current use.</p>
+<p>Identity&#39;s HTTP delivery calls its AuthService&#39;s <code>SubscribePush</code> operation directly.
+Identity rechecks the session and holds its account lock through registration,
+serializing it with logout. Direct <code>Notifier.Subscribe</code> calls do not have that
+Identity policy; custom integrations must authorize their recipients and coordinate
+session revocation themselves.</p>
+<p>For a non-Identity integration inside this repository:</p>
+<pre><code class="language-go" data-highlighted="yes">subscription<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notifier</span><span class="go-punctuation">.</span><span class="go-function">Subscribe</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> recipient<span class="go-punctuation">,</span> installationID<span class="go-punctuation">,</span> sessionID<span class="go-punctuation">,</span> registration<span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-comment">// Persist subscription.ID for this installation; do not expose its registration.</span>
+</code></pre>
+<p>All four values are supplied and authorized by the caller. Nonempty session IDs
+require a <code>SessionActive</code> callback in the notifier options. <code>sessionID</code> can be empty
+for a model without sessions. <code>DetachSession(ctx, recipient, &#34;&#34;)</code> disables all
+installations for that recipient; a nonempty session ID targets only that session.
+Coordinate account deletion and stop new publication before purging recipient data.</p>
+<h2 id="expo-acceptance-and-receipts">Expo acceptance and receipts<a class="heading-link" href="#expo-acceptance-and-receipts" aria-label="Link to Expo acceptance and receipts">#</a></h2>
+<p>Expo push registrations replace native provider tokens. New registrations must use
+<code>ExpoPushToken[...]</code> or <code>ExponentPushToken[...]</code>. Configure <code>PUSH_EXPO_PROJECT_ID</code>
+and optionally <code>PUSH_EXPO_ACCESS_TOKEN</code> (required when enhanced push security is enabled).</p>
+<p>Accepted push deliveries enter <code>awaiting_receipt</code>. The existing dispatcher/worker
+checks receipts after 15 minutes; missing receipts and lookup failures are polled
+again after five minutes without resending or consuming send attempts. An <code>ok</code> receipt
+confirms provider handoff only. Definitive receipt failures follow normal retry or
+permanent-failure handling, and invalid destinations are disabled by registration version.</p>
+<p>No confirmation within 24 hours is a failed, uncertain outcome requiring operator
+review. Manual retry clears its ticket and can duplicate delivery. Synchronous Send
+exposes <code>Result.PushTicketID</code> for caller-owned receipt checks. See the
+<a href="push.html">push guide</a> for standalone usage and Expo client setup.
+Receipt state is persisted with the delivery. A worker restart resumes polling
+that ticket; it does not intentionally resend merely because a receipt is pending.</p>
+<h2 id="delivery-lifecycle">Delivery lifecycle<a class="heading-link" href="#delivery-lifecycle" aria-label="Link to Delivery lifecycle">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DeliveryPending</code> (<code>pending</code>)</td>
+<td>Waiting for dispatch or next due attempt</td>
+</tr>
+<tr>
+<td><code>DeliverySending</code> (<code>sending</code>)</td>
+<td>A worker holds the current lease</td>
+</tr>
+<tr>
+<td><code>DeliveryAwaitingReceipt</code> (<code>awaiting_receipt</code>)</td>
+<td>Expo accepted a ticket; provider handoff is not yet confirmed</td>
+</tr>
+<tr>
+<td><code>DeliverySent</code> (<code>sent</code>)</td>
+<td>Database record stored, SMTP accepted, or Expo confirmed provider handoff</td>
+</tr>
+<tr>
+<td><code>DeliveryFailed</code> (<code>failed</code>)</td>
+<td>Terminal failure or exhausted/uncertain delivery requiring operator review</td>
+</tr>
+<tr>
+<td><code>DeliverySkipped</code> (<code>skipped</code>)</td>
+<td>No eligible destination, detached registration or expired content</td>
+</tr>
+</tbody>
+</table>
+<p>Zero and unknown status values are invalid. “Sent” never means the user read it. One row
+exists per <code>(recipient_type, recipient_id, key, channel, destination)</code>.
+Destination is empty except for push, which uses a subscription ID. Enqueue calls with the same key
+return the original IDs and retain the first type, content, destination and state.
+Channels retry independently; successful channels are not intentionally resent.</p>
+<p><code>NewDispatcher(notifier, interval)</code> validates its arguments without starting work;
+zero selects one second. Invalid intervals or a missing notifier return an error
+before readiness can be signaled. Worker processes run the dispatcher every second (configurable with
+<code>NOTIFICATION_DISPATCH_INTERVAL</code>, minimum 100ms). Each scan submits at most 100 IDs
+using <code>notifications.deliver.v1</code>. No cron scheduler is needed. Replicas coordinate
+through database claims; <code>notifications dispatch</code> remains available for operators. Without dispatch, intent stays in
+PostgreSQL. Losing Redis does not remove the persisted delivery backlog.</p>
+<p>Claims use the database clock, a two-minute lease and an ownership token. Provider
+attempts have a 30-second deadline, followed by up to five seconds to persist the
+outcome. The ledger allows eight attempts with exponential delay starting at one
+minute and up to 20% jitter. Asynq retries infrastructure errors three times;
+recorded provider failures wait for the next dispatch. Expired claims recover;
+exhausted deliveries require deliberate <code>RetryDelivery</code>.</p>
+<p>SMTP cannot guarantee exactly-once delivery: a worker may crash after acceptance.
+Lease ownership protects database updates but cannot undo an external effect.
+<code>GetDelivery</code> and <code>ListDeliveries</code> expose metadata only; logs omit content, destinations
+and provider error details. Keep backups and define retention before purging rows:
+deleting records also removes duplicate suppression. No automatic purge is implied.</p>
+<h2 id="inspect-and-retry-deliveries">Inspect and retry deliveries<a class="heading-link" href="#inspect-and-retry-deliveries" aria-label="Link to Inspect and retry deliveries">#</a></h2>
+<p>Use the same database/Redis profile as the running application:</p>
+<pre><code class="language-sh">go run ./cmd/cli notifications list user USER_ID
+go run ./cmd/cli notifications unread user USER_ID
+go run ./cmd/cli notifications read user USER_ID NOTIFICATION_ID
+go run ./cmd/cli notifications deliveries --status pending
+go run ./cmd/cli notifications deliveries --status awaiting_receipt
+go run ./cmd/cli notifications deliveries --status failed
+go run ./cmd/cli notifications delivery DELIVERY_ID
+</code></pre>
+<p>Use <code>--status &#39;&#39;</code> to include all delivery states and <code>--page 2</code> for the next bounded
+page. Operator responses contain metadata, not private channel snapshots or provider
+registrations. The CLI constructs dependencies but does not start workers.</p>
+<p>After checking the cause and duplication risk:</p>
+<pre><code class="language-sh">go run ./cmd/cli notifications retry DELIVERY_ID
+go run ./cmd/cli notifications dispatch
+</code></pre>
+<p>Retry accepts only a terminal <strong>failed</strong> delivery and makes it eligible again.
+Dispatch submits a bounded batch of due IDs; a running worker is still required.
+These are different from replaying an Asynq task in the <a href="queues.html#inspection-and-administration">queue inspector</a>.
+The SQL ledger owns notification provider retry state.</p>
+<p>For stale push installations, <code>notifications prune-subscriptions</code> disables a batch
+inactive for 90 days. The central hourly schedule performs the same operation when
+push and a scheduler owner are enabled. It is separate from delivery polling.</p>
+<h2 id="use-each-capability-independently">Use each capability independently<a class="heading-link" href="#use-each-capability-independently" aria-label="Link to Use each capability independently">#</a></h2>
+<ul>
+<li>Database only: <code>notification.New(db, notification.Options{})</code>.</li>
+<li>Email only: <code>notification.New(nil, notification.Options{Mailer: mailer, MailRenderer: views})</code>.</li>
+<li>Push only: <code>push.NewExpo</code>, then <code>Send(ctx, registration, message)</code> and <code>Receipt(ctx, ticket.ID)</code>.</li>
+<li>Durable notification delivery: supply PostgreSQL to <code>New</code>, and Asynq to the worker
+instance. The producer instance needs no Redis connection. Both must have selected
+channel clients configured for preparation and validation.</li>
+</ul>
+<p>See <a href="push.html">push</a> for
+constructors, credentials, frontend setup and standalone examples. Modules reuse
+these owned capabilities; do not redefine their contracts. Internal Watermill events
+remain process-local. For important notifications, persist intent in the business
+transaction rather than relying on an in-memory event to eventually enqueue it.</p>
+<p>A producer and worker may use separate notifier instances backed by the same
+PostgreSQL database. Both need collaborators for the selected channels because
+preparation validates and snapshots content before storing intent. Only the
+worker dispatcher needs Redis.</p>
+<pre><code class="language-go" data-highlighted="yes">notifier<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">notification</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span>db<span class="go-punctuation">,</span> <span class="go-type">notification</span><span class="go-punctuation">.</span><span class="go-type">Options</span><span class="go-bracket-1">{</span>
+    Queue<span class="go-punctuation">:</span> queue<span class="go-punctuation">,</span>
+    Mailer<span class="go-punctuation">:</span> mailer<span class="go-punctuation">,</span>
+    MailRenderer<span class="go-punctuation">:</span> views<span class="go-punctuation">,</span>
+    Pusher<span class="go-punctuation">:</span> pusher<span class="go-punctuation">,</span>
+    PushProject<span class="go-punctuation">:</span> projectID<span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>This is an assembly fragment using already constructed clients; omit unneeded
+optional fields. The notifier never closes them. For standalone framework
+integration, <code>integration.Register(notifier, targets)</code> installs selected
+migrations, commands and tasks and starts no work. Identity&#39;s HTTP delivery owns
+the user notification and push-subscription routes. Other business modules can
+authorize their own recipients before calling the capability directly.</p>
+<p><code>notification.NewDispatcher(notifier, 0)</code> selects the one-second polling interval;
+call its <code>Run(ctx)</code> once as part of your own worker lifecycle, and wait for it before
+closing clients. Start the actual Asynq worker separately. A dispatcher alone does
+not execute delivery tasks. <code>internal/platform</code> remains application-owned Go code;
+external projects can use <code>pkg/push</code> independently without importing it.</p>
+<h2 id="extend-when-a-provider-is-ready">Extend when a provider is ready<a class="heading-link" href="#extend-when-a-provider-is-ready" aria-label="Link to Extend when a provider is ready">#</a></h2>
+<p>Future channels add typed content and a <code>Channel</code> constant, then prepare a durable
+snapshot and deliver it through the existing retry flow. Keep those two operations
+in <code>notifier.go</code>; add the provider to <code>Options</code> and permit its channel in SQL.
+Business notification types still need no registration. There is no generic driver
+registry or map of untyped values for callers to configure.</p>
+<p>SMS needs a phone destination and text; WhatsApp commonly needs provider-specific
+template identifiers and parameters. These channels are not implemented or advertised
+as valid enum values yet. Add providers and their behavior together. Preferences,
+localization and recipient eligibility belong in module builders until shared policy
+is actually needed.</p>
+<h2 id="development-migration-and-identity-example">Development migration and Identity example<a class="heading-link" href="#development-migration-and-identity-example" aria-label="Link to Development migration and Identity example">#</a></h2>
+<p>The capability owns migrations for database records, channel delivery intent and
+push installations. App registers these through <code>notification/integration</code> and the
+<a href="migrations.html">central migration runner</a> applies them. Constructing
+a notifier does not create tables.</p>
+<p>Use the checked-in baseline for a new database. Existing deployments must preserve
+applied migrations and receive explicit forward changes; runtime startup never
+resets a schema. Keep delivery history retention deliberate because purging it also
+removes duplicate suppression.</p>
+<p>The <a href="onboarding.html">onboarding walkthrough</a> connects the shipped
+<code>notifications.NewWelcome</code> builder, mail view, local event and worker. The job
+reloads current account state and skips inactive/deleted users; unverified users
+receive no email. The local signup event can be lost before an intent is saved.
+Use the <a href="transactional-notifications.html">transactional example</a> when
+notification intent must commit with the business operation.</p>
+<h2 id="test-and-troubleshoot-notifications">Test and troubleshoot notifications<a class="heading-link" href="#test-and-troubleshoot-notifications" aria-label="Link to Test and troubleshoot notifications">#</a></h2>
+<pre><code class="language-sh">go test ./internal/platform/notification/... ./pkg/push/...
+go test ./tests/modules -run TestProfileNotificationWorkflowPostgres -count=1
+</code></pre>
+<p>The second test needs <code>DATABASE_TEST_POSTGRES</code> pointing to a disposable PostgreSQL
+database; without it, PostgreSQL-dependent cases skip. It proves commit, rollback,
+delayed visibility and repeat delivery of database notifications. The broader
+<a href="testing-database.html">integration gate</a> also exercises real Redis.
+Provider tests use local fake HTTP/SMTP behavior, not real recipient delivery.</p>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Inspect</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enqueue succeeded, List is empty</td>
+<td>Delivery status and dispatcher/worker</td>
+<td>Intent is not yet a database record</td>
+</tr>
+<tr>
+<td>Same key returns old content</td>
+<td>Occurrence identity</td>
+<td>First persisted content wins; use a new key for a new business occurrence</td>
+</tr>
+<tr>
+<td>Every request creates another record</td>
+<td>Empty <code>Key</code></td>
+<td>Each original call generates a fresh occurrence</td>
+</tr>
+<tr>
+<td>Database works but email is unavailable</td>
+<td>Mailer, renderer and destination</td>
+<td>All selected channel content must be prepared before persistence</td>
+</tr>
+<tr>
+<td>Push is skipped</td>
+<td>Registered target set, version and expiry</td>
+<td>Enqueue freezes eligible installations; later devices are not added to the same occurrence</td>
+</tr>
+<tr>
+<td>Push remains awaiting receipt</td>
+<td>Ticket age and receipt lookup</td>
+<td>Missing receipts do not justify another send</td>
+</tr>
+<tr>
+<td>Delivery is failed</td>
+<td>Attempts, permanent provider classification or uncertain receipt</td>
+<td>Fix the cause, assess duplication, then retry deliberately</td>
+</tr>
+<tr>
+<td>Delivery backlog grows</td>
+<td>Pending age, queue health and worker capacity</td>
+<td>Durable SQL intent survives Redis outage but still needs execution</td>
+</tr>
+</tbody>
+</table>
+<p>Alert on increasing <code>notification.pending.age</code>, repeated permanent failures and
+provider throttling. Use channel/outcome metrics for aggregation and delivery IDs
+for investigation. Keep payloads, destinations and provider responses out of routine
+logs. See <a href="observability.html">observability</a> for correlation.</p>
+<h2 id="package-responsibilities">Package responsibilities<a class="heading-link" href="#package-responsibilities" aria-label="Link to Package responsibilities">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Owns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>notification.go</code></td>
+<td>Public content, recipient, channel and record types</td>
+</tr>
+<tr>
+<td><code>notifier.go</code></td>
+<td>Preparation, immediate sends and record reads</td>
+</tr>
+<tr>
+<td><code>delivery.go</code></td>
+<td>Persisted delivery lifecycle, dispatch and operator methods</td>
+</tr>
+<tr>
+<td><code>store.go</code></td>
+<td>SQL behavior and recipient boundaries</td>
+</tr>
+<tr>
+<td><code>subscriptions.go</code>, <code>push.go</code></td>
+<td>Registration lifecycle, frozen destinations and receipts</td>
+</tr>
+<tr>
+<td><code>integration/</code></td>
+<td>CLI, Asynq and migration registration</td>
+</tr>
+</tbody>
+</table>
+<p>Modules own content and business eligibility. The capability owns delivery state.
+The underlying mail/push clients own provider calls. App owns construction and
+shutdown. Keep those roles distinct when adding a channel or custom transport.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="mail.html"><small>← Previous</small>Mail and mail views</a>
+<a href="push.html"><small>Next →</small>Push</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#create-your-first-database-notification">Create your first database notification</a></li><li class="toc-level-2"><a href="#define-a-module-notification">Define a module notification</a></li><li class="toc-level-3"><a href="#omit-the-key-for-a-new-occurrence-on-every-call">Omit the key for a new occurrence on every call</a></li><li class="toc-level-2"><a href="#select-channels">Select channels</a></li><li class="toc-level-2"><a href="#address-any-model">Address any model</a></li><li class="toc-level-2"><a href="#send-immediately-or-queue-durably">Send immediately or queue durably</a></li><li class="toc-level-2"><a href="#handle-partial-immediate-results">Handle partial immediate results</a></li><li class="toc-level-2"><a href="#read-stored-notifications">Read stored notifications</a></li><li class="toc-level-3"><a href="#read-from-go">Read from Go</a></li><li class="toc-level-3"><a href="#read-from-http">Read from HTTP</a></li><li class="toc-level-2"><a href="#push-and-database-notifications">Push and database notifications</a></li><li class="toc-level-2"><a href="#register-and-detach-a-push-installation">Register and detach a push installation</a></li><li class="toc-level-2"><a href="#expo-acceptance-and-receipts">Expo acceptance and receipts</a></li><li class="toc-level-2"><a href="#delivery-lifecycle">Delivery lifecycle</a></li><li class="toc-level-2"><a href="#inspect-and-retry-deliveries">Inspect and retry deliveries</a></li><li class="toc-level-2"><a href="#use-each-capability-independently">Use each capability independently</a></li><li class="toc-level-2"><a href="#extend-when-a-provider-is-ready">Extend when a provider is ready</a></li><li class="toc-level-2"><a href="#development-migration-and-identity-example">Development migration and Identity example</a></li><li class="toc-level-2"><a href="#test-and-troubleshoot-notifications">Test and troubleshoot notifications</a></li><li class="toc-level-2"><a href="#package-responsibilities">Package responsibilities</a></li></ol></nav><a class="source-link" href="markdown/notifications.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

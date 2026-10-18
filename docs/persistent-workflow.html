@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A persisted HTTP and CLI operation — Practical guides and Go examples for Labena.">
+<title>A persisted HTTP and CLI operation — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
+<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header>
+<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<span class="header-label">Documentation</span>
+<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><a href="markdown/persistent-workflow.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+</header>
+<div class="layout">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-label">THE DOCUMENTATION</div>
+
+<div class="nav-group">Getting started</div>
+<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+
+<div class="nav-group">Architecture</div>
+<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+
+<div class="nav-group">HTTP APIs</div>
+<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+
+<div class="nav-group">Database and state</div>
+<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+
+<div class="nav-group">Authentication</div>
+<a  href="identity.html">Authentication and sessions</a>
+
+<div class="nav-group">Background work</div>
+<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+
+<div class="nav-group">Communication</div>
+<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+
+<div class="nav-group">Files and media</div>
+<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+
+<div class="nav-group">Workflows</div>
+<a class="selected" aria-current="page" href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+
+<div class="nav-group">Operations</div>
+<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+
+<div class="nav-group">Testing</div>
+<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+
+<div class="nav-group">Reference</div>
+<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
+
+<div class="nav-group">Extensions</div>
+<a  href="websockets.html">WebSockets</a>
+
+<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+</nav>
+<main id="content" tabindex="-1">
+<div class="breadcrumb">Documentation <span>/</span> Workflows</div>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#make-the-request">Make the request</a></li><li class="toc-level-2"><a href="#complete-the-profile">Complete the profile</a></li><li class="toc-level-2"><a href="#follow-the-operation">Follow the operation</a></li><li class="toc-level-2"><a href="#read-the-same-account-through-cli">Read the same account through CLI</a></li><li class="toc-level-2"><a href="#grow-your-own-module">Grow your own module</a></li><li class="toc-level-2"><a href="#verify-the-behavior">Verify the behavior</a></li></ol></nav></details>
+<article><h1 id="a-persisted-http-and-cli-operation">A persisted HTTP and CLI operation</h1>
+<p>Follow one account from email proof to PostgreSQL, then read it through a console
+command. This uses shipped Identity code. Start with the <a href="index.html">installation guide</a>,
+then enable authentication and configure SMTP as described in <a href="identity.html#email-otp-configuration-and-security">Identity</a>.
+The minimal quickstart has no public account-creation route while authentication is disabled.</p>
+<h2 id="make-the-request">Make the request<a class="heading-link" href="#make-the-request" aria-label="Link to Make the request">#</a></h2>
+<p>Request a sign-in code for an address you control:</p>
+<pre><code class="language-sh">curl -i -X POST http://127.0.0.1:8080/api/v1/auth/otp/send \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;email&#34;:&#34;workflow@example.com&#34;}&#39;
+</code></pre>
+<p>Expect 202 and save <code>data.challenge_id</code>. Use the code delivered by email:</p>
+<pre><code class="language-sh">curl -i -X POST http://127.0.0.1:8080/api/v1/auth/otp/verify \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;challenge_id&#34;:&#34;CHALLENGE_UUID&#34;,&#34;code&#34;:&#34;CODE_FROM_EMAIL&#34;,&#34;platform&#34;:&#34;web&#34;}&#39;
+</code></pre>
+<p>Expect 201 for a new account or 200 for an existing one. Save <code>data.user.id</code> and the
+access token. Both responses include <code>data.user.profile_complete</code>; when false,
+submit the name to authenticated <code>PATCH /api/v1/users/me</code>. <code>GET /users/me</code> exposes
+the same state on later app launches. Names are optional during sign-in.</p>
+<h2 id="complete-the-profile">Complete the profile<a class="heading-link" href="#complete-the-profile" aria-label="Link to Complete the profile">#</a></h2>
+<p>Use the access token returned by sign-in:</p>
+<pre><code class="language-sh">curl -i -X PATCH http://127.0.0.1:8080/api/v1/users/me \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39; \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&#34;name&#34;:&#34;Ada Lovelace&#34;}&#39;
+</code></pre>
+<p>Expect <strong>200</strong>, the updated public user, and <code>profile_complete: true</code>. Read it back:</p>
+<pre><code class="language-sh">curl -i http://127.0.0.1:8080/api/v1/users/me \
+  -H &#39;Authorization: Bearer ACCESS_TOKEN&#39;
+</code></pre>
+<p>The handler derives the account ID from the authenticated principal, rather than
+trusting an ID in the request body. Request mapping supplies the service input;
+the service/entity still validates the name for non-HTTP callers.</p>
+<h2 id="follow-the-operation">Follow the operation<a class="heading-link" href="#follow-the-operation" aria-label="Link to Follow the operation">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Owner</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assemble</td>
+<td><code>internal/modules/identity/register.go</code></td>
+<td>Construct services once and share them with transports</td>
+</tr>
+<tr>
+<td>Route</td>
+<td><code>delivery/http/routes.go</code></td>
+<td>Connect both OTP operations to the auth handler</td>
+</tr>
+<tr>
+<td>Decode</td>
+<td><code>delivery/http/requests.go</code></td>
+<td>Validate bounded JSON and reject unknown fields</td>
+</tr>
+<tr>
+<td>Decide</td>
+<td><code>service/session.go</code></td>
+<td>Validate proof and device input, then request atomic sign-in</td>
+</tr>
+<tr>
+<td>Persist</td>
+<td><code>repository/session.go</code> and <code>verification.go</code></td>
+<td>Consume proof, create or verify the account and insert its session in one transaction</td>
+</tr>
+<tr>
+<td>Respond</td>
+<td><code>delivery/http/responses.go</code></td>
+<td>Return tokens and the public user with profile-completion state</td>
+</tr>
+</tbody>
+</table>
+<p>Paths after the first row are relative to <code>internal/modules/identity</code>. The shared user
+entity lives in <code>internal/modules/shared/entities/user.go</code>. Sending a code creates only a
+temporary challenge. Invalid proof creates no account. Only newly committed accounts
+publish <code>UserRegistered</code>; returning sign-ins never replace profiles or publish it
+again. Local publication is best-effort and cannot undo a successful signup.</p>
+<h2 id="read-the-same-account-through-cli">Read the same account through CLI<a class="heading-link" href="#read-the-same-account-through-cli" aria-label="Link to Read the same account through CLI">#</a></h2>
+<p>Use the same configured environment as the app and the ID returned by sign-in.
+Export the same <code>APP_ENV_FILE</code> in this terminal before running:</p>
+<pre><code class="language-sh">go run ./cmd/cli identity show &#39;&lt;user-id&gt;&#39;
+</code></pre>
+<p>The command calls the same <code>UserService.Get</code> used by HTTP reads. It receives a
+constructed service directly; it has no application callback or second repository.
+Here is its complete source, <code>internal/modules/identity/delivery/cli/commands.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> cli
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">encoding/</span><span class="go-import-name">json</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/google/</span><span class="go-import-name">uuid</span><span class="go-string">&#34;</span>
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/spf13/</span><span class="go-import-name">cobra</span><span class="go-string">&#34;</span>
+
+	<span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/identity/</span><span class="go-import-name">service</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">func</span> <span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-parameter">users</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">UserService</span><span class="go-bracket-0">)</span> <span class="go-operator">*</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span> <span class="go-bracket-0">{</span>
+	group <span class="go-operator">:=</span> <span class="go-operator">&amp;</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span><span class="go-bracket-1">{</span>Use<span class="go-punctuation">:</span> <span class="go-string">&#34;identity&#34;</span><span class="go-punctuation">,</span> Short<span class="go-punctuation">:</span> <span class="go-string">&#34;Identity commands&#34;</span><span class="go-bracket-1">}</span>
+	group<span class="go-punctuation">.</span><span class="go-function">AddCommand</span><span class="go-bracket-1">(</span><span class="go-operator">&amp;</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span><span class="go-bracket-2">{</span>
+		Use<span class="go-punctuation">:</span> <span class="go-string">&#34;show USER_ID&#34;</span><span class="go-punctuation">,</span> Short<span class="go-punctuation">:</span> <span class="go-string">&#34;Show an account&#34;</span><span class="go-punctuation">,</span> Args<span class="go-punctuation">:</span> <span class="go-package">cobra</span><span class="go-punctuation">.</span><span class="go-function">ExactArgs</span><span class="go-bracket-3">(</span><span class="go-number">1</span><span class="go-bracket-3">)</span><span class="go-punctuation">,</span>
+		RunE<span class="go-punctuation">:</span> <span class="go-keyword">func</span><span class="go-bracket-3">(</span><span class="go-parameter">cmd</span> <span class="go-operator">*</span><span class="go-type">cobra</span><span class="go-punctuation">.</span><span class="go-type">Command</span><span class="go-punctuation">,</span> <span class="go-parameter">args</span> <span class="go-bracket-4">[</span><span class="go-bracket-4">]</span><span class="go-builtin-type">string</span><span class="go-bracket-3">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-3">{</span>
+			userID<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">uuid</span><span class="go-punctuation">.</span><span class="go-function">Parse</span><span class="go-bracket-4">(</span><span class="go-parameter">args</span><span class="go-bracket-5">[</span><span class="go-number">0</span><span class="go-bracket-5">]</span><span class="go-bracket-4">)</span>
+			<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-4">{</span>
+				<span class="go-keyword">return</span> err
+			<span class="go-bracket-4">}</span>
+			user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">users</span><span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-4">(</span><span class="go-parameter">cmd</span><span class="go-punctuation">.</span><span class="go-function">Context</span><span class="go-bracket-5">(</span><span class="go-bracket-5">)</span><span class="go-punctuation">,</span> userID<span class="go-bracket-4">)</span>
+			<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-4">{</span>
+				<span class="go-keyword">return</span> err
+			<span class="go-bracket-4">}</span>
+			<span class="go-keyword">return</span> <span class="go-package">json</span><span class="go-punctuation">.</span><span class="go-function">NewEncoder</span><span class="go-bracket-4">(</span><span class="go-parameter">cmd</span><span class="go-punctuation">.</span><span class="go-function">OutOrStdout</span><span class="go-bracket-5">(</span><span class="go-bracket-5">)</span><span class="go-bracket-4">)</span><span class="go-punctuation">.</span><span class="go-function">Encode</span><span class="go-bracket-4">(</span>user<span class="go-bracket-4">)</span>
+		<span class="go-bracket-3">}</span><span class="go-punctuation">,</span>
+	<span class="go-bracket-2">}</span><span class="go-bracket-1">)</span>
+	<span class="go-keyword">return</span> group
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>CLI execution constructs configured dependencies but does not start HTTP or queue
+workers. Help also constructs the application. Console access is an operator
+capability: this command does not borrow an HTTP user&#39;s permission checks.</p>
+<p>An HTTP read requires a bearer session and ownership checks. With authentication
+disabled, protected routes fail closed; do not remove that middleware to make the
+quickstart read work. Use the CLI above, or enable <a href="identity.html">passwordless authentication</a>.</p>
+<h2 id="grow-your-own-module">Grow your own module<a class="heading-link" href="#grow-your-own-module" aria-label="Link to Grow your own module">#</a></h2>
+<p>Begin with the <a href="modules.html">one-file module</a>, then add only the pieces required
+by a persisted operation: a shared entity, a module migration, a repository and a
+service when there are business rules. Interfaces belong to their owner; HTTP and
+CLI consume the same service contract. Construct once in <code>New</code>, register native
+transports in <code>Register</code>, and keep recurring timing in app assembly.</p>
+<p>Do not copy Identity&#39;s authentication transactions into ordinary operations.
+Authentication sometimes commits denial state deliberately. Most business changes
+can join a caller-owned transaction, as shown in <a href="transactional-notifications.html">SQL and notification intent</a>.</p>
+<h2 id="verify-the-behavior">Verify the behavior<a class="heading-link" href="#verify-the-behavior" aria-label="Link to Verify the behavior">#</a></h2>
+<p><code>TestModulesPostgresRedisWorkflow</code> exercises real HTTP OTP signup, PostgreSQL
+persistence, CLI reads, authenticated access and the background reaction. Run the
+required <a href="testing-database.html">integration gate</a> with disposable PostgreSQL and
+Redis; without their settings the integration test skips.</p>
+<p>Continue with <a href="transactional-notifications.html">transactional notifications</a> for
+atomic intent, or <a href="onboarding.html">account onboarding</a> for optional background work.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="media.html"><small>← Previous</small>Media assets</a>
+<a href="transactional-notifications.html"><small>Next →</small>SQL and notification intent</a>
+</nav>
+<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#make-the-request">Make the request</a></li><li class="toc-level-2"><a href="#complete-the-profile">Complete the profile</a></li><li class="toc-level-2"><a href="#follow-the-operation">Follow the operation</a></li><li class="toc-level-2"><a href="#read-the-same-account-through-cli">Read the same account through CLI</a></li><li class="toc-level-2"><a href="#grow-your-own-module">Grow your own module</a></li><li class="toc-level-2"><a href="#verify-the-behavior">Verify the behavior</a></li></ol></nav><a class="source-link" href="markdown/persistent-workflow.md" download>↓ Download Markdown</a></aside>
+</div>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results"></ul>
+</dialog>
+</body>
+</html>

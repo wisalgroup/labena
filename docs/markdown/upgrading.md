@@ -1,0 +1,193 @@
+# Adopt and update the template
+
+[Labena](https://github.com/wisalgroup/labena) supplies the starting source for an application. Your repository
+owns the customized application, its deployments and its updates. Read the
+[support policy](../SUPPORT.md) for release coverage and compatibility.
+
+## Record your starting point
+
+Start from a published release using a clone or a template copy. Before changing
+the source, record the upstream repository URL, release tag and exact commit in
+your application's maintenance notes. A template copy may not retain upstream
+history, so keep this record even if its Git history starts at your own first commit.
+For an evaluation snapshot, record its commit and note that it is unreleased.
+
+Keep a clean initial snapshot or access to the original release so later fixes can
+be compared against the source you adopted. Preserve the project's license and
+applicable third-party notices. Follow upstream releases and security advisories;
+copied applications do not receive automatic updates.
+
+You can run the [installation tutorial](getting-started.md) with the existing
+`github.com/wisalgroup/labena` path before adopting the source for your own application.
+
+## Choose your application module path
+
+The template uses `github.com/wisalgroup/labena`. Replace it with the path belonging to
+your application repository. For example, substituting your actual owner and name:
+
+```sh
+go mod edit -module=github.com/your-owner/your-app
+```
+
+In your editor, replace the `github.com/wisalgroup/labena/` prefix with that same path plus `/` in all
+Go files, including examples and tests. Update active documentation imports too.
+Some architecture tests contain module-path strings, so update those along with
+ordinary imports. The module declaration command does not rewrite imports.
+
+Avoid replacing the bare project name throughout every file: database names,
+container names and persisted identifiers have separate meanings. Configure your
+application name and deployment resources deliberately. Historical review records
+describe earlier source and need not be rewritten.
+
+Check for remaining old imports, tidy dependencies and build the application:
+
+```sh
+rg -n '"github.com/wisalgroup/labena/' --glob '*.go'
+go mod tidy
+go test ./tests/architecture
+go build ./cmd/... ./examples/...
+go run docs/build.go
+```
+
+The search should have no matches. Rebuild the documentation after editing its
+Markdown sources; do not edit generated HTML or Markdown downloads directly.
+Then run the required [verification suites](testing.md) for your application.
+
+`pkg` contains reusable source maintained within this template release. No package
+currently has an independent external release or support promise. Adoption does
+not require adding this repository as a dependency or introducing a second module.
+
+## Labena rename compatibility
+
+The Labena rename changes the Go module/import prefix from `go-modular` to
+`github.com/wisalgroup/labena`. Instrumentation scopes use the new prefix too.
+The default `APP_NAME` is now `labena`, and default mail branding and the fallback
+API title use Labena. Update service-name and instrumentation-scope filters if
+you adopt these defaults; explicitly configured names still take precedence.
+The supplied log queries use `service_name="labena"`.
+
+Database names, JWT issuer/audience defaults, rate-limit namespaces, problem-type
+URNs, migration locks, Kubernetes namespaces, image names, Prometheus job names
+and dashboard UIDs retain their existing identifiers. This source rename does
+not migrate stored data, invalidate tokens, or reset throttling state. Change
+those identifiers separately only with an application-specific migration plan.
+Historical review records and the original license notice are preserved.
+
+## Platform and Identity ownership
+
+The authenticated principal moved from `internal/modules/shared/contracts/auth`
+to `internal/platform/auth`. Update imports; its user/session fields are unchanged.
+Platform packages no longer import any business definitions.
+
+Identity now registers the user media, notification and push-subscription HTTP
+operations. Supply constructed `Resources.Media` and `Resources.Notifier` before
+calling `identity.Register`. Custom HTTP composition can use
+`identityhttp.RegisterRoutes` with `Routes.Media`, `Routes.Notifications` and
+`Routes.Auth`. Omitted capability fields omit their routes. Keep the protected
+API authenticated; subscription registration also rejects a missing AuthService.
+
+Remove calls to the former media/notification `RegisterHTTP` helpers and
+`RegisterSubscriptionsHTTP`. Platform media's `RegisterContentHTTP` remains for
+public/signed content. Notification `integration.Register` now takes only the
+notifier and targets; the subscription callback was removed. The Identity handler
+calls `AuthService.SubscribePush` directly. Custom non-Identity code can still use
+`Notifier.Subscribe`, with its own recipient authorization and session coordination.
+
+HTTP paths, operation IDs, payloads and authentication requirements are unchanged.
+No database, task, event or retained-state migration is needed for this move.
+
+## Response metadata moves to headers
+
+Success and problem bodies no longer include `request_id` or `api_version`.
+Read `X-Request-ID` and `X-API-Version` instead. These headers were already present
+and remain available for successes, errors, empty responses and streams. Capture
+the request ID with client-side errors so logs can still be correlated.
+
+This is a breaking HTTP body and OpenAPI schema change. Update clients to read
+headers before rolling out the server change; they can use those headers with
+both the old and new server. Regenerate clients that rely on the removed body
+fields. Custom CORS configurations must expose both headers to browser clients;
+the supplied defaults already do. No database or retained-state migration is needed.
+
+For customized Go response code, `response.Metadata` was removed. Optional `Meta`
+now belongs directly to `response.Envelope[T]` and `response.Problem`; replace
+embedded `Metadata` literals with the direct field. Custom middleware using
+`response.WithMetadata(ctx, id, version)` should use `response.WithRequestID(ctx, id)`
+and continue setting the response headers. Ordinary handlers still use
+`response.OK`, `Created`, `Accepted`, `WithMeta` and `response.Error` unchanged.
+
+## Optional local log viewer
+
+The viewer is disabled by default. Set `LOG_VIEWER_ENABLED=true` with
+`LOG_VIEWER_USERNAME` and `LOG_VIEWER_PASSWORD` to mount `/admin/logs/` on the
+application HTTP process. No collector or migration is required. Applications
+porting custom logging construction can install the viewer's `WrapHandler` through
+`logging.Config.WrapHandler`; keep the manager's handler intact so named-channel
+selection continues to work. Read the [scope and limits](logging.md#local-log-viewer)
+before relying on live or file history across processes.
+
+## Apply an upstream update
+
+### Version 0.1 hardening changes
+
+- Port `internal/platform/adminhttp`, queue-dashboard wrapping, and the log viewer
+  integration together. Business CORS now excludes `/admin`; administrative reads,
+  preflights and mutations reject cross-origin browser requests. Preserve Host at
+  TLS termination and update clients that embedded dashboards across origins.
+- Port the subscription-pruning query and its concurrency regression. It skips
+  locked registrations and rechecks staleness, preserving concurrent refreshes.
+  No schema migration, task-payload change or queue drain is required. Deploy the
+  corrected maintenance worker before resuming scheduled pruning on older builds.
+- Rename calls to `Notifier.Delivery` to `Notifier.GetDelivery`. The returned
+  metadata, HTTP operations and stored delivery representation are unchanged.
+- Configure `HTTP_TRUSTED_PROXIES` only for a secured, sanitized ingress path.
+  Empty preserves direct-peer behavior. Application HTTP/OTP limits now use
+  `api.ClientIP`; `api.PeerIP` still returns the immediate connection peer.
+  Behind an enabled proxy policy, clients get separate budgets instead of sharing
+  the ingress address. Existing session/token formats remain unchanged.
+- Compose now explicitly enables dependency readiness, matching the full example
+  and Kubernetes profile. A database or required Redis outage makes `/readyz`
+  unavailable; `/healthz` stays live. Update probe configuration before rollout.
+- Release images accept `VERSION` and `REVISION` build arguments. Update the
+  linker package path in both `deployments/Dockerfile` and your build tooling when
+  renaming the Go module. OpenAPI and CLI/startup output share the release identity;
+  `X-API-Version` remains `v1`.
+
+Delivery records and media tombstones have no automatic purge in version 0.1.
+Follow the [retention contract](../deployments/README.md#retention-for-version-01)
+before implementing application-specific erasure or expiration.
+
+### Update workflow
+
+1. **Identify the change.** Compare your last incorporated upstream tag/commit with
+   the target release. Read all intervening release notes and security advisories,
+   including affected versions, configuration changes and migration instructions.
+2. **Port it on a branch.** Review the upstream patch against your customized code.
+   Apply the relevant implementation, tests and dependency changes, adapting import
+   paths and local business behavior. A clean cherry-pick alone is not proof that
+   a fix works in your application.
+3. **Plan retained-state changes.** Add new migrations instead of editing ones
+   already applied. Account for queued task payloads, stored notification intent,
+   event contracts and old/new worker compatibility. Follow the release's rollout
+   order; stop incompatible producers or drain old work when its instructions
+   require that.
+4. **Verify your result.** Run regression tests, the PostgreSQL/Redis integration
+   gate, builds and the dependency vulnerability scan. Check the providers and
+   deployment targets your application actually uses. Rehearse schema and data
+   changes on a disposable restored copy before production deployment.
+5. **Record and deploy.** Record the target upstream release, patches incorporated,
+   any deferred changes and verification results. Deploy with the migration and
+   recovery plan appropriate to your application. Retain its own release artifacts.
+
+Keep security corrections traceable even when you port them without adopting all
+other upstream changes. Upstream maintains the latest release; you own fixes to
+customized or older application copies. Merely running `go get -u` does not update
+copied template source.
+
+## Prepare a template release
+
+Maintainers publish migration notes alongside each release. Use the
+[compatibility policy](../SUPPORT.md#compatibility-and-release-notes) to cover API,
+configuration, schema, task and event changes, then record candidate verification
+in [release readiness](release-readiness.md). Enable and verify the private
+[security reporting channel](../SECURITY.md) before inviting public adoption.
