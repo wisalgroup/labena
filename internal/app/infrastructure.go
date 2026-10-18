@@ -200,12 +200,12 @@ func (a *application) openTelemetry(ctx context.Context) error {
 }
 
 func (a *application) openMail() error {
-	views, err := mailview.New(a.cfg.Mail.Brand())
+	views, err := mailview.New(a.cfg.Mail.Brand(a.cfg.App.AppName))
 	if err != nil {
 		return err
 	}
 	a.resources.MailRenderer = views
-	sender, err := mail.NewSMTP(a.cfg.Mail.SMTPConfig())
+	sender, err := mail.NewSMTP(a.cfg.Mail.SMTPConfig(a.cfg.App.AppName))
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func (a *application) newHTTPRouter() (*api.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	options := api.Options{Version: version, DisableDocs: !a.cfg.HTTP.DocsEnabled, TrustTraceContext: a.cfg.Tracing.TrustIncoming, TrustedProxies: proxies}
+	options := api.Options{Title: a.cfg.App.AppName + " API", Version: version, DisableDocs: !a.cfg.HTTP.DocsEnabled, TrustTraceContext: a.cfg.Tracing.TrustIncoming, TrustedProxies: proxies}
 	if a.cfg.Tracing.Enabled {
 		options.Tracer = a.resources.TracerProvider.Tracer("github.com/wisalgroup/labena/http")
 	}

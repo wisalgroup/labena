@@ -13,6 +13,9 @@ import (
 
 // Validate checks settings without opening connections or selecting runners.
 func (c Config) Validate() error {
+	if err := c.App.Validate(); err != nil {
+		return err
+	}
 	if err := c.Push.Validate(); err != nil {
 		return err
 	}
@@ -42,7 +45,7 @@ func (c Config) Validate() error {
 	if _, err := c.Media.LibraryConfig(); err != nil {
 		return err
 	}
-	if err := c.Mail.Validate(); err != nil {
+	if err := c.Mail.Validate(c.App.AppName); err != nil {
 		return err
 	}
 	if err := c.Filesystem.Validate(); err != nil {
@@ -58,9 +61,6 @@ func (c Config) Validate() error {
 	if err := c.Metrics.Validate(); err != nil {
 		return err
 	}
-	if c.Metrics.Enabled && strings.TrimSpace(c.App.AppName) == "" {
-		return errors.New("config: APP_NAME is required for metrics")
-	}
 	if err := c.Tracing.ProviderConfig(c.App.AppName).Validate(); err != nil {
 		return err
 	}
@@ -70,15 +70,7 @@ func (c Config) Validate() error {
 	if err := c.Logging.Viewer.Validate(); err != nil {
 		return err
 	}
-	for _, channel := range c.Logging.DefaultChannels {
-		if strings.TrimSpace(channel) == "observability" && strings.TrimSpace(c.App.AppName) == "" {
-			return errors.New("config: APP_NAME is required for log export")
-		}
-	}
 	if err := c.Cache.Validate(); err != nil {
-		return err
-	}
-	if err := c.App.Validate(); err != nil {
 		return err
 	}
 	if c.MigrationTimeout <= 0 {

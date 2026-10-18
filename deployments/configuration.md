@@ -246,13 +246,16 @@ outages. Do not flush Redis to resolve task or authentication failures. See
 | `MAIL_USERNAME` | unset |
 | `MAIL_PASSWORD` | unset |
 | `MAIL_FROM_ADDRESS` | `no-reply@example.com` |
-| `MAIL_FROM_NAME` | `Labena` |
-| `MAIL_BRAND_NAME` | `Labena` |
+| `MAIL_FROM_NAME` | unset |
+| `MAIL_BRAND_NAME` | unset |
 | `MAIL_ACCENT_COLOR` | `#1D4ED8` |
-| `MAIL_LOGO_URL` | `https://placehold.co/80x80/172554/FFFFFF.png?text=L` |
+| `MAIL_LOGO_URL` | unset |
 | `MAIL_WEBSITE_URL` | `https://example.com` |
 | `MAIL_SUPPORT_EMAIL` | `support@example.com` |
 | `MAIL_FOOTER` | `Account updates, thoughtfully delivered.` |
+
+Unset or blank `MAIL_FROM_NAME` and `MAIL_BRAND_NAME` inherit `APP_NAME`.
+`MAIL_LOGO_URL` is optional; without it, mail uses text branding.
 
 Immediate SMTP attachments default to 20 MiB total raw bytes. Override
 `config.MailConfig.MaxAttachmentBytes` in Go if needed; zero uses the default.

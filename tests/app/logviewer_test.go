@@ -13,6 +13,7 @@ func TestLogViewerWithoutObservability(t *testing.T) {
 	for _, enabled := range []bool{false, true} {
 		t.Run(map[bool]string{false: "disabled", true: "enabled"}[enabled], func(t *testing.T) {
 			cfg, db := databaseConfig(t)
+			cfg.App.AppName = "MyApp"
 			cfg.Logging.DefaultChannels = []string{"stderr"}
 			cfg.Tracing.Enabled = false
 			cfg.Metrics.Enabled = false
@@ -35,6 +36,9 @@ func TestLogViewerWithoutObservability(t *testing.T) {
 				res, body := requestBody(t, r)
 				if res.StatusCode != 200 || !strings.Contains(string(body), "Export visible") {
 					t.Fatal(res.StatusCode, string(body))
+				}
+				if !strings.Contains(string(body), "Logs · MyApp") {
+					t.Fatal("viewer did not use configured app name")
 				}
 				r, _ = http.NewRequestWithContext(t.Context(), "POST", base+"/admin/logs/query", strings.NewReader(`{"source":"live","search":"HTTP request"}`))
 				r.Header.Set("Content-Type", "application/json")

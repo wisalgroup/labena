@@ -4,69 +4,91 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Writing tasks — Practical guides and Go examples for Labena.">
 <title>Writing tasks — Labena</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b817b'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=c724166c36168cb3">
-<script>document.documentElement.classList.add('js');try{if(localStorage.getItem('docs-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23087a74'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
+<script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=d18c17060ac8ce01" defer></script>
+<script src="search-index.js?v=d5d804b6bf55bdba" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
-<script src="app.js?v=592cdc0cd5c02a89" defer></script>
+<script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
-<header>
-<a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
-<span class="header-label">Documentation</span>
-<button id="search-open" class="js-only" aria-haspopup="dialog"><span>Search documentation</span><kbd>⌘ K</kbd></button>
-<div class="header-actions"><a href="markdown/queue-jobs.md" download>Markdown <span aria-hidden="true">↗</span></a><button id="theme" class="js-only" aria-label="Switch color theme" title="Switch color theme">◐</button><button id="menu" class="js-only" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+<header class="site-header">
+<a class="brand" href="overview.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<a class="header-label" href="overview.html">Documentation</a>
+<button id="search-open" class="js-only" aria-label="Search documentation" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions">
+<a class="version" href="support.html" title="Documentation for the 0.1 release series">v0.1</a>
+<button id="theme" class="icon-button js-only" aria-label="Switch color theme" title="Switch color theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg></button>
+<button id="menu" class="js-only" aria-haspopup="dialog" aria-expanded="false" aria-controls="navigation-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></button>
+</div>
 </header>
 <div class="layout">
+<div id="sidebar-slot">
 <nav id="sidebar" aria-label="Documentation navigation">
-<div class="nav-label">THE DOCUMENTATION</div>
+<div class="nav-toolbar"><span>Browse docs</span><button id="nav-expand" class="js-only">Expand all</button></div>
 
-<div class="nav-group">Getting started</div>
-<a  href="index.html">Installation</a><a  href="upgrading.html">Adoption and updates</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="troubleshooting.html">Troubleshooting</a>
+<details class="nav-section" data-section="Getting started" >
+<summary>Getting started<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="overview.html">Introduction</a><a  href="creating-applications.html">Create an application</a><a  href="index.html">Installation</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="upgrading.html">Adoption and updates</a></div>
+</details>
 
-<div class="nav-group">Architecture</div>
-<a  href="structure.html">Directory structure</a><a  href="conventions.html">Project conventions</a><a  href="entry-points.html">Entry points</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="shared-types.html">Shared types</a><a  href="console.html">Console commands</a><a  href="errors.html">Application errors</a>
+<details class="nav-section" data-section="Architecture" >
+<summary>Architecture<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="structure.html">Directory structure</a><a  href="entry-points.html">Entry points</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="shared-types.html">Shared types</a><a  href="conventions.html">Project conventions</a></div>
+</details>
 
-<div class="nav-group">HTTP APIs</div>
-<a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="http-client.html">HTTP client</a>
+<details class="nav-section" data-section="HTTP APIs" >
+<summary>HTTP APIs<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="errors.html">Application errors</a><a  href="http-client.html">HTTP client</a><a  href="websockets.html">WebSockets</a></div>
+</details>
 
-<div class="nav-group">Database and state</div>
-<a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a>
+<details class="nav-section" data-section="Data and storage" >
+<summary>Data and storage<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a><a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a></div>
+</details>
 
-<div class="nav-group">Authentication</div>
-<a  href="identity.html">Authentication and sessions</a>
+<details class="nav-section" data-section="Security" >
+<summary>Security<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="identity.html">Authentication and sessions</a></div>
+</details>
 
-<div class="nav-group">Background work</div>
-<a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a>
+<details class="nav-section" data-section="Background work" open>
+<summary>Background work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="console.html">Console commands</a><a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a></div>
+</details>
 
-<div class="nav-group">Communication</div>
-<a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a>
+<details class="nav-section" data-section="Communication" >
+<summary>Communication<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a></div>
+</details>
 
-<div class="nav-group">Files and media</div>
-<a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a>
+<details class="nav-section" data-section="Recipes" >
+<summary>Recipes<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a></div>
+</details>
 
-<div class="nav-group">Workflows</div>
-<a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a>
+<details class="nav-section" data-section="Testing" >
+<summary>Testing<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a></div>
+</details>
 
-<div class="nav-group">Operations</div>
-<a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="deployment.html">Deployment</a>
+<details class="nav-section" data-section="Operations" >
+<summary>Operations<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="deployment.html">Deployment</a><a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="troubleshooting.html">Troubleshooting</a><a  href="release-readiness.html">Release readiness</a></div>
+</details>
 
-<div class="nav-group">Testing</div>
-<a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a>
+<details class="nav-section" data-section="Reference" >
+<summary>Reference<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a></div>
+</details>
 
-<div class="nav-group">Reference</div>
-<a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a><a  href="release-readiness.html">Release readiness</a>
-
-<div class="nav-group">Extensions</div>
-<a  href="websockets.html">WebSockets</a>
-
-<div class="sidebar-note"><span class="dot"></span> One app. Your modules.<p>Explicit Go, from the first route<br>to the last worker.</p></div>
+<a class="sidebar-reference" href="api-reference.html">API reference <span aria-hidden="true">→</span></a>
 </nav>
+</div>
 <main id="content" tabindex="-1">
-<div class="breadcrumb">Documentation <span>/</span> Background work</div>
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Background work</span></nav>
 <details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#define-a-task">Define a task</a></li><li class="toc-level-2"><a href="#enqueue-work">Enqueue work</a></li><li class="toc-level-2"><a href="#write-and-register-a-handler">Write and register a handler</a></li><li class="toc-level-2"><a href="#configure-options-and-delays">Configure options and delays</a></li><li class="toc-level-2"><a href="#read-delivery-metadata">Read delivery metadata</a></li><li class="toc-level-2"><a href="#write-a-result">Write a result</a></li><li class="toc-level-2"><a href="#tracing-and-metrics">Tracing and metrics</a></li><li class="toc-level-2"><a href="#inspection-and-administration">Inspection and administration</a></li><li class="toc-level-2"><a href="#asynqmon-dashboard">Asynqmon dashboard</a></li></ol></nav></details>
 <article><h1 id="writing-tasks">Writing tasks</h1>
 <p>This material now lives in the complete <a href="queues.html">queues guide</a>. Its sections
@@ -95,15 +117,17 @@ Existing links below remain available.</p>
 <span></span>
 
 </nav>
-<footer><span>Labena documentation</span><a href="#content">Back to top ↑</a></footer>
+<footer><a data-markdown href="markdown/queue-jobs.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#define-a-task">Define a task</a></li><li class="toc-level-2"><a href="#enqueue-work">Enqueue work</a></li><li class="toc-level-2"><a href="#write-and-register-a-handler">Write and register a handler</a></li><li class="toc-level-2"><a href="#configure-options-and-delays">Configure options and delays</a></li><li class="toc-level-2"><a href="#read-delivery-metadata">Read delivery metadata</a></li><li class="toc-level-2"><a href="#write-a-result">Write a result</a></li><li class="toc-level-2"><a href="#tracing-and-metrics">Tracing and metrics</a></li><li class="toc-level-2"><a href="#inspection-and-administration">Inspection and administration</a></li><li class="toc-level-2"><a href="#asynqmon-dashboard">Asynqmon dashboard</a></li></ol></nav><a class="source-link" href="markdown/queue-jobs.md" download>↓ Download Markdown</a></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#define-a-task">Define a task</a></li><li class="toc-level-2"><a href="#enqueue-work">Enqueue work</a></li><li class="toc-level-2"><a href="#write-and-register-a-handler">Write and register a handler</a></li><li class="toc-level-2"><a href="#configure-options-and-delays">Configure options and delays</a></li><li class="toc-level-2"><a href="#read-delivery-metadata">Read delivery metadata</a></li><li class="toc-level-2"><a href="#write-a-result">Write a result</a></li><li class="toc-level-2"><a href="#tracing-and-metrics">Tracing and metrics</a></li><li class="toc-level-2"><a href="#inspection-and-administration">Inspection and administration</a></li><li class="toc-level-2"><a href="#asynqmon-dashboard">Asynqmon dashboard</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/queue-jobs.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
+<dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">
 <div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
-<input id="search-input" type="search" placeholder="Try retries, response.JSON, or request_id…" autocomplete="off">
+<div class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="search-input" type="search" placeholder="A topic, question or API symbol…" autocomplete="off" spellcheck="false" aria-describedby="search-status"><button id="search-clear" class="icon-button" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
 <p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
-<ul id="search-results"></ul>
+<ul id="search-results" aria-label="Search results"></ul>
+<div class="search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> to navigate <kbd>↵</kbd> to open</span><span>Search stays in your browser</span></div>
 </dialog>
 </body>
 </html>

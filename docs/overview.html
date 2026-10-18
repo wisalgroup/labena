@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Introduction — Practical guides and Go examples for Labena.">
+<title>Introduction — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23087a74'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
+<script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d5d804b6bf55bdba" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=06c8be629adb71a0" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="site-header">
+<a class="brand" href="overview.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<a class="header-label" href="overview.html">Documentation</a>
+<button id="search-open" class="js-only" aria-label="Search documentation" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions">
+<a class="version" href="support.html" title="Documentation for the 0.1 release series">v0.1</a>
+<button id="theme" class="icon-button js-only" aria-label="Switch color theme" title="Switch color theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg></button>
+<button id="menu" class="js-only" aria-haspopup="dialog" aria-expanded="false" aria-controls="navigation-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></button>
+</div>
+</header>
+<div class="layout">
+<div id="sidebar-slot">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-toolbar"><span>Browse docs</span><button id="nav-expand" class="js-only">Expand all</button></div>
+
+<details class="nav-section" data-section="Getting started" open>
+<summary>Getting started<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a class="selected" aria-current="page" href="overview.html">Introduction</a><a  href="creating-applications.html">Create an application</a><a  href="index.html">Installation</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="upgrading.html">Adoption and updates</a></div>
+</details>
+
+<details class="nav-section" data-section="Architecture" >
+<summary>Architecture<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="structure.html">Directory structure</a><a  href="entry-points.html">Entry points</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="shared-types.html">Shared types</a><a  href="conventions.html">Project conventions</a></div>
+</details>
+
+<details class="nav-section" data-section="HTTP APIs" >
+<summary>HTTP APIs<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="errors.html">Application errors</a><a  href="http-client.html">HTTP client</a><a  href="websockets.html">WebSockets</a></div>
+</details>
+
+<details class="nav-section" data-section="Data and storage" >
+<summary>Data and storage<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a><a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a></div>
+</details>
+
+<details class="nav-section" data-section="Security" >
+<summary>Security<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="identity.html">Authentication and sessions</a></div>
+</details>
+
+<details class="nav-section" data-section="Background work" >
+<summary>Background work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="console.html">Console commands</a><a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a></div>
+</details>
+
+<details class="nav-section" data-section="Communication" >
+<summary>Communication<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a></div>
+</details>
+
+<details class="nav-section" data-section="Recipes" >
+<summary>Recipes<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a></div>
+</details>
+
+<details class="nav-section" data-section="Testing" >
+<summary>Testing<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a></div>
+</details>
+
+<details class="nav-section" data-section="Operations" >
+<summary>Operations<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="deployment.html">Deployment</a><a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="troubleshooting.html">Troubleshooting</a><a  href="release-readiness.html">Release readiness</a></div>
+</details>
+
+<details class="nav-section" data-section="Reference" >
+<summary>Reference<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a></div>
+</details>
+
+<a class="sidebar-reference" href="api-reference.html">API reference <span aria-hidden="true">→</span></a>
+</nav>
+</div>
+<main id="content" tabindex="-1">
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Getting started</span></nav>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#start-building">Start building</a></li><li class="toc-level-2"><a href="#find-your-next-task">Find your next task</a></li><li class="toc-level-2"><a href="#understand-the-design">Understand the design</a></li><li class="toc-level-2"><a href="#learn-through-a-complete-recipe">Learn through a complete recipe</a></li><li class="toc-level-2"><a href="#keep-the-reference-close">Keep the reference close</a></li></ol></nav></details>
+<article><h1 id="meet-labena">Meet Labena</h1>
+<p>Labena is a batteries-included Go framework delivered as an application template.
+Build a modular monolith with explicit module registration, HTTP APIs, background
+workers and shared capabilities for authentication, persistence, mail,
+notifications, storage and observability.</p>
+<p>You own the copied application and its dependencies. This documentation follows
+the shipped code: ordinary Go constructors, typed handlers and clear ownership
+of resources, data and business operations.</p>
+<h2 id="start-building">Start building<a class="heading-link" href="#start-building" aria-label="Link to Start building">#</a></h2>
+<p>New to Labena? Follow this short path. Each guide leaves you with something you
+can run or change.</p>
+<ol>
+<li><strong><a href="creating-applications.html">Create an application</a>.</strong> Choose your Go module
+and display name; the installer prepares your source and configuration.</li>
+<li><strong><a href="index.html">Run the application</a>.</strong> Start PostgreSQL and Redis, apply
+migrations and check your first HTTP response.</li>
+<li><strong><a href="modules.html">Create your first module</a>.</strong> Register a small Catalog endpoint
+and test it entirely in process, without a database.</li>
+<li><strong><a href="upgrading.html">Maintain your application</a>.</strong> Keep template provenance and
+incorporate upstream fixes into your customized source.</li>
+</ol>
+<p>Already running? Use <a href="configuration.html">configuration</a> for settings and
+<a href="local-development.html">local development</a> for a persistent development stack.</p>
+<h2 id="find-your-next-task">Find your next task<a class="heading-link" href="#find-your-next-task" aria-label="Link to Find your next task">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>I want to…</th>
+<th>Read…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add an API endpoint</td>
+<td><a href="routing.html">Routing</a>, <a href="handlers.html">handlers</a>, <a href="requests.html">requests and validation</a></td>
+</tr>
+<tr>
+<td>Save data safely</td>
+<td><a href="database-queries.html">Entities and queries</a>, <a href="database-transactions.html">transactions</a>, <a href="migrations.html">migrations</a></td>
+</tr>
+<tr>
+<td>Sign users in</td>
+<td><a href="identity.html">Authentication and sessions</a></td>
+</tr>
+<tr>
+<td>Run work in the background</td>
+<td><a href="queues.html">Queues and tasks</a>, <a href="events.html">events</a>, <a href="scheduling.html">schedules</a></td>
+</tr>
+<tr>
+<td>Send email or a notification</td>
+<td><a href="mail.html">Mail</a>, <a href="notifications.html">notifications</a>, <a href="push.html">push</a></td>
+</tr>
+<tr>
+<td>Upload and serve files</td>
+<td><a href="filesystems.html">File storage</a>, <a href="media.html">media assets</a></td>
+</tr>
+<tr>
+<td>Verify a change</td>
+<td><a href="testing.html">Testing basics</a>, <a href="testing-http.html">HTTP and modules</a></td>
+</tr>
+<tr>
+<td>Run in production</td>
+<td><a href="deployment.html">Deployment</a>, <a href="logging.html">logging</a>, <a href="observability.html">observability</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="understand-the-design">Understand the design<a class="heading-link" href="#understand-the-design" aria-label="Link to Understand the design">#</a></h2>
+<p>Business modules own their use cases and persistence. App constructs dependencies
+and selects the processes to run. Platform capabilities support modules, while
+<code>pkg</code> holds technical packages that can be reused independently.</p>
+<p>Start with the <a href="structure.html">directory structure</a>, then follow the
+<a href="application-lifecycle.html">application lifecycle</a> and
+<a href="module-registration.html">module registration</a>. The
+<a href="conventions.html">project conventions</a> are the architecture contract for changes.</p>
+<p>Labena uses PostgreSQL for application data, Asynq for Redis-backed tasks and
+Watermill for process-local events. These have different guarantees: a local event
+is best-effort, queue acceptance is not a SQL commit, and notification intent can
+be committed with a business transaction. Each guide explains its boundary.</p>
+<h2 id="learn-through-a-complete-recipe">Learn through a complete recipe<a class="heading-link" href="#learn-through-a-complete-recipe" aria-label="Link to Learn through a complete recipe">#</a></h2>
+<ul>
+<li><strong><a href="persistent-workflow.html">A persisted HTTP and CLI operation</a>:</strong> follow the
+same use case through two transports, a service and a repository.</li>
+<li><strong><a href="transactional-notifications.html">SQL and notification intent</a>:</strong> commit a
+profile change and its notification intent together.</li>
+<li><strong><a href="onboarding.html">Account onboarding reactions</a>:</strong> connect registration events,
+background tasks, notifications and mail.</li>
+</ul>
+<h2 id="keep-the-reference-close">Keep the reference close<a class="heading-link" href="#keep-the-reference-close" aria-label="Link to Keep the reference close">#</a></h2>
+<p>The <a href="configuration-reference.html">configuration reference</a> lists settings and
+defaults. The <a href="api-reference.html">API reference</a> explains how to inspect the
+running application&#39;s OpenAPI schema and Go packages. See
+<a href="support.html">support and compatibility</a> before adopting or updating the template.</p>
+<p>Use the topic groups to browse, <strong>Search</strong> to find a guide, section or API symbol,
+and <strong>On this page</strong> to move within a guide. Every page has a Markdown download;
+direct links work on ordinary static hosting and with JavaScript disabled.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<span></span>
+<a href="creating-applications.html"><small>Next →</small>Create an application</a>
+</nav>
+<footer><a data-markdown href="markdown/overview.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#start-building">Start building</a></li><li class="toc-level-2"><a href="#find-your-next-task">Find your next task</a></li><li class="toc-level-2"><a href="#understand-the-design">Understand the design</a></li><li class="toc-level-2"><a href="#learn-through-a-complete-recipe">Learn through a complete recipe</a></li><li class="toc-level-2"><a href="#keep-the-reference-close">Keep the reference close</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/overview.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+</div>
+<dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<div class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="search-input" type="search" placeholder="A topic, question or API symbol…" autocomplete="off" spellcheck="false" aria-describedby="search-status"><button id="search-clear" class="icon-button" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results" aria-label="Search results"></ul>
+<div class="search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> to navigate <kbd>↵</kbd> to open</span><span>Search stays in your browser</span></div>
+</dialog>
+</body>
+</html>

@@ -1,74 +1,123 @@
 # Labena
 
-[Labena](https://github.com/wisalgroup/labena) is a modular Go application template
-with explicit constructors, typed Huma HTTP
-operations, Cobra commands, Bun persistence and Redis-backed jobs. Business modules
-own operations; app assembly owns connections, registration and process lifetime.
+**A batteries-included Go framework for modular applications.**
 
-Adopt a release as the starting source for your own application, rename its module,
-and maintain your customized copy. Updates are applied through reviewed upstream
-changes. See [adoption and updates](docs/upgrading.md) and the
-[support policy](SUPPORT.md).
+Build HTTP APIs, background workers and business workflows with authentication,
+persistence, queues, mail, notifications, storage and observability already connected.
+Labena combines established Go libraries with explicit constructors, module-owned
+registration and a shared application lifecycle.
 
-## Start here
+[Documentation](docs/overview.md) · [Create an application](docs/creating-applications.md) ·
+[First module](docs/modules.md) · [Deployment](deployments/README.md) · [Contributing](CONTRIBUTING.md)
 
-| I want to… | Read |
+Labena is delivered as an **application template**. Create a project, choose its Go
+module and application name, and own the resulting source. You can change its
+modules, dependencies and deployment model as your application grows. Upstream
+updates are reviewed and applied to your copy; the [support policy](SUPPORT.md)
+defines compatibility and maintenance for the current `0.x` release series.
+
+## What's included
+
+| Capability | Included behavior |
 | --- | --- |
-| Run the app for the first time | [Installation](docs/getting-started.md) |
-| Create my application or apply an upstream fix | [Adoption and updates](docs/upgrading.md) |
-| Understand the pattern without infrastructure | [Your first module](docs/modules.md) |
-| Find the right file to change | [Directory structure](docs/structure.md) |
-| Build a stored operation | [HTTP and CLI workflow](docs/persistent-workflow.md) |
-| Learn the engineering rules | [Project conventions](docs/conventions.md) |
-| Configure or troubleshoot a deployment | [Configuration](docs/configuration.md) and [deployment](deployments/README.md) |
+| **HTTP APIs** | Typed Huma operations on Go's HTTP mux, request validation, consistent responses, middleware and live OpenAPI documentation |
+| **Authentication** | Email OTP, Google sign-in, access and refresh tokens, persisted sessions, revocation and rate limits |
+| **Persistence** | PostgreSQL with Bun, explicit transaction boundaries, Goose migrations and seeders |
+| **Background work** | Redis-backed Asynq jobs, retries, queue administration and a dedicated scheduler |
+| **Events** | Watermill subscriptions for process-local, best-effort reactions |
+| **Mail** | SMTP delivery, shared HTML/plain-text views, application branding and optional queued sending |
+| **Notifications** | Database, email and Expo push channels, with durable notification intent and delivery tracking |
+| **Storage and media** | Named storage disks, local and cloud adapters, public/private assets, signed access and deletion recovery |
+| **Cache** | Memory, Redis and database stores with explicit configuration |
+| **Logging** | Structured standard-output and file logs, plus an optional Basic Auth log viewer independent of OpenTelemetry |
+| **Observability** | Request correlation, OpenTelemetry traces/log export, metrics and local Grafana tooling |
+| **Operations** | CLI commands, health/readiness endpoints, graceful shutdown, Docker, Compose and Tilt development workflows |
 
-Try the compiled Catalog starter without a database or Redis:
+Application modules require PostgreSQL; background jobs use Redis. Optional
+capabilities are enabled through configuration. See the [verified support matrix](SUPPORT.md#verified-scope)
+for backend and provider coverage. Phone/SMS authentication is reserved for future
+work and is not part of the current sign-in flow.
+
+## Create an application
+
+You need the Go version declared in [go.mod](go.mod) and access to the template
+repository. Git is required for local-checkout generation; Docker is used by the
+local development walkthrough.
+
+### Install from a release
+
+Once a release containing `cmd/labena` has been published:
 
 ```sh
-go test ./tests/modules -run TestFirstModule -count=1
+go install github.com/wisalgroup/labena/cmd/labena@latest
 ```
 
-To browse the searchable documentation site:
+Pin an exact published version instead of `@latest` for reproducible team setup.
+Add Go's binary directory to your current shell if `labena` is not found:
 
 ```sh
-go run docs/build.go
-go run docs/serve.go
+go_bin="$(go env GOBIN)"
+export PATH="${go_bin:-$(go env GOPATH)/bin}:$PATH"
+labena --version
 ```
 
-Open [the local documentation](http://127.0.0.1:8091). It includes task-based guides,
-examples, a page outline, search and downloadable Markdown. See
-[documentation maintenance](docs/README.md) for editing and verification.
+Add the resolved directory to your shell configuration to keep it on `PATH` in
+future terminals. While the repository is private, Git authentication and a matching
+`GOPRIVATE` setting are required for both installation and template downloads.
+See the [installation details](docs/creating-applications.md#install-the-command).
 
-## Included capabilities
+From the directory that should contain your new application:
 
-| Capability | Integration |
-| --- | --- |
-| HTTP and OpenAPI | Huma on Go's native HTTP mux; live `/docs` and `/openapi.json` |
-| Business persistence | PostgreSQL with Bun and explicit Goose migrations |
-| Authentication | Email OTP and Google sign-in; account creation and sign-in share the same flow |
-| Tasks | Asynq with Redis, routing, retries and administration |
-| Events | Watermill GoChannel; process-local and best-effort |
-| Mail | SMTP, shared HTML/text views and optional queued sending |
-| Notifications | Database JSON, email and Expo push with a PostgreSQL delivery ledger |
-| Media | Public/private assets, storage URLs, metadata and deletion recovery |
-| Cache | Optional memory, Redis or database driver |
-| Observability | Structured logs, traces, metrics and request correlation |
+```sh
+labena new myapp \
+  --module github.com/your-org/myapp \
+  --name MyApp
+```
 
-Use the Go version declared in `go.mod`. This is an application template: reusable
-packages may support additional drivers, but the installed modules require
-PostgreSQL. Core CI covers PostgreSQL and standalone Redis; live providers and
-additional drivers have the verification limits listed in the
-[support matrix](SUPPORT.md#verified-scope). Maintenance targets the latest
-published release on a best-effort basis. The module path is
-`github.com/wisalgroup/labena`; adopters replace it with their application's path.
-The `pkg` packages are maintained with the template and have no
-independent external releases. See [security reporting](SECURITY.md),
-[contributing](CONTRIBUTING.md) and the [MIT license](LICENSE).
+Replace `github.com/your-org/myapp` with your application's Go module path.
+
+The installer rewrites the Go module and imports, sets application branding, creates
+a local quickstart `.env`, records template provenance in `.labena.json`, regenerates
+documentation and verifies the build. It refuses to overwrite an existing directory.
+It does not create a GitHub repository or copy the template's Git history.
+
+### Use the current checkout
+
+Before publishing the installer, run this **from the Labena checkout**:
+
+```sh
+go install ./cmd/labena
+```
+
+Then create the app from your preferred parent directory, replacing the source path
+below with the absolute path of that checkout:
+
+```sh
+labena new myapp \
+  --module github.com/your-org/myapp \
+  --name MyApp \
+  --source /absolute/path/to/labena
+```
+
+`--source` identifies **the Labena template**, while `myapp` is the new destination.
+`--source .` only works when your current directory is the Labena checkout. See
+[creating applications](docs/creating-applications.md) for version selection,
+private repository access and skipping verification with `--skip-checks`.
 
 ## Run locally
 
-Follow [installation](docs/getting-started.md) to start tutorial PostgreSQL and Redis,
-then run:
+Open the generated application:
+
+```sh
+cd myapp
+```
+
+You can also run the following steps from the Labena checkout to evaluate it.
+
+Start the disposable PostgreSQL and Redis services described in
+[installation](docs/getting-started.md#start-local-dependencies). The tutorial uses
+host ports `55432` and `56379`. Then select the matching profile, apply migrations
+and start the app:
 
 ```sh
 export APP_ENV_FILE=.env.quickstart.example
@@ -76,99 +125,145 @@ go run ./cmd/cli migrate up
 go run ./cmd/app
 ```
 
-The tutorial disables optional features. Mail is constructed but does not connect
-until sending. Startup does not run migrations. The full `.env.example` enables
-implemented capabilities and needs credentials before use; routine defaults live
-in Go and the [configuration reference](deployments/configuration.md).
-
-Check readiness, list routes, or open the live API docs:
+In another terminal:
 
 ```sh
+curl -i http://127.0.0.1:8080/healthz
 curl -i http://127.0.0.1:8080/readyz
-APP_ENV_FILE=.env.quickstart.example go run ./cmd/cli route list
 ```
 
-The running API serves [documentation](http://127.0.0.1:8080/docs) and
-[OpenAPI](http://127.0.0.1:8080/openapi.json) directly from registered operations.
-No schema-generation step is required after route edits.
+Open the running [API documentation](http://127.0.0.1:8080/docs) or its
+[OpenAPI schema](http://127.0.0.1:8080/openapi.json). Both are generated from the
+registered HTTP operations.
 
-## Structure
+The quickstart disables authentication and optional integrations so you can run
+without provider credentials. Protected endpoints become available after configuring
+[Identity](internal/modules/identity/README.md). Mail connects only when sending;
+application startup never runs migrations. The full `.env.example` enables more
+capabilities and requires their credentials.
+
+To explore a module without starting PostgreSQL or Redis:
+
+```sh
+go test ./tests/modules -run TestFirstModule -count=1
+```
+
+## Make it yours
+
+Set `APP_NAME` to control the API title, mail defaults, log viewer and telemetry
+service identity. Mail sender and brand names can be overridden independently.
+The installer sets these defaults when creating your application.
+
+Database names, token issuers/audiences, Redis namespaces, queues and deployment
+resources remain explicit operational settings. A display-name change does not
+rename persisted identifiers. Use the [configuration guide](docs/configuration.md)
+and [complete reference](deployments/configuration.md) when enabling capabilities.
+
+## Application design
 
 ```text
-cmd/                         App, worker, scheduler and CLI entry points
+cmd/
+  app/                 HTTP, workers and local event consumers
+  worker/              Dedicated background execution
+  scheduler/           Recurring enqueue operations
+  cli/                 Application commands
+  labena/              Project installer; omitted from generated applications
 internal/
-  app/                      Composition, schedules and lifecycle ownership
-    config/                 Environment settings and owner translations
+  app/                 Composition, process selection and resource lifecycle
+    config/            Environment settings and owner configuration
   modules/
-    identity/               Nested account/authentication module
-    shared/                 Business entities, enums, event contracts and SQL
-  platform/
-    dependencies/           Borrowed Resources and registration Targets
-    api/, cli/, messaging/  Transport and execution integration
-    mail/, notification/    Email and durable channel delivery
-    media/                  Managed assets and storage recovery
-pkg/                         Reusable technical capabilities
-tests/                       Business, application and integration tests
-examples/                    Compiled usage examples
-docs/                        Guide sources and static site
+    identity/          Account and authentication operations
+    shared/            Shared business entities, enums and event contracts
+  platform/            Shared application capabilities and transport integration
+pkg/                   Reusable technical packages
+examples/              Compiled usage examples and starter modules
+tests/                 Application, business and integration suites
+docs/                  Guides and the static documentation site
+deployments/           Container and development environment configuration
 ```
 
-Each module constructs local services and registers its transports and SQL in a
-package-level `Register` function. App constructs authentication before protected
-targets and passes the service explicitly. App has one registration call per module. Recurring schedules are
-centralized in `internal/app/schedules.go`. Services receive specific
-collaborators; they do not retain a resource lookup container.
+Modules construct their local collaborators and expose a package-level `Register`
+function. App owns connections, creates authentication before protected targets,
+registers modules and manages shutdown. Services receive their actual collaborators;
+module registration borrows `dependencies.Resources` and `dependencies.Targets`.
+Recurring schedules live in one application schedule definition.
 
-Shared business entities remain owned by their business module. Platform types,
-such as `notification.Record` and `media.Asset`, remain inside their capabilities.
-`pkg` never imports `internal`. See [conventions](docs/conventions.md) for the
-complete contract.
+Business modules own their writes and published event meanings. Platform packages
+remain independent of business modules, and `pkg` stays independent of `internal`.
+Read [your first module](docs/modules.md), [module registration](docs/module-registration.md)
+and the [project conventions](docs/conventions.md) before extending the framework.
 
-## Follow connected workflows
+## Choose how processes run
 
-- [A persisted HTTP and CLI operation](docs/persistent-workflow.md): prove an email,
-  create/read the account, and reuse its service from another transport.
-- [Account onboarding](docs/onboarding.md): local event → task → notification →
-  channel delivery. Local publication is best-effort.
-- [SQL and notification intent](docs/transactional-notifications.md): commit business
-  state and delivery intent together. Redis enqueue and SMTP are not SQL-atomic.
-- [Media](internal/platform/media/README.md): select visibility and choose internal
-  application URLs or direct provider URLs.
+| Command | Responsibility |
+| --- | --- |
+| `go run ./cmd/app` | HTTP, queue workers, notification dispatch and local event consumers |
+| `go run ./cmd/worker` | Queue workers, notification dispatch and local event consumers |
+| `go run ./cmd/scheduler` | Recurring enqueue operations; run one instance per schedule set |
+| `go run ./cmd/cli <command>` | Migration, inspection or maintenance, then cleanup |
 
-`cmd/app` and `cli serve` explicitly select HTTP and workers. `cmd/worker` runs queue workers with
-local subscribers and no scheduler. Events do not cross processes; Redis tasks do.
-Run one `cmd/scheduler` per schedule set. Ordinary CLI commands construct connections
-but do not run application workers. See [entry points](docs/entry-points.md).
+Entrypoints select processes explicitly in Go. Local events stay inside their
+publishing process; Redis jobs can be processed by another worker process.
+Notification intent can commit with a business SQL transaction. Redis enqueue and
+external delivery have separate failure boundaries. The [events](docs/events.md),
+[queues](docs/queues.md) and [transactional notifications](docs/transactional-notifications.md)
+guides explain these guarantees.
 
-## Observe and operate
+For deployment, follow [deployment and recovery](deployments/README.md),
+[application lifecycle](docs/application-lifecycle.md) and
+[release readiness](docs/release-readiness.md). Supplied development manifests and
+sample credentials are for local use; configure ingress, secrets, dependency
+readiness, backups and retention for your environment.
 
-The optional local stack sends traces and logs through OTLP to Alloy, then Tempo
-and Loki. Prometheus collects metrics; Grafana connects requests, logs and traces.
-Readable file logging is independent of OTLP export.
+## Documentation
+
+Start with the [introduction](docs/overview.md), then follow a complete workflow:
+
+- [Your first module](docs/modules.md): register and test a small HTTP capability.
+- [A persisted HTTP and CLI operation](docs/persistent-workflow.md): reuse a business operation across transports.
+- [Account onboarding](docs/onboarding.md): connect events, jobs, notifications and mail.
+- [Storage and media](internal/platform/media/README.md): manage visibility and content access.
+- [Logging and the log viewer](docs/logging.md): inspect activity with or without an observability stack.
+
+Build and browse the searchable documentation locally:
 
 ```sh
-tilt up
+go run docs/build.go
+go run docs/serve.go
 ```
 
-Tilt enables storage and observability by default. Compose offers optional profiles.
-Use [local development](docs/local-development.md),
-[observability](docs/observability.md) and [deployment](deployments/README.md) for
-endpoints, configuration and investigation steps.
+Open [the local documentation](http://127.0.0.1:8091/overview.html). The site includes
+keyboard search, topic navigation, light/dark themes, diagrams and Markdown downloads.
+It can be hosted as static files; see [publishing with GitHub Pages](docs/README.md#publish-with-github-pages).
+The live application API at `/docs` is served by the Go application separately.
 
-App stops admission, drains workers and subscribers, and closes owned resources
-after their users finish. Cancellation is cooperative and time-bounded; review
-[application lifecycle](docs/application-lifecycle.md) when adding long-running work.
-
-## Verify
+## Testing and maintenance
 
 ```sh
 go test -race ./...
 go vet ./...
-govulncheck ./...
-go run docs/build.go
+go build ./cmd/... ./examples/...
 ```
 
-Set the documented test connection variables for disposable PostgreSQL, Redis and
-other external drivers. Tests skip unavailable backends; a passing unit suite alone
-does not prove those integrations. See [testing](docs/testing.md) for exact setup
-and [contributing](CONTRIBUTING.md) for the change workflow.
+CI also verifies documentation, generated applications, the container image and
+vulnerabilities. Its integration job runs against disposable PostgreSQL and Redis.
+Use the [testing guide](docs/testing.md) and [integration script](scripts/verify-integration.sh)
+for backend setup; tests that skip an unavailable backend have not verified it.
+
+Keep `.labena.json`, the original license and a record of the upstream changes you
+incorporate. Follow [adoption and updates](docs/upgrading.md) for porting fixes into
+your customized application. Updating Go dependencies alone does not update copied
+framework source.
+
+## Contributing and security
+
+Contributions should follow [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[architecture contract](docs/conventions.md). Report reproducible, non-sensitive bugs
+through [GitHub issues](https://github.com/wisalgroup/labena/issues).
+Use the private reporting route in [SECURITY.md](SECURITY.md) for vulnerabilities.
+Maintenance scope and compatibility commitments are documented in [SUPPORT.md](SUPPORT.md).
+See [release notes](CHANGELOG.md) for the current candidate and adoption changes.
+
+## License
+
+Labena is available under the [MIT license](LICENSE).

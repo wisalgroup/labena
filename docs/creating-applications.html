@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Create an application — Practical guides and Go examples for Labena.">
+<title>Create an application — Labena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23087a74'/%3E%3Cpath d='M10 9v14h13' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
+<script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
+<script src="vendor/highlight.min.js" defer></script>
+<script src="search-index.js?v=d5d804b6bf55bdba" defer></script>
+<script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
+<script src="app.js?v=06c8be629adb71a0" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="site-header">
+<a class="brand" href="overview.html"><span class="brand-icon" aria-hidden="true">L</span><span>Labena</span></a>
+<a class="header-label" href="overview.html">Documentation</a>
+<button id="search-open" class="js-only" aria-label="Search documentation" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Search documentation</span><kbd>⌘ K</kbd></button>
+<div class="header-actions">
+<a class="version" href="support.html" title="Documentation for the 0.1 release series">v0.1</a>
+<button id="theme" class="icon-button js-only" aria-label="Switch color theme" title="Switch color theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg></button>
+<button id="menu" class="js-only" aria-haspopup="dialog" aria-expanded="false" aria-controls="navigation-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></button>
+</div>
+</header>
+<div class="layout">
+<div id="sidebar-slot">
+<nav id="sidebar" aria-label="Documentation navigation">
+<div class="nav-toolbar"><span>Browse docs</span><button id="nav-expand" class="js-only">Expand all</button></div>
+
+<details class="nav-section" data-section="Getting started" open>
+<summary>Getting started<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="overview.html">Introduction</a><a class="selected" aria-current="page" href="creating-applications.html">Create an application</a><a  href="index.html">Installation</a><a  href="configuration.html">Configuration</a><a  href="modules.html">Your first module</a><a  href="local-development.html">Local development</a><a  href="upgrading.html">Adoption and updates</a></div>
+</details>
+
+<details class="nav-section" data-section="Architecture" >
+<summary>Architecture<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="structure.html">Directory structure</a><a  href="entry-points.html">Entry points</a><a  href="application-lifecycle.html">Application lifecycle</a><a  href="module-registration.html">Module registration</a><a  href="dependency-injection.html">Dependency injection</a><a  href="shared-types.html">Shared types</a><a  href="conventions.html">Project conventions</a></div>
+</details>
+
+<details class="nav-section" data-section="HTTP APIs" >
+<summary>HTTP APIs<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="routing.html">Routing</a><a  href="handlers.html">Handlers</a><a  href="requests.html">Requests &amp; validation</a><a  href="responses.html">Responses</a><a  href="middleware.html">Middleware</a><a  href="errors.html">Application errors</a><a  href="http-client.html">HTTP client</a><a  href="websockets.html">WebSockets</a></div>
+</details>
+
+<details class="nav-section" data-section="Data and storage" >
+<summary>Data and storage<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="database.html">Connections</a><a  href="database-queries.html">Entities and queries</a><a  href="database-transactions.html">Transactions</a><a  href="migrations.html">Migrations</a><a  href="seeders.html">Seeders</a><a  href="cache.html">Cache</a><a  href="filesystems.html">File storage</a><a  href="media.html">Media assets</a></div>
+</details>
+
+<details class="nav-section" data-section="Security" >
+<summary>Security<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="identity.html">Authentication and sessions</a></div>
+</details>
+
+<details class="nav-section" data-section="Background work" >
+<summary>Background work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="console.html">Console commands</a><a  href="queues.html">Queues and tasks</a><a  href="events.html">Events and subscriptions</a><a  href="scheduling.html">Recurring schedules</a></div>
+</details>
+
+<details class="nav-section" data-section="Communication" >
+<summary>Communication<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="mail.html">Mail and mail views</a><a  href="notifications.html">Notifications</a><a  href="push.html">Push</a></div>
+</details>
+
+<details class="nav-section" data-section="Recipes" >
+<summary>Recipes<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="persistent-workflow.html">A persisted HTTP and CLI operation</a><a  href="transactional-notifications.html">SQL and notification intent</a><a  href="onboarding.html">Account onboarding reactions</a></div>
+</details>
+
+<details class="nav-section" data-section="Testing" >
+<summary>Testing<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="testing.html">Testing basics</a><a  href="testing-http.html">HTTP and modules</a><a  href="testing-database.html">Databases and transactions</a><a  href="testing-async.html">Tasks and events</a></div>
+</details>
+
+<details class="nav-section" data-section="Operations" >
+<summary>Operations<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="deployment.html">Deployment</a><a  href="logging.html">Logging</a><a  href="observability.html">Observability</a><a  href="troubleshooting.html">Troubleshooting</a><a  href="release-readiness.html">Release readiness</a></div>
+</details>
+
+<details class="nav-section" data-section="Reference" >
+<summary>Reference<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></summary>
+<div class="nav-pages"><a  href="configuration-reference.html">Configuration reference</a><a  href="api-reference.html">API reference</a><a  href="support.html">Support and compatibility</a><a  href="security.html">Security reporting</a></div>
+</details>
+
+<a class="sidebar-reference" href="api-reference.html">API reference <span aria-hidden="true">→</span></a>
+</nav>
+</div>
+<main id="content" tabindex="-1">
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Getting started</span></nav>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#install-the-command">Install the command</a></li><li class="toc-level-2"><a href="#create-a-project">Create a project</a></li><li class="toc-level-2"><a href="#run-your-application">Run your application</a></li><li class="toc-level-2"><a href="#try-an-unpublished-checkout">Try an unpublished checkout</a></li><li class="toc-level-2"><a href="#publish-the-installer">Publish the installer</a></li></ol></nav></details>
+<article><h1 id="create-an-application">Create an application</h1>
+<p>Use the standalone <code>labena</code> installer to create your own application. It copies a
+versioned template, changes the Go module and imports, and configures your name.
+The resulting repository owns its source and can evolve independently.</p>
+<h2 id="install-the-command">Install the command<a class="heading-link" href="#install-the-command" aria-label="Link to Install the command">#</a></h2>
+<p>Once a release containing the installer is published:</p>
+<pre><code class="language-sh">go install github.com/wisalgroup/labena/cmd/labena@latest
+</code></pre>
+<p>For repeatable team setup, replace <code>@latest</code> with the exact published version.
+Go installs the binary into <code>GOBIN</code>, or <code>$(go env GOPATH)/bin</code> when <code>GOBIN</code> is unset.
+Put that directory on your shell&#39;s <code>PATH</code>, then check <code>labena --version</code>.
+Use the Go version declared in the release&#39;s <code>go.mod</code>.</p>
+<p>If your shell reports <code>command not found</code>, add the installation directory to the
+current session:</p>
+<pre><code class="language-sh">go_bin=&#34;$(go env GOBIN)&#34;
+export PATH=&#34;${go_bin:-$(go env GOPATH)/bin}:$PATH&#34;
+labena --version
+</code></pre>
+<p>Add the resolved directory to your shell configuration (for example, <code>~/.zshrc</code>)
+to keep it available in future terminals.</p>
+<p>While the repository is private, configure Git authentication for GitHub and add
+<code>github.com/wisalgroup/labena</code> to your existing <code>GOPRIVATE</code> patterns. For a shell
+without other private-module patterns:</p>
+<pre><code class="language-sh">export GOPRIVATE=github.com/wisalgroup/labena
+go install github.com/wisalgroup/labena/cmd/labena@latest
+</code></pre>
+<p>Keep <code>GOPRIVATE</code> set when running the installer: it downloads the template too.
+This setting bypasses the public proxy and checksum database for this module; it
+does not grant repository access. Git still needs your credential helper or SSH
+configuration. Never put access tokens in a command or committed file.</p>
+<h2 id="create-a-project">Create a project<a class="heading-link" href="#create-a-project" aria-label="Link to Create a project">#</a></h2>
+<p>Run from the parent directory where the new project should live:</p>
+<pre><code class="language-sh">labena new myapp \
+  --module github.com/your-org/myapp \
+  --name MyApp
+</code></pre>
+<p>Replace <code>github.com/your-org/myapp</code> with your application&#39;s Go module path.</p>
+<p><code>myapp</code> must not already exist, and its parent must exist. The module path identifies
+the application&#39;s Go source. <code>MyApp</code> is its display name; these are separate choices.
+The command creates:</p>
+<ul>
+<li>Application source, tests, examples, deployment files and documentation.</li>
+<li>A new <code>go.mod</code> module declaration and matching Go imports, including tests and examples.</li>
+<li>An <code>APP_NAME</code> default and example profiles using <code>MyApp</code>, plus initial Compose and Kubernetes branding.</li>
+<li>A private local <code>.env</code> copied from the quickstart example, with optional capabilities disabled.</li>
+<li><code>.labena.json</code>, recording the source version and checksum, plus its commit when available.</li>
+</ul>
+<p>Commit the generated <code>.env.example</code> and <code>.env.*.example</code> profiles with your
+application. They contain example settings with your application name. The generated
+local <code>.env</code> remains ignored by Git; the template&#39;s local secrets are never copied.</p>
+<p>It runs <code>go mod tidy</code>, regenerates the documentation, and builds the application
+commands and examples. These checks need access to Go dependencies. It does not
+start services, apply migrations, initialize Git, or create a GitHub repository.
+On failure, it removes the new incomplete directory; an existing destination is
+never overwritten. Use <code>--skip-checks</code> to generate source without those checks,
+then run them yourself before using it.</p>
+<p>The installer itself is not copied into your application. <code>labena</code> creates
+projects; your application&#39;s <code>go run ./cmd/cli</code> manages its routes, migrations and
+other commands. Application CLI help still constructs the configured application.
+Installer help does not load application configuration or connect to infrastructure.</p>
+<h2 id="run-your-application">Run your application<a class="heading-link" href="#run-your-application" aria-label="Link to Run your application">#</a></h2>
+<pre><code class="language-sh">cd myapp
+</code></pre>
+<p>Follow <a href="index.html">installation</a> to start the tutorial PostgreSQL and Redis
+containers. Then run:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate up
+go run ./cmd/app
+</code></pre>
+<p>The generated <code>.env</code> already selects the tutorial settings. Replace example
+credentials and configure the features you need before deployment. Database names,
+JWT issuers/audiences, Redis namespaces, queues, image names and Kubernetes
+namespaces remain explicit operational settings. Review those when provisioning
+an independent environment; changing <code>APP_NAME</code> never changes them automatically.
+Likewise, update observability dashboards&#39; service-name filters for your deployment.</p>
+<p>Start your own Git history when ready, preserving <code>.labena.json</code> and the supplied
+license. Upstream fixes are reviewed and ported into your copy; see
+<a href="upgrading.html">adoption and updates</a>.</p>
+<h2 id="try-an-unpublished-checkout">Try an unpublished checkout<a class="heading-link" href="#try-an-unpublished-checkout" aria-label="Link to Try an unpublished checkout">#</a></h2>
+<p>From a Labena checkout, install the current CLI locally:</p>
+<pre><code class="language-sh">go install ./cmd/labena
+labena new ../myapp \
+  --module github.com/your-org/myapp \
+  --name MyApp \
+  --source .
+</code></pre>
+<p>If you are in another directory, <code>--source .</code> points there rather than to Labena.
+Pass the absolute checkout path instead. For example, from your chosen projects
+directory, replace the source path below with your actual checkout:</p>
+<pre><code class="language-sh">labena new myapp \
+  --module github.com/your-org/myapp \
+  --name MyApp \
+  --source /absolute/path/to/labena
+</code></pre>
+<p>The checkout folder may have a different name, such as <code>go-modular</code>; what matters
+is that it contains Labena&#39;s <code>go.mod</code>, source and Git metadata. The destination
+directory must be new; the installer never overwrites an existing application.</p>
+<p><code>--source</code> must point to the root of a Labena Git checkout. It includes tracked and
+non-ignored source changes, excludes local environment files, runtime data, build
+artifacts and Git history, and rejects copied symlinks. Provenance marks this as a
+local snapshot and records whether the checkout was modified. Treat local source
+as trusted code: verification runs its Go documentation builder and compiles it.</p>
+<p>Use the default release path for reproducible adoption. A released CLI downloads
+its own exact template version through the Go module system. To select another
+compatible release explicitly, use <code>--template-version vX.Y.Z</code>; branches and
+<code>latest</code> are not accepted as template versions. Incompatible templates are rejected.
+Prefer installing the CLI from the desired release instead of mixing versions.</p>
+<h2 id="publish-the-installer">Publish the installer<a class="heading-link" href="#publish-the-installer" aria-label="Link to Publish the installer">#</a></h2>
+<p>Maintainers commit <code>cmd/labena</code> with the matching template and verification results,
+then publish a new immutable module release tag. Tags made before this command
+was added cannot install it; do not move an existing tag to add it.
+No second repository, package manager, or installer service is required.
+<code>go install</code> fetches the command from that version, and <code>labena new</code> uses the same
+version as its application template.</p>
+</article>
+<nav class="page-navigation" aria-label="Previous and next pages">
+<a href="overview.html"><small>← Previous</small>Introduction</a>
+<a href="index.html"><small>Next →</small>Installation</a>
+</nav>
+<footer><a data-markdown href="markdown/creating-applications.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
+</main>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#install-the-command">Install the command</a></li><li class="toc-level-2"><a href="#create-a-project">Create a project</a></li><li class="toc-level-2"><a href="#run-your-application">Run your application</a></li><li class="toc-level-2"><a href="#try-an-unpublished-checkout">Try an unpublished checkout</a></li><li class="toc-level-2"><a href="#publish-the-installer">Publish the installer</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/creating-applications.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+</div>
+<dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
+<dialog id="search-dialog" aria-labelledby="search-title">
+<div class="search-heading"><label id="search-title" for="search-input">Search documentation</label><button id="search-close" aria-label="Close search">Esc</button></div>
+<div class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="search-input" type="search" placeholder="A topic, question or API symbol…" autocomplete="off" spellcheck="false" aria-describedby="search-status"><button id="search-clear" class="icon-button" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+<p id="search-status" role="status" aria-live="polite">Search guides, sections, and API names.</p>
+<ul id="search-results" aria-label="Search results"></ul>
+<div class="search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> to navigate <kbd>↵</kbd> to open</span><span>Search stays in your browser</span></div>
+</dialog>
+</body>
+</html>

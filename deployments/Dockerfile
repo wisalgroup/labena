@@ -11,8 +11,9 @@ COPY cmd ./cmd
 COPY internal ./internal
 COPY pkg ./pkg
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    module_path=$(go list -m) && \
     go build -mod=readonly -trimpath -buildvcs=false -tags timetzdata \
-    -ldflags "-X github.com/wisalgroup/labena/internal/app.version=${VERSION} -X github.com/wisalgroup/labena/internal/app.revision=${REVISION}" \
+    -ldflags "-X ${module_path}/internal/app.version=${VERSION} -X ${module_path}/internal/app.revision=${REVISION}" \
     -o /out/ ./cmd/app ./cmd/cli ./cmd/worker ./cmd/scheduler && \
     mkdir -p /out/storage/logs /out/storage/app
 

@@ -6,7 +6,11 @@ owns the customized application, its deployments and its updates. Read the
 
 ## Record your starting point
 
-Start from a published release using a clone or a template copy. Before changing
+Prefer [the installer](creating-applications.html) to create an application from a
+published release. It records the upstream version and checksum in `.labena.json`
+and changes imports and branding automatically. Keep that provenance file.
+
+For a manual clone or template copy, record the source yourself. Before changing
 the source, record the upstream repository URL, release tag and exact commit in
 your application's maintenance notes. A template copy may not retain upstream
 history, so keep this record even if its Git history starts at your own first commit.
@@ -22,7 +26,8 @@ You can run the [installation tutorial](getting-started.md) with the existing
 
 ## Choose your application module path
 
-The template uses `github.com/wisalgroup/labena`. Replace it with the path belonging to
+The installer handles this step. For manual adoption, the template uses
+`github.com/wisalgroup/labena`. Replace it with the path belonging to
 your application repository. For example, substituting your actual owner and name:
 
 ```sh
@@ -31,8 +36,8 @@ go mod edit -module=github.com/your-owner/your-app
 
 In your editor, replace the `github.com/wisalgroup/labena/` prefix with that same path plus `/` in all
 Go files, including examples and tests. Update active documentation imports too.
-Some architecture tests contain module-path strings, so update those along with
-ordinary imports. The module declaration command does not rewrite imports.
+Include any module-path strings in custom tests; the supplied architecture checks
+read the path from `go.mod`. The module declaration command does not rewrite imports.
 
 Avoid replacing the bare project name throughout every file: database names,
 container names and persisted identifiers have separate meanings. Configure your
@@ -61,8 +66,8 @@ not require adding this repository as a dependency or introducing a second modul
 
 The Labena rename changes the Go module/import prefix from `go-modular` to
 `github.com/wisalgroup/labena`. Instrumentation scopes use the new prefix too.
-The default `APP_NAME` is now `labena`, and default mail branding and the fallback
-API title use Labena. Update service-name and instrumentation-scope filters if
+The default `APP_NAME` is `labena`. Application API titles, mail defaults and the
+log viewer now inherit `APP_NAME`. Update service-name and instrumentation-scope filters if
 you adopt these defaults; explicitly configured names still take precedence.
 The supplied log queries use `service_name="labena"`.
 
@@ -72,6 +77,23 @@ and dashboard UIDs retain their existing identifiers. This source rename does
 not migrate stored data, invalidate tokens, or reset throttling state. Change
 those identifiers separately only with an application-specific migration plan.
 Historical review records and the original license notice are preserved.
+
+## Application branding
+
+`APP_NAME` must be nonblank and supplies API titles, the log viewer and mail names,
+as well as telemetry service identity. Empty `MAIL_FROM_NAME` and `MAIL_BRAND_NAME`
+inherit it; explicit mail overrides continue to work. The default logo is now empty,
+so mail renders text branding without fetching placeholder artwork. Remove old
+example mail-name overrides if you want them to follow your application name.
+
+For Go configuration callers, pass `cfg.App.AppName` to `cfg.Mail.Brand(...)`,
+`SMTPConfig(...)` and `Validate(...)`. Inheritance is resolved during translation,
+so changing an app name after `config.Defaults()` does not leave stale mail defaults.
+Standalone `api.New` falls back to “Application API”; app always supplies its own title.
+Standalone log viewers can set `logviewer.Config.AppName`.
+
+These changes require no retained-state migration. If you change `APP_NAME`, update
+telemetry filters and dashboards that select its previous service identity.
 
 ## Platform and Identity ownership
 
@@ -149,8 +171,8 @@ before relying on live or file history across processes.
   and Kubernetes profile. A database or required Redis outage makes `/readyz`
   unavailable; `/healthz` stays live. Update probe configuration before rollout.
 - Release images accept `VERSION` and `REVISION` build arguments. Update the
-  linker package path in both `deployments/Dockerfile` and your build tooling when
-  renaming the Go module. OpenAPI and CLI/startup output share the release identity;
+  custom build tooling when renaming the Go module; the supplied Dockerfile
+  derives its linker package path from `go.mod`. OpenAPI and CLI/startup output share the release identity;
   `X-API-Version` remains `v1`.
 
 Delivery records and media tombstones have no automatic purge in version 0.1.

@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -15,6 +16,9 @@ type AppConfig struct {
 }
 
 func (c AppConfig) Validate() error {
+	if strings.TrimSpace(c.AppName) == "" {
+		return errors.New("config: APP_NAME is required")
+	}
 	switch c.Environment {
 	case "development", "test", "staging", "production":
 	default:

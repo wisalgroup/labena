@@ -3,14 +3,19 @@
     "title": "Getting started",
     "pages": [
       {
+        "title": "Introduction",
+        "slug": "overview",
+        "source": "docs/overview.md"
+      },
+      {
+        "title": "Create an application",
+        "slug": "creating-applications",
+        "source": "docs/creating-applications.md"
+      },
+      {
         "title": "Installation",
         "slug": "index",
         "source": "docs/getting-started.md"
-      },
-      {
-        "title": "Adoption and updates",
-        "slug": "upgrading",
-        "source": "docs/upgrading.md"
       },
       {
         "title": "Configuration",
@@ -28,9 +33,9 @@
         "source": "docs/local-development.md"
       },
       {
-        "title": "Troubleshooting",
-        "slug": "troubleshooting",
-        "source": "docs/troubleshooting.md"
+        "title": "Adoption and updates",
+        "slug": "upgrading",
+        "source": "docs/upgrading.md"
       }
     ]
   },
@@ -43,14 +48,14 @@
         "source": "docs/structure.md"
       },
       {
-        "title": "Project conventions",
-        "slug": "conventions",
-        "source": "docs/conventions.md"
-      },
-      {
         "title": "Entry points",
         "slug": "entry-points",
         "source": "docs/entry-points.md"
+      },
+      {
+        "title": "Application lifecycle",
+        "slug": "application-lifecycle",
+        "source": "docs/application-lifecycle.md"
       },
       {
         "title": "Module registration",
@@ -63,24 +68,14 @@
         "source": "docs/dependency-injection.md"
       },
       {
-        "title": "Application lifecycle",
-        "slug": "application-lifecycle",
-        "source": "docs/application-lifecycle.md"
-      },
-      {
         "title": "Shared types",
         "slug": "shared-types",
         "source": "docs/shared-types.md"
       },
       {
-        "title": "Console commands",
-        "slug": "console",
-        "source": "docs/console.md"
-      },
-      {
-        "title": "Application errors",
-        "slug": "errors",
-        "source": "docs/errors.md"
+        "title": "Project conventions",
+        "slug": "conventions",
+        "source": "docs/conventions.md"
       }
     ]
   },
@@ -113,14 +108,24 @@
         "source": "docs/middleware.md"
       },
       {
+        "title": "Application errors",
+        "slug": "errors",
+        "source": "docs/errors.md"
+      },
+      {
         "title": "HTTP client",
         "slug": "http-client",
         "source": "pkg/httpclient/README.md"
+      },
+      {
+        "title": "WebSockets",
+        "slug": "websockets",
+        "source": "docs/websockets.md"
       }
     ]
   },
   {
-    "title": "Database and state",
+    "title": "Data and storage",
     "pages": [
       {
         "title": "Connections",
@@ -151,11 +156,21 @@
         "title": "Cache",
         "slug": "cache",
         "source": "docs/cache.md"
+      },
+      {
+        "title": "File storage",
+        "slug": "filesystems",
+        "source": "docs/filesystems.md"
+      },
+      {
+        "title": "Media assets",
+        "slug": "media",
+        "source": "internal/platform/media/README.md"
       }
     ]
   },
   {
-    "title": "Authentication",
+    "title": "Security",
     "pages": [
       {
         "title": "Authentication and sessions",
@@ -167,6 +182,11 @@
   {
     "title": "Background work",
     "pages": [
+      {
+        "title": "Console commands",
+        "slug": "console",
+        "source": "docs/console.md"
+      },
       {
         "title": "Queues and tasks",
         "slug": "queues",
@@ -229,22 +249,7 @@
     ]
   },
   {
-    "title": "Files and media",
-    "pages": [
-      {
-        "title": "File storage",
-        "slug": "filesystems",
-        "source": "docs/filesystems.md"
-      },
-      {
-        "title": "Media assets",
-        "slug": "media",
-        "source": "internal/platform/media/README.md"
-      }
-    ]
-  },
-  {
-    "title": "Workflows",
+    "title": "Recipes",
     "pages": [
       {
         "title": "A persisted HTTP and CLI operation",
@@ -260,26 +265,6 @@
         "title": "Account onboarding reactions",
         "slug": "onboarding",
         "source": "docs/onboarding.md"
-      }
-    ]
-  },
-  {
-    "title": "Operations",
-    "pages": [
-      {
-        "title": "Logging",
-        "slug": "logging",
-        "source": "docs/logging.md"
-      },
-      {
-        "title": "Observability",
-        "slug": "observability",
-        "source": "docs/observability.md"
-      },
-      {
-        "title": "Deployment",
-        "slug": "deployment",
-        "source": "deployments/README.md"
       }
     ]
   },
@@ -309,6 +294,36 @@
     ]
   },
   {
+    "title": "Operations",
+    "pages": [
+      {
+        "title": "Deployment",
+        "slug": "deployment",
+        "source": "deployments/README.md"
+      },
+      {
+        "title": "Logging",
+        "slug": "logging",
+        "source": "docs/logging.md"
+      },
+      {
+        "title": "Observability",
+        "slug": "observability",
+        "source": "docs/observability.md"
+      },
+      {
+        "title": "Troubleshooting",
+        "slug": "troubleshooting",
+        "source": "docs/troubleshooting.md"
+      },
+      {
+        "title": "Release readiness",
+        "slug": "release-readiness",
+        "source": "docs/release-readiness.md"
+      }
+    ]
+  },
+  {
     "title": "Reference",
     "pages": [
       {
@@ -330,21 +345,6 @@
         "title": "Security reporting",
         "slug": "security",
         "source": "SECURITY.md"
-      },
-      {
-        "title": "Release readiness",
-        "slug": "release-readiness",
-        "source": "docs/release-readiness.md"
-      }
-    ]
-  },
-  {
-    "title": "Extensions",
-    "pages": [
-      {
-        "title": "WebSockets",
-        "slug": "websockets",
-        "source": "docs/websockets.md"
       }
     ]
   }

@@ -277,7 +277,9 @@ list. Registries live in Targets; console execution uses Targets.RootCommand. Ap
 helpers operate on this state, with no separate platform, console or process-plan
 state objects. Only app accesses the application; modules borrow Resources and
 Targets and receive explicit business collaborators. Business modules
-and platform packages never import `internal/app` or its configuration package. CLI help intentionally constructs the configured application too. Missing
+and platform packages never import `internal/app` or its configuration package. Application CLI help intentionally constructs the configured application too.
+The standalone `cmd/labena` project installer owns no application state and never
+loads runtime configuration; its help is independent of application assembly. Missing
 required resources fail construction or serving validation; intentionally disabled
 features have documented unavailable behavior. Preserve supported offline assembly
 without treating it as permission to serve with missing required dependencies.

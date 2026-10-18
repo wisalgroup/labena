@@ -8,8 +8,8 @@ Want to understand a module first? Run `go test ./tests/modules -run TestFirstMo
 and follow [your first module](modules.html). That example runs entirely in process.
 
 This tutorial runs the template as supplied. To make it your own application,
-follow [adoption and updates](upgrading.md) to record the source release, rename
-the module and establish how you will incorporate future security fixes.
+use [the installer](creating-applications.html) to set its name and module path.
+Then follow [adoption and updates](upgrading.md) to incorporate future security fixes.
 
 ## Requirements
 

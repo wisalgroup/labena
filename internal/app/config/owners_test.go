@@ -61,13 +61,13 @@ func TestSMTPValidationMatchesConstruction(t *testing.T) {
 		t.Run(change.name, func(t *testing.T) {
 			cfg := Defaults().Mail
 			change.apply(&cfg)
-			_, err := mail.NewSMTP(cfg.SMTPConfig())
-			if (cfg.Validate() == nil) != change.valid || (err == nil) != change.valid {
+			_, err := mail.NewSMTP(cfg.SMTPConfig("MyApp"))
+			if (cfg.Validate("MyApp") == nil) != change.valid || (err == nil) != change.valid {
 				t.Fatal("validation mismatch", err)
 			}
 		})
 	}
-	options := Defaults().Mail.SMTPConfig()
+	options := Defaults().Mail.SMTPConfig("MyApp")
 	options.From = mail.Address{}
 	if _, err := mail.NewSMTP(options); err != nil {
 		t.Fatal("standalone message-level From override lost", err)

@@ -42,6 +42,25 @@ func request(v http.Handler, method, path, body string, auth bool) *httptest.Res
 	return w
 }
 
+func TestApplicationBrandingIsEscapedAndProtected(t *testing.T) {
+	cfg := config()
+	cfg.AppName = `MyApp <script>alert("brand")</script>`
+	v := viewer(t, cfg, nil)
+	if w := request(v, "GET", "/", "", false); w.Code != http.StatusUnauthorized || strings.Contains(w.Body.String(), "MyApp") {
+		t.Fatal("branding page bypassed authentication")
+	}
+	w := request(v, "GET", "/", "", true)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "Logs · MyApp &lt;script&gt;") || strings.Contains(w.Body.String(), cfg.AppName) {
+		t.Fatal("branding missing or not escaped", w.Body.String())
+	}
+	if strings.Contains(w.Body.String(), "Labena") || strings.Contains(w.Body.String(), "{{.AppName}}") {
+		t.Fatal("template branding leaked")
+	}
+	if w := request(v, "HEAD", "/", "", true); w.Code != http.StatusOK || w.Body.Len() != 0 {
+		t.Fatal("HEAD returned content")
+	}
+}
+
 type result struct {
 	Entries []logviewer.Entry `json:"entries"`
 	Next    int64             `json:"next"`

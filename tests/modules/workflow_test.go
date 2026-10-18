@@ -92,7 +92,7 @@ func TestModulesPostgresRedisWorkflow(t *testing.T) {
 	targets := dependencies.Targets{Migrations: registry, RootCommand: console, HTTP: httpRouter, TaskRouter: asynq.NewServeMux(), EventRouter: router, EventSubscriber: bus}
 	sender := &capturedMail{}
 	cfg := config.Defaults()
-	views, err := mailview.New(cfg.Mail.Brand())
+	views, err := mailview.New(cfg.Mail.Brand(cfg.App.AppName))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -54,7 +54,7 @@ func TestRedisQueuedMailWorkflow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	views, err := mailview.New(config.Defaults().Mail.Brand())
+	views, err := mailview.New(config.Defaults().Mail.Brand("Test app"))
 	if err != nil {
 		t.Fatal(err)
 	}

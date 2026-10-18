@@ -79,16 +79,20 @@ MAIL_PORT=2525
 MAIL_USERNAME=your-sandbox-username
 MAIL_PASSWORD=your-sandbox-password
 MAIL_FROM_ADDRESS=no-reply@example.com
-MAIL_FROM_NAME="Labena"
-MAIL_BRAND_NAME="Labena"
+APP_NAME=MyApp
+MAIL_FROM_NAME=
+MAIL_BRAND_NAME=
 MAIL_ACCENT_COLOR="#1D4ED8"
-MAIL_LOGO_URL="https://placehold.co/80x80/172554/FFFFFF.png?text=L"
+MAIL_LOGO_URL=
 MAIL_WEBSITE_URL=https://example.com
 MAIL_SUPPORT_EMAIL=support@example.com
 MAIL_FOOTER="Account updates, thoughtfully delivered."
 ```
 
-Keep credentials in ignored `.env` for local runs or a secret manager for deployment. The accent accepts a six-digit hex color; logo, website and action links require HTTPS. Replace the placeholder image and example addresses before real delivery. Brand text remains visible when images are blocked. A renderer with an empty `LogoURL` omits the image entirely.
+Blank sender and brand names inherit `APP_NAME`; set either to override it.
+The logo is optional.
+
+Keep credentials in ignored `.env` for local runs or a secret manager for deployment. The accent accepts a six-digit hex color; logo, website and action links require HTTPS. Configure your own artwork and addresses before real delivery. Brand text remains visible when images are blocked. A renderer with an empty `LogoURL` omits the image entirely.
 
 Tilt also loads an optional, ignored `.env.mail.yaml` Kubernetes Secret named `app-mail` in namespace `go-modular-dev`. Its `stringData` contains the same `MAIL_*` keys. Both the migration container and application reference it. Local `.env` values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.
 

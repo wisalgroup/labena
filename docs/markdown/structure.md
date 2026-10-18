@@ -12,6 +12,7 @@ cmd/
   worker/                 Workers and local subscribers
   scheduler/              Recurring enqueue only
   cli/                    Console entry point
+  labena/                 Template installer; omitted from generated applications
 internal/
   app/                    Composition, process selection and lifecycle ownership
     config/               Typed environment settings and owner translations

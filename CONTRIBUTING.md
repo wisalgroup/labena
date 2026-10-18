@@ -6,7 +6,7 @@ work. Add regression tests for observable behavior and update affected examples.
 
 Run `go test -race ./...` and `go vet ./...`. Storage and delivery changes also
 require disposable PostgreSQL and Redis integration tests; see the environment
-variables in the root README. Never point integration tests at production data.
+variables in [testing](docs/testing.md). Never point integration tests at production data.
 Report skipped backend tests explicitly. Run `govulncheck ./...` for dependency
 or security changes. Documentation changes require content and link checks.
 

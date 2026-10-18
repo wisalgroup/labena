@@ -37,6 +37,15 @@ Examples deliberately differ. The full example enables Redis cache, MinIO,
 Identity/Google, Expo, queue tooling and observability. It is not a credential-free
 quickstart. Mail is always present and opens SMTP only when sending.
 
+## Set the application name
+
+Set `APP_NAME=MyApp` for the API title, mail defaults, log viewer and telemetry
+service identity. Mail may override the sender and brand with `MAIL_FROM_NAME`
+and `MAIL_BRAND_NAME`; leave them blank to inherit the app name. A logo is optional.
+This setting does not change Go imports, database names, JWT issuers or deployment
+resources. [Create an application](creating-applications.html) handles the initial
+module rename and branding together.
+
 ## Understand precedence
 
 The loader takes one isolated snapshot:

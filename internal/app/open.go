@@ -33,7 +33,9 @@ func open(ctx context.Context, cfg config.Config, selected Processes) (_ *applic
 	a := &application{cfg: cfg}
 	logConfig := cfg.Logging.Channels(cfg.App.AppName, cfg.App.Environment)
 	if cfg.Logging.Viewer.Enabled {
-		a.logViewer, err = logviewer.New(cfg.Logging.Viewer.ViewerConfig(), logConfig.Channels)
+		viewerConfig := cfg.Logging.Viewer.ViewerConfig()
+		viewerConfig.AppName = cfg.App.AppName
+		a.logViewer, err = logviewer.New(viewerConfig, logConfig.Channels)
 		if err != nil {
 			return nil, err
 		}

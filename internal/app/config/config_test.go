@@ -282,7 +282,7 @@ func TestTelemetryServiceIdentity(t *testing.T) {
 			}
 			cfg.App.AppName = " "
 			err := cfg.Validate()
-			if (err != nil) != (mode.metrics || mode.tracing) {
+			if err == nil || !strings.Contains(err.Error(), "APP_NAME") {
 				t.Fatalf("blank service name: %v", err)
 			}
 		})

@@ -27,7 +27,7 @@ func render(directory string) error {
 	if err != nil {
 		return err
 	}
-	views, err := mailview.New(cfg.Mail.Brand())
+	views, err := mailview.New(cfg.Mail.Brand(cfg.App.AppName))
 	if err != nil {
 		return err
 	}

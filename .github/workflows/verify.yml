@@ -20,6 +20,15 @@ jobs:
       - run: go vet ./...
       - run: go test -race ./...
       - run: go build ./cmd/... ./examples/...
+      - name: Verify generated application
+        run: |
+          if [ -d cmd/labena ]; then
+            target="$RUNNER_TEMP/labena-smoke"
+            go run ./cmd/labena new "$target" --module example.com/myapp --name MyApp --source .
+            cd "$target"
+            test -f .env.example
+            GOWORK=off go test ./internal/app/config ./tests/architecture
+          fi
       - name: Verify shared application image
         run: docker build --platform linux/amd64 -f deployments/Dockerfile .
       - run: go test docs/build.go docs/highlight_test.go

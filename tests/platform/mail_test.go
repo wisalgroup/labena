@@ -70,7 +70,7 @@ func TestMailImmediateWithoutQueue(t *testing.T) {
 }
 
 func TestMailViewSnapshotThroughRegisteredHandler(t *testing.T) {
-	views, err := mailview.New(config.Defaults().Mail.Brand())
+	views, err := mailview.New(config.Defaults().Mail.Brand("Test app"))
 	if err != nil {
 		t.Fatal(err)
 	}

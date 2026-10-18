@@ -1,7 +1,10 @@
 # Entry points
 
-All executables load the same typed settings and use one application assembly
+Application executables load the same typed settings and use one application assembly
 path. Each main chooses its processes explicitly in Go.
+
+The separate `cmd/labena` installer creates new applications and is not part of
+their runtime. See [creating an application](creating-applications.html).
 
 ## Select a process
 

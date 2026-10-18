@@ -57,7 +57,9 @@ variables in business code.
 - Active queue, cache and rate-limit stores use different Redis databases or servers.
 - Queue drain timeout is shorter than the application's overall shutdown budget.
 - Enabled authentication needs its database, keys, mail configuration and rate limits.
-- Enabled telemetry needs a nonblank `App.AppName` (`APP_NAME`).
+- `App.AppName` (`APP_NAME`) must be nonblank. It supplies API/viewer branding,
+  telemetry identity and mail-name defaults. Mail translation methods accept the
+  app name explicitly, preserving independent overrides.
 - Selected disk and route names must reference configured definitions.
 
 Owner policy validation stays with the owner. For example,

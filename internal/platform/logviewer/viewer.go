@@ -3,9 +3,11 @@
 package logviewer
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
+	"html/template"
 	"io"
 	"maps"
 	"net/http"
@@ -21,6 +23,7 @@ const RootPath = "/admin/logs"
 
 // Config controls access and live retention. File retention belongs to logging.
 type Config struct {
+	AppName                    string
 	Username                   string
 	Password                   string `json:"-"`
 	BufferEntries, BufferBytes int
@@ -39,6 +42,7 @@ func (c Config) Validate() error {
 // Viewer borrows channel definitions at construction and keeps bounded log copies.
 // ServeHTTP and WrapHandler are safe for concurrent use.
 type Viewer struct {
+	index    []byte
 	buffer   buffer
 	channels map[string]logging.Channel
 	handler  http.Handler
@@ -52,6 +56,18 @@ func New(cfg Config, channels map[string]logging.Channel) (*Viewer, error) {
 		return nil, err
 	}
 	v := &Viewer{channels: maps.Clone(channels), requests: make(chan struct{}, 4)}
+	if strings.TrimSpace(cfg.AppName) == "" {
+		cfg.AppName = "Application"
+	}
+	page, err := template.ParseFS(assets, "web/index.html")
+	if err != nil {
+		return nil, err
+	}
+	var index bytes.Buffer
+	if err := page.Execute(&index, struct{ AppName string }{cfg.AppName}); err != nil {
+		return nil, err
+	}
+	v.index = index.Bytes()
 	v.buffer = buffer{entries: make([]Entry, cfg.BufferEntries), maxBytes: cfg.BufferBytes}
 	for name, ch := range v.channels {
 		if ch.Driver == "file" {
@@ -127,7 +143,10 @@ func (v *Viewer) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		if name == "app.css" {
 			contentType = "text/css; charset=utf-8"
 		}
-		data, _ := assets.ReadFile("web/" + name)
+		data := v.index
+		if name != "index.html" {
+			data, _ = assets.ReadFile("web/" + name)
+		}
 		w.Header().Set("Content-Type", contentType)
 		if r.Method != "HEAD" {
 			_, _ = w.Write(data)

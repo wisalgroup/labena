@@ -151,7 +151,7 @@ el("search").addEventListener("keydown", event => { if (event.key === "Enter" &&
 el("clear").addEventListener("click", () => { el("search").value = ""; el("clear").hidden = true; el("clear").disabled = true; clearTimeout(state.searchTimer); el("search").focus(); load(false); });
 el("export").addEventListener("click", () => {
   const blob = new Blob([state.entries.map(entry => JSON.stringify(entry)).join("\n") + "\n"], { type: "application/x-ndjson" });
-  const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "labena-logs-" + new Date().toISOString().replaceAll(":", "-") + ".jsonl"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "logs-" + new Date().toISOString().replaceAll(":", "-") + ".jsonl"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   el("status").textContent = "Exported " + state.entries.length + " visible entries.";
 });
 document.addEventListener("visibilitychange", () => { clearTimeout(state.timer); if (!document.hidden && !state.paused) load(false); });

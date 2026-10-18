@@ -47,7 +47,7 @@ type Server struct {
 // New creates an API with safe defaults and live documentation. It starts no I/O.
 func New(options Options) (*Server, error) {
 	if options.Title == "" {
-		options.Title = "Labena API"
+		options.Title = "Application API"
 	}
 	if options.Version == "" {
 		options.Version = "dev"

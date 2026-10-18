@@ -70,6 +70,7 @@ func TestServeRequiresExplicitProcessesAndDatabase(t *testing.T) {
 
 func TestServeHTTPMetricsAndQueue(t *testing.T) {
 	cfg, db := databaseConfig(t)
+	cfg.App.AppName = "MyApp"
 	redisURL := os.Getenv("QUEUE_TEST_REDIS")
 	if redisURL == "" {
 		t.Skip("QUEUE_TEST_REDIS not set")
@@ -168,9 +169,14 @@ func TestServeHTTPMetricsAndQueue(t *testing.T) {
 			t.Fatal("live specification missing real routes")
 		}
 		if path == "/openapi.json" {
-			var document struct{ Info struct{ Version string } }
+			var document struct {
+				Info struct{ Version, Title string }
+			}
 			if err := json.Unmarshal(body, &document); err != nil || document.Info.Version != "dev" {
 				t.Fatal("development build advertised an incorrect release", document.Info.Version, err)
+			}
+			if document.Info.Title != "MyApp API" {
+				t.Fatal("API did not use configured app name", document.Info.Title)
 			}
 		}
 	}

@@ -17,10 +17,10 @@ type MailConfig struct {
 	Username     string `env:"MAIL_USERNAME" json:"-"`
 	Password     string `env:"MAIL_PASSWORD" json:"-"`
 	FromAddress  string `env:"MAIL_FROM_ADDRESS" envDefault:"no-reply@example.com"`
-	FromName     string `env:"MAIL_FROM_NAME" envDefault:"Labena"`
-	BrandName    string `env:"MAIL_BRAND_NAME" envDefault:"Labena"`
+	FromName     string `env:"MAIL_FROM_NAME"`
+	BrandName    string `env:"MAIL_BRAND_NAME"`
 	AccentColor  string `env:"MAIL_ACCENT_COLOR" envDefault:"#1D4ED8"`
-	LogoURL      string `env:"MAIL_LOGO_URL" envDefault:"https://placehold.co/80x80/172554/FFFFFF.png?text=L"`
+	LogoURL      string `env:"MAIL_LOGO_URL"`
 	WebsiteURL   string `env:"MAIL_WEBSITE_URL" envDefault:"https://example.com"`
 	SupportEmail string `env:"MAIL_SUPPORT_EMAIL" envDefault:"support@example.com"`
 	Footer       string `env:"MAIL_FOOTER" envDefault:"Account updates, thoughtfully delivered."`
@@ -29,24 +29,31 @@ type MailConfig struct {
 	MaxAttachmentBytes int64 `env:"-"`
 }
 
-func (c MailConfig) Brand() mailview.Brand {
+// Brand inherits the application name unless mail branding explicitly overrides it.
+func (c MailConfig) Brand(appName string) mailview.Brand {
+	if strings.TrimSpace(c.BrandName) == "" {
+		c.BrandName = appName
+	}
 	return mailview.Brand{Name: c.BrandName, AccentColor: c.AccentColor, LogoURL: c.LogoURL, WebsiteURL: c.WebsiteURL, SupportEmail: c.SupportEmail, Footer: c.Footer}
 }
 
-func (c MailConfig) Validate() error {
-	if err := c.Brand().Validate(); err != nil {
+func (c MailConfig) Validate(appName string) error {
+	if err := c.Brand(appName).Validate(); err != nil {
 		return err
 	}
 	if strings.TrimSpace(c.FromAddress) == "" {
 		return errors.New("config: MAIL_FROM_ADDRESS is required")
 	}
-	if err := c.SMTPConfig().Validate(); err != nil {
+	if err := c.SMTPConfig(appName).Validate(); err != nil {
 		return fmt.Errorf("config: %w", err)
 	}
 	return nil
 }
 
 // SMTPConfig requires STARTTLS with certificate verification on every connection.
-func (c MailConfig) SMTPConfig() mail.SMTPConfig {
+func (c MailConfig) SMTPConfig(appName string) mail.SMTPConfig {
+	if strings.TrimSpace(c.FromName) == "" {
+		c.FromName = appName
+	}
 	return mail.SMTPConfig{Host: c.Host, Port: c.Port, Username: c.Username, Password: c.Password, From: mail.Address{Email: c.FromAddress, Name: c.FromName}, UseTLS: true, MaxAttachmentBytes: c.MaxAttachmentBytes}
 }
