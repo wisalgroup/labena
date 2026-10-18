@@ -58,9 +58,9 @@ verified an independent application, including its example environment files.
 The vulnerability scan found no reachable or imported-package findings; one
 module-only advisory affects unused code.
 
-This is candidate evidence, not an announcement of a tagged release. Public
-publication still requires the verified private-reporting route in
-[SECURITY.md](SECURITY.md), a selected immutable release tag and the corresponding
-release evidence. Live providers, additional backends and deployment-specific
+This is candidate evidence, not an announcement of a tagged release. The repository
+is public and the private-reporting route in [SECURITY.md](SECURITY.md) is enabled.
+A versioned release still requires a selected immutable release tag and the
+corresponding release evidence. Live providers, additional backends and deployment-specific
 recovery or load guarantees remain outside this verification. See
 [release readiness](docs/release-readiness.md).

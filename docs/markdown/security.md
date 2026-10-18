@@ -9,9 +9,9 @@ no stable support commitment. See [support and compatibility](SUPPORT.md).
 
 ## Report a vulnerability privately
 
-The planned public-release reporting channel is GitHub private vulnerability
-reporting on [wisalgroup/labena](https://github.com/wisalgroup/labena). Once enabled,
-open **Security → Advisories → Report a vulnerability** there. A customized
+Report vulnerabilities through [GitHub private vulnerability reporting](https://github.com/wisalgroup/labena/security/advisories/new).
+You can also open **Security → Advisories → Report a vulnerability** in the
+repository. A customized
 application may have a different owner and reporting channel; report
 application-specific issues to that owner.
 
@@ -25,12 +25,10 @@ impact, coordinating a fix and publishing an advisory with affected/fixed versio
 and adoption instructions. Customized applications must incorporate those fixes
 themselves.
 
-**Channel setup is pending:** the upstream repository is currently private.
-GitHub's private vulnerability reporting feature requires a public repository,
-so no public reporting entry point has been enabled or verified. Before inviting
-public adoption, the repository owner must enable the feature after making the
-repository public, verify the reporting entry point, and ensure a maintainer
-receives report notifications. Follow
+Private vulnerability reporting is enabled for the public repository. Its setting
+and public reporting entry point were verified on 2026-10-18. Repository maintainers
+must keep report notifications enabled and monitor incoming reports. Notification
+delivery has not been tested by submitting a report. Follow
 [GitHub's setup instructions](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository).
 
 ## Application security

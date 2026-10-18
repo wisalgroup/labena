@@ -7,7 +7,7 @@ persistence, queues, mail, notifications, storage and observability already conn
 Labena combines established Go libraries with explicit constructors, module-owned
 registration and a shared application lifecycle.
 
-[Documentation](docs/overview.md) · [Create an application](docs/creating-applications.md) ·
+[Documentation](https://wisalgroup.github.io/labena/overview.html) · [Create an application](docs/creating-applications.md) ·
 [First module](docs/modules.md) · [Deployment](deployments/README.md) · [Contributing](CONTRIBUTING.md)
 
 Labena is delivered as an **application template**. Create a project, choose its Go

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=d5d804b6bf55bdba" defer></script>
+<script src="search-index.js?v=e29e66016a2827fe" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -97,9 +97,9 @@ older versions receive no backports. Maintenance is best effort, with no guarant
 response or resolution time. Before the first release, development snapshots have
 no stable support commitment. See <a href="support.html">support and compatibility</a>.</p>
 <h2 id="report-a-vulnerability-privately">Report a vulnerability privately<a class="heading-link" href="#report-a-vulnerability-privately" aria-label="Link to Report a vulnerability privately">#</a></h2>
-<p>The planned public-release reporting channel is GitHub private vulnerability
-reporting on <a href="https://github.com/wisalgroup/labena">wisalgroup/labena</a>. Once enabled,
-open <strong>Security → Advisories → Report a vulnerability</strong> there. A customized
+<p>Report vulnerabilities through <a href="https://github.com/wisalgroup/labena/security/advisories/new">GitHub private vulnerability reporting</a>.
+You can also open <strong>Security → Advisories → Report a vulnerability</strong> in the
+repository. A customized
 application may have a different owner and reporting channel; report
 application-specific issues to that owner.</p>
 <p>Include the affected tag or commit, impact, reproduction steps and a minimal proof
@@ -110,12 +110,10 @@ is unavailable, do not substitute a public issue containing vulnerability detail
 impact, coordinating a fix and publishing an advisory with affected/fixed versions
 and adoption instructions. Customized applications must incorporate those fixes
 themselves.</p>
-<p><strong>Channel setup is pending:</strong> the upstream repository is currently private.
-GitHub&#39;s private vulnerability reporting feature requires a public repository,
-so no public reporting entry point has been enabled or verified. Before inviting
-public adoption, the repository owner must enable the feature after making the
-repository public, verify the reporting entry point, and ensure a maintainer
-receives report notifications. Follow
+<p>Private vulnerability reporting is enabled for the public repository. Its setting
+and public reporting entry point were verified on 2026-10-18. Repository maintainers
+must keep report notifications enabled and monitor incoming reports. Notification
+delivery has not been tested by submitting a report. Follow
 <a href="https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository">GitHub&#39;s setup instructions</a>.</p>
 <h2 id="application-security">Application security<a class="heading-link" href="#application-security" aria-label="Link to Application security">#</a></h2>
 <p>Use placeholder credentials in examples. Rotate accidentally exposed credentials.

@@ -361,9 +361,9 @@ and [custom-workflow requirements](https://docs.github.com/en/pages/getting-star
 
 ### Private repositories and site visibility
 
-For an organization-owned private repository such as Labena, GitHub Pages requires
-an eligible plan, such as GitHub Team or Enterprise Cloud. Public repositories can
-use Pages on GitHub Free. If Pages settings are unavailable, check the organization's
+For an organization-owned private repository, GitHub Pages requires an eligible
+plan, such as GitHub Team or Enterprise Cloud. Labena is public; public repositories
+can use Pages on GitHub Free. If Pages settings are unavailable, check the organization's
 plan and policies. See [GitHub Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 
 **A private repository does not make its Pages site private.** Ordinary Pages sites
