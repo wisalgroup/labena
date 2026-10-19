@@ -46,13 +46,13 @@ local development walkthrough.
 
 ### Install from a release
 
-Once a release containing `cmd/labena` has been published:
+Install the released CLI:
 
 ```sh
 go install github.com/wisalgroup/labena/cmd/labena@latest
 ```
 
-Pin an exact published version instead of `@latest` for reproducible team setup.
+Use `@v0.2.0` instead of `@latest` for reproducible team setup.
 Add Go's binary directory to your current shell if `labena` is not found:
 
 ```sh
@@ -62,8 +62,7 @@ labena --version
 ```
 
 Add the resolved directory to your shell configuration to keep it on `PATH` in
-future terminals. While the repository is private, Git authentication and a matching
-`GOPRIVATE` setting are required for both installation and template downloads.
+future terminals. The public Labena repository needs no GitHub authentication.
 See the [installation details](docs/creating-applications.md#install-the-command).
 
 From the directory that should contain your new application:
@@ -83,7 +82,7 @@ It does not create a GitHub repository or copy the template's Git history.
 
 ### Use the current checkout
 
-Before publishing the installer, run this **from the Labena checkout**:
+To try local changes, run this **from the Labena checkout**:
 
 ```sh
 go install ./cmd/labena
@@ -262,7 +261,7 @@ Contributions should follow [CONTRIBUTING.md](CONTRIBUTING.md) and the
 through [GitHub issues](https://github.com/wisalgroup/labena/issues).
 Use the private reporting route in [SECURITY.md](SECURITY.md) for vulnerabilities.
 Maintenance scope and compatibility commitments are documented in [SUPPORT.md](SUPPORT.md).
-See [release notes](CHANGELOG.md) for the current candidate and adoption changes.
+See [release notes](CHANGELOG.md) for the current release and adoption changes.
 
 ## License
 

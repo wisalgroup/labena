@@ -18,6 +18,24 @@ it. For ordinary email without recipient state or SQL delivery intent, use
 App constructs the notifier once as `Resources.Notifier`. Modules borrow it; they
 do not start dispatchers, register providers or implement another notifier contract.
 
+## Stored state
+
+| Table | Purpose |
+| --- | --- |
+| `notifications` | In-app inbox content and read state |
+| `notification_deliveries` | Durable channel delivery intent, attempts and outcomes |
+| `push_subscriptions` | Recipient-owned device installations, push tokens and optional session bindings |
+
+Push subscriptions are delivery destinations, not notification preferences or topic
+subscriptions. A recipient can register multiple installations. Token rotation,
+logout, invalid-token handling and inactivity pruning keep those destinations current.
+Queued push delivery records retain the subscription ID and version so an older
+message cannot follow a reassigned installation.
+
+The schema is created by the normal migrations even when push is disabled. For
+applications using the former `notification_subscriptions` table, follow the
+[version 0.2 migration procedure](../../../docs/upgrading.md#version-02-push-subscription-table-rename).
+
 ## Create your first database notification
 
 Apply the normal application migrations and use the existing `Resources.Notifier`.

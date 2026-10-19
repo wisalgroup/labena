@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=e29e66016a2827fe" defer></script>
+<script src="search-index.js?v=25d8a3e4eb6d704c" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Operations</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#version-02-verification-on-2026-10-19">Version 0.2 verification on 2026-10-19</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav></details>
 <article><h1 id="release-readiness">Release readiness</h1>
 <p>This repository is distributed as a modular Go application template. The
 <a href="support.html">support policy</a> defines latest-release maintenance, compatibility
@@ -196,6 +196,55 @@ source checksums, toolchain, architecture, backend versions, commands, results,
 skips, and operational limitations. The <a href="testing.html">testing guide</a> gives the
 repeatable core gate; deployment-specific recovery and provider checks remain
 separate.</p>
+<h2 id="version-02-verification-on-2026-10-19">Version 0.2 verification on 2026-10-19<a class="heading-link" href="#version-02-verification-on-2026-10-19" aria-label="Link to Version 0.2 verification on 2026-10-19">#</a></h2>
+<p>The <code>v0.2.0</code> source adds the reversible push-subscription table rename. Local
+verification used Go 1.27.2 on macOS ARM64 with disposable PostgreSQL 17 and
+standalone Redis 7. The release&#39;s exact source commit, tagged build evidence and
+publication checks belong to the <a href="https://github.com/wisalgroup/labena/releases/tag/v0.2.0">GitHub release</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Required integration gate</td>
+<td><code>scripts/verify-integration.sh</code> passed the complete race-enabled suite with all four PostgreSQL/Redis test settings supplied</td>
+</tr>
+<tr>
+<td>Retained-state migration</td>
+<td>Original schema populated with active and disabled installations and pending push deliveries; upgrade, downgrade and re-upgrade preserved every stored column; queued delivery selected the original eligible device; refresh retained ID/version and active-token uniqueness held</td>
+</tr>
+<tr>
+<td>Fresh schema</td>
+<td>Existing notification and Identity suites applied the full history, including the rename, before exercising registration, delivery, logout and pruning</td>
+</tr>
+<tr>
+<td>Go checks</td>
+<td>Vet, command/example builds and <code>go mod tidy -diff</code> passed</td>
+</tr>
+<tr>
+<td>Installer distribution</td>
+<td>A locally packaged module version installed outside the checkout and generated MyApp with <code>.env.example</code>, all example profiles, private <code>.env</code>, provenance, rebuilt docs and passing build/configuration/architecture checks</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>Builder tests, all 58 generated pages and browser navigation/search/mobile/fallback checks passed using local Chrome</td>
+</tr>
+<tr>
+<td>Vulnerabilities</td>
+<td>Pinned govulncheck v1.8.0 found no reachable or imported-package findings; one module-only advisory affects unused code</td>
+</tr>
+</tbody>
+</table>
+<p>The original notification migration is unchanged. This upgrade requires all old
+application processes to stop before migration; mixed-version rolling deployment
+is not supported. See the <a href="upgrading.html#version-02-push-subscription-table-rename">upgrade and rollback procedure</a>.
+These tests do not establish live Expo/SMTP/Google/cloud compatibility, MySQL or
+Redis Cluster support, production load capacity, or deployment-specific recovery.
+No application service is deployed by documentation publication.</p>
 <h2 id="candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18<a class="heading-link" href="#candidate-hardening-verification-on-2026-10-18" aria-label="Link to Candidate hardening verification on 2026-10-18">#</a></h2>
 <p>The local v0.1.0 candidate was checked with Go 1.27.2 and disposable PostgreSQL 17
 and standalone Redis 7. The release bundle records its exact source revision,
@@ -461,7 +510,7 @@ evidence. Continue with <a href="deployment.html">deployment</a> and <a href="te
 </nav>
 <footer><a data-markdown href="markdown/release-readiness.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/release-readiness.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#verification-matrix">Verification matrix</a></li><li class="toc-level-2"><a href="#build-a-local-release-bundle">Build a local release bundle</a></li><li class="toc-level-2"><a href="#how-to-read-the-recorded-evidence">How to read the recorded evidence</a></li><li class="toc-level-2"><a href="#version-02-verification-on-2026-10-19">Version 0.2 verification on 2026-10-19</a></li><li class="toc-level-2"><a href="#candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18</a></li><li class="toc-level-2"><a href="#local-verification-on-2026-10-11">Local verification on 2026-10-11</a></li><li class="toc-level-2"><a href="#platform-harmonization-verification--2026-10-11">Platform harmonization verification — 2026-10-11</a></li><li class="toc-level-2"><a href="#before-publication">Before publication</a></li><li class="toc-level-2"><a href="#assemble-the-next-release-evidence">Assemble the next release evidence</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/release-readiness.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

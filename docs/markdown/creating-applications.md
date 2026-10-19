@@ -6,13 +6,13 @@ The resulting repository owns its source and can evolve independently.
 
 ## Install the command
 
-Once a release containing the installer is published:
+Install the released CLI:
 
 ```sh
 go install github.com/wisalgroup/labena/cmd/labena@latest
 ```
 
-For repeatable team setup, replace `@latest` with the exact published version.
+For repeatable team setup, replace `@latest` with `@v0.2.0`.
 Go installs the binary into `GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset.
 Put that directory on your shell's `PATH`, then check `labena --version`.
 Use the Go version declared in the release's `go.mod`.

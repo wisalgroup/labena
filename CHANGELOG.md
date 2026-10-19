@@ -1,10 +1,28 @@
 # Changelog
 
-## Unreleased — initial release candidate
+## v0.2.0 — 2026-10-19
 
 Labena is distributed as a modular Go application template. Application owners
 retain and customize the generated source, then review and port upstream fixes.
 See [support and compatibility](SUPPORT.md) and the [update guide](docs/upgrading.md).
+
+### Push-subscription schema change
+
+- Rename `notification_subscriptions` to `push_subscriptions`, including its indexes
+  and constraints, through the new reversible migration `20261019120000`.
+  Existing migrations are unchanged; registrations and queued delivery references
+  are retained.
+- **Coordinated upgrade required:** stop application, worker and scheduler processes,
+  apply migrations using the new CLI, then start the new version. Old and new
+  binaries cannot share this schema during rollout. Update custom SQL that names
+  the old table. Follow the [upgrade and rollback procedure](docs/upgrading.md#version-02-push-subscription-table-rename).
+- HTTP routes, Go subscription APIs, configuration keys, task names and persisted
+  delivery payloads remain unchanged by the rename. No queue purge or device
+  re-registration is needed. This storage change uses a minor version under the
+  [v0 compatibility policy](SUPPORT.md#compatibility-and-release-notes).
+
+This is the first GitHub release of the current template and installer. The earlier
+local `v0.1.0` tag remains unchanged; it predates the installer and was not published.
 
 ### Included capabilities
 
@@ -58,9 +76,9 @@ verified an independent application, including its example environment files.
 The vulnerability scan found no reachable or imported-package findings; one
 module-only advisory affects unused code.
 
-This is candidate evidence, not an announcement of a tagged release. The repository
-is public and the private-reporting route in [SECURITY.md](SECURITY.md) is enabled.
-A versioned release still requires a selected immutable release tag and the
-corresponding release evidence. Live providers, additional backends and deployment-specific
-recovery or load guarantees remain outside this verification. See
-[release readiness](docs/release-readiness.md).
+Those checks describe the earlier candidate. The version 0.2 release evidence is
+recorded separately in [release readiness](docs/release-readiness.md) and the
+[GitHub release](https://github.com/wisalgroup/labena/releases/tag/v0.2.0).
+The public repository's private-reporting route in [SECURITY.md](SECURITY.md) is enabled.
+Live providers, additional backends and deployment-specific recovery or load
+guarantees remain outside this verification.

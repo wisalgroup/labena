@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=e29e66016a2827fe" defer></script>
+<script src="search-index.js?v=25d8a3e4eb6d704c" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -95,10 +95,10 @@
 versioned template, changes the Go module and imports, and configures your name.
 The resulting repository owns its source and can evolve independently.</p>
 <h2 id="install-the-command">Install the command<a class="heading-link" href="#install-the-command" aria-label="Link to Install the command">#</a></h2>
-<p>Once a release containing the installer is published:</p>
+<p>Install the released CLI:</p>
 <pre><code class="language-sh">go install github.com/wisalgroup/labena/cmd/labena@latest
 </code></pre>
-<p>For repeatable team setup, replace <code>@latest</code> with the exact published version.
+<p>For repeatable team setup, replace <code>@latest</code> with <code>@v0.2.0</code>.
 Go installs the binary into <code>GOBIN</code>, or <code>$(go env GOPATH)/bin</code> when <code>GOBIN</code> is unset.
 Put that directory on your shell&#39;s <code>PATH</code>, then check <code>labena --version</code>.
 Use the Go version declared in the release&#39;s <code>go.mod</code>.</p>

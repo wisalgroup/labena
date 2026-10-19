@@ -48,7 +48,7 @@ func (n *Notifier) sendPush(ctx context.Context, d *Delivery, p deliveryPayload)
 		}
 		if !active {
 			// Compare the version so a concurrent new-session registration survives.
-			_, err := db.NewRaw(`UPDATE notification_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=? AND disabled_at IS NULL`, sub.ID, sub.Version).Exec(ctx)
+			_, err := db.NewRaw(`UPDATE push_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=? AND disabled_at IS NULL`, sub.ID, sub.Version).Exec(ctx)
 			if err != nil {
 				return err
 			}
@@ -67,7 +67,7 @@ func (n *Notifier) sendPush(ctx context.Context, d *Delivery, p deliveryPayload)
 	}
 	var failure *push.Error
 	if errors.As(err, &failure) && failure.InvalidDestination {
-		_, disableErr := db.NewRaw(`UPDATE notification_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=?`, sub.ID, sub.Version).Exec(ctx)
+		_, disableErr := db.NewRaw(`UPDATE push_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=?`, sub.ID, sub.Version).Exec(ctx)
 		if disableErr != nil {
 			return disableErr
 		}
@@ -179,7 +179,7 @@ func (n *Notifier) checkPushReceipt(ctx context.Context, d *Delivery) (DeliveryS
 		if err != nil {
 			return DeliveryAwaitingReceipt, 5 * time.Minute, err
 		}
-		_, err = db.NewRaw(`UPDATE notification_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=? AND recipient_type=? AND recipient_id=?`, d.Destination, d.SubscriptionVersion, d.RecipientType, d.RecipientID).Exec(ctx)
+		_, err = db.NewRaw(`UPDATE push_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND version=? AND recipient_type=? AND recipient_id=?`, d.Destination, d.SubscriptionVersion, d.RecipientType, d.RecipientID).Exec(ctx)
 		if err != nil {
 			return DeliveryAwaitingReceipt, 5 * time.Minute, err
 		}

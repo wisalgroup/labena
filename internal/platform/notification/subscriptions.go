@@ -28,7 +28,7 @@ var (
 // Subscription is one push installation owned by a recipient. Registration is
 // private provider data; SessionID optionally ties it to an authenticated session.
 type Subscription struct {
-	bun.BaseModel    `bun:"table:notification_subscriptions,alias:s"`
+	bun.BaseModel    `bun:"table:push_subscriptions,alias:s"`
 	ID               uuid.UUID  `bun:",pk,type:uuid" json:"id"`
 	RecipientType    string     `json:"-"`
 	RecipientID      string     `json:"-"`
@@ -97,9 +97,9 @@ func (s *store) subscribe(ctx context.Context, row *Subscription) (*Subscription
 		}
 		// Keep identity stable across rotation. Only routing changes invalidate queued
 		// versions; refreshing an unchanged registration updates its freshness timestamp.
-		err = db.NewRaw(`INSERT INTO notification_subscriptions (id,recipient_type,recipient_id,installation_id,session_id,project,registration,registration_hash,version,updated_at)
- VALUES (?,?,?,?,?,?,?,?,1,now()) ON CONFLICT (project,installation_id) DO UPDATE SET recipient_type=EXCLUDED.recipient_type,recipient_id=EXCLUDED.recipient_id,session_id=EXCLUDED.session_id,registration=EXCLUDED.registration,registration_hash=EXCLUDED.registration_hash,version=notification_subscriptions.version+CASE WHEN notification_subscriptions.registration<>EXCLUDED.registration OR notification_subscriptions.session_id<>EXCLUDED.session_id OR notification_subscriptions.disabled_at IS NOT NULL THEN 1 ELSE 0 END,updated_at=now(),disabled_at=NULL
- WHERE notification_subscriptions.disabled_at IS NOT NULL OR (notification_subscriptions.recipient_type=EXCLUDED.recipient_type AND notification_subscriptions.recipient_id=EXCLUDED.recipient_id)
+		err = db.NewRaw(`INSERT INTO push_subscriptions (id,recipient_type,recipient_id,installation_id,session_id,project,registration,registration_hash,version,updated_at)
+ VALUES (?,?,?,?,?,?,?,?,1,now()) ON CONFLICT (project,installation_id) DO UPDATE SET recipient_type=EXCLUDED.recipient_type,recipient_id=EXCLUDED.recipient_id,session_id=EXCLUDED.session_id,registration=EXCLUDED.registration,registration_hash=EXCLUDED.registration_hash,version=push_subscriptions.version+CASE WHEN push_subscriptions.registration<>EXCLUDED.registration OR push_subscriptions.session_id<>EXCLUDED.session_id OR push_subscriptions.disabled_at IS NOT NULL THEN 1 ELSE 0 END,updated_at=now(),disabled_at=NULL
+ WHERE push_subscriptions.disabled_at IS NOT NULL OR (push_subscriptions.recipient_type=EXCLUDED.recipient_type AND push_subscriptions.recipient_id=EXCLUDED.recipient_id)
  RETURNING *`, row.ID, row.RecipientType, row.RecipientID, row.InstallationID, row.SessionID, row.Project, row.Registration, row.RegistrationHash).Scan(ctx, row)
 		var state interface{ SQLState() string }
 		if err != nil && !errors.Is(err, sql.ErrNoRows) && !(errors.As(err, &state) && state.SQLState() == "23505") {
@@ -130,7 +130,7 @@ func (s *store) unsubscribe(ctx context.Context, r Recipient, id uuid.UUID) erro
 	if err != nil {
 		return err
 	}
-	_, err = db.NewRaw(`UPDATE notification_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND recipient_type=? AND recipient_id=? AND disabled_at IS NULL`, id, r.Type, r.ID).Exec(ctx)
+	_, err = db.NewRaw(`UPDATE push_subscriptions SET disabled_at=now(),version=version+1 WHERE id=? AND recipient_type=? AND recipient_id=? AND disabled_at IS NULL`, id, r.Type, r.ID).Exec(ctx)
 	return err
 }
 
@@ -174,9 +174,9 @@ func (s *store) pruneSubscriptions(ctx context.Context, before time.Time) (int64
 	// refreshed is skipped and reconsidered by a later maintenance run.
 	// Materialize once so re-evaluation cannot expand the bounded batch.
 	res, err := db.NewRaw(`WITH stale AS MATERIALIZED (
- SELECT id FROM notification_subscriptions WHERE disabled_at IS NULL AND updated_at<?
+ SELECT id FROM push_subscriptions WHERE disabled_at IS NULL AND updated_at<?
  ORDER BY updated_at,id LIMIT 1000 FOR UPDATE SKIP LOCKED)
- UPDATE notification_subscriptions AS s SET disabled_at=now(),version=s.version+1
+ UPDATE push_subscriptions AS s SET disabled_at=now(),version=s.version+1
  FROM stale WHERE s.id=stale.id AND s.disabled_at IS NULL AND s.updated_at<?`, before, before).Exec(ctx)
 	if err != nil {
 		return 0, err

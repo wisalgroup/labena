@@ -1,0 +1,21 @@
+-- Rename push destinations without changing registrations or queued delivery references.
+-- Stop application processes before applying or reverting this migration.
+-- +goose Up
+ALTER TABLE notification_subscriptions RENAME TO push_subscriptions;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT notification_subscriptions_pkey TO push_subscriptions_pkey;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT notification_subscriptions_project_installation_id_key TO push_subscriptions_project_installation_id_key;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT notification_subscriptions_registration_check TO push_subscriptions_registration_check;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT notification_subscriptions_version_check TO push_subscriptions_version_check;
+ALTER INDEX notification_subscription_registration RENAME TO push_subscription_registration;
+ALTER INDEX notification_subscription_recipient RENAME TO push_subscription_recipient;
+ALTER INDEX notification_subscription_stale RENAME TO push_subscription_stale;
+
+-- +goose Down
+ALTER INDEX push_subscription_stale RENAME TO notification_subscription_stale;
+ALTER INDEX push_subscription_recipient RENAME TO notification_subscription_recipient;
+ALTER INDEX push_subscription_registration RENAME TO notification_subscription_registration;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT push_subscriptions_version_check TO notification_subscriptions_version_check;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT push_subscriptions_registration_check TO notification_subscriptions_registration_check;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT push_subscriptions_project_installation_id_key TO notification_subscriptions_project_installation_id_key;
+ALTER TABLE push_subscriptions RENAME CONSTRAINT push_subscriptions_pkey TO notification_subscriptions_pkey;
+ALTER TABLE push_subscriptions RENAME TO notification_subscriptions;

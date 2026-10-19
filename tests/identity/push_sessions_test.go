@@ -102,7 +102,7 @@ func TestLogoutDetachesPushAtomically(t *testing.T) {
 	if _, err = db.NewInsert().Model(session).Exec(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = db.NewRaw("ALTER TABLE notification_subscriptions RENAME TO unavailable_subscriptions").Exec(t.Context()); err != nil {
+	if _, err = db.NewRaw("ALTER TABLE push_subscriptions RENAME TO unavailable_subscriptions").Exec(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 	if err = auth.RevokeSession(t.Context(), user.ID, session.ID); err == nil {

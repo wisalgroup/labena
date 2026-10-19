@@ -12,7 +12,7 @@ func TestPruneSkipsConcurrentRegistrationRefresh(t *testing.T) {
 	db, _ := databaseFixture(t)
 	fresh, stale := uuid.New(), uuid.New()
 	for _, id := range []uuid.UUID{fresh, stale} {
-		_, err := db.ExecContext(t.Context(), `INSERT INTO notification_subscriptions
+		_, err := db.ExecContext(t.Context(), `INSERT INTO push_subscriptions
  (id,recipient_type,recipient_id,installation_id,session_id,project,registration,registration_hash,version,updated_at)
  VALUES (?,'user','prune-test',?,'','prune-test',?,?,1,now()-interval '100 days')`, id, uuid.NewString(), "ExpoPushToken["+id.String()+"]", id.String())
 		if err != nil {
@@ -24,7 +24,7 @@ func TestPruneSkipsConcurrentRegistrationRefresh(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer tx.Rollback()
-	if _, err := tx.ExecContext(t.Context(), "UPDATE notification_subscriptions SET updated_at=now() WHERE id=?", fresh); err != nil {
+	if _, err := tx.ExecContext(t.Context(), "UPDATE push_subscriptions SET updated_at=now() WHERE id=?", fresh); err != nil {
 		t.Fatal(err)
 	}
 	notifier, err := New(db, Options{})

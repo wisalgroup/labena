@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=e29e66016a2827fe" defer></script>
+<script src="search-index.js?v=25d8a3e4eb6d704c" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,11 +89,62 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Getting started</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-table-rename">Version 0.2: push-subscription table rename</a></li><li class="toc-level-3"><a href="#upgrade-an-existing-application">Upgrade an existing application</a></li><li class="toc-level-3"><a href="#roll-back-the-rename">Roll back the rename</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav></details>
 <article><h1 id="adopt-and-update-the-template">Adopt and update the template</h1>
 <p><a href="https://github.com/wisalgroup/labena">Labena</a> supplies the starting source for an application. Your repository
 owns the customized application, its deployments and its updates. Read the
 <a href="support.html">support policy</a> for release coverage and compatibility.</p>
+<h2 id="version-02-push-subscription-table-rename">Version 0.2: push-subscription table rename<a class="heading-link" href="#version-02-push-subscription-table-rename" aria-label="Link to Version 0.2: push-subscription table rename">#</a></h2>
+<p>Version 0.2 renames <code>notification_subscriptions</code> to <code>push_subscriptions</code> so its name
+describes device registrations rather than notification preferences. Its indexes
+and constraints are renamed too. The new migration is
+<code>20261019120000_push_subscriptions.sql</code>; keep the original
+<code>20261001120100_notifications.sql</code> unchanged.</p>
+<p>This is a coordinated schema upgrade: old binaries require the old table name,
+and new binaries require the new one. Do not run mixed versions against this
+schema. Update custom SQL, reports and operational scripts that reference the old
+table or index names. There is no data copy, token reset or registration backfill.
+Recipient ownership, installation IDs, session bindings, tokens, disabled state,
+versions and timestamps are preserved. Existing delivery rows and queued jobs
+retain their IDs and frozen subscription versions; they need no payload migration.
+HTTP subscription routes, Go APIs, configuration, task names and event contracts
+are unchanged by this rename.</p>
+<h3 id="upgrade-an-existing-application">Upgrade an existing application<a class="heading-link" href="#upgrade-an-existing-application" aria-label="Link to Upgrade an existing application">#</a></h3>
+<ol>
+<li>
+<p>Port the new migration and the matching notification queries/Bun mapping into
+your application. Back up the database and rehearse on a disposable restored
+copy, including any customized schema names.</p>
+</li>
+<li>
+<p>Pause the scheduler and incoming traffic, then gracefully stop all application
+and worker processes. Let active work finish before changing the table name.
+Pending delivery intent and Redis jobs can remain queued.</p>
+</li>
+<li>
+<p>Using the <strong>new</strong> application CLI and the intended database configuration, run
+<code>migrate up</code> and check <code>migrate status</code>. From a source checkout, the commands are:</p>
+<pre><code class="language-sh">go run ./cmd/cli migrate up
+go run ./cmd/cli migrate status
+</code></pre>
+</li>
+<li>
+<p>Confirm migration <code>20261019120000</code> is applied, then start the new workers and
+application, restore traffic, and resume the scheduler. Check readiness,
+registration refresh and notification delivery. Normal expiry and session
+eligibility checks still apply to queued work.</p>
+</li>
+</ol>
+<p>Fresh installations run the complete migration history normally. The table exists
+even when push is disabled, so every installation uses the same schema history.</p>
+<h3 id="roll-back-the-rename">Roll back the rename<a class="heading-link" href="#roll-back-the-rename" aria-label="Link to Roll back the rename">#</a></h3>
+<p>Stop all processes again. While still using the new CLI, check <code>migrate version</code>.
+If <code>20261019120000</code> is the latest applied migration, run <code>migrate down</code> <strong>once</strong> to
+restore the old table, index and constraint names, then deploy the previous binaries.
+This reversal preserves registrations and delivery intent. If your application has
+later migrations, use its reviewed rollback plan first: <code>migrate down</code> always
+reverts the latest migration, not a named one. Do not use <code>migrate refresh</code> for an
+upgrade or rollback; it destroys application data.</p>
 <h2 id="record-your-starting-point">Record your starting point<a class="heading-link" href="#record-your-starting-point" aria-label="Link to Record your starting point">#</a></h2>
 <p>Prefer <a href="creating-applications.html">the installer</a> to create an application from a
 published release. It records the upstream version and checksum in <code>.labena.json</code>
@@ -272,7 +323,7 @@ in <a href="release-readiness.html">release readiness</a>. Enable and verify the
 </nav>
 <footer><a data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-table-rename">Version 0.2: push-subscription table rename</a></li><li class="toc-level-3"><a href="#upgrade-an-existing-application">Upgrade an existing application</a></li><li class="toc-level-3"><a href="#roll-back-the-rename">Roll back the rename</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">
