@@ -85,27 +85,26 @@ separate.
 
 ## Version 0.2 verification on 2026-10-19
 
-The `v0.2.0` source adds the reversible push-subscription table rename. Local
-verification used Go 1.27.2 on macOS ARM64 with disposable PostgreSQL 17 and
-standalone Redis 7. The release's exact source commit, tagged build evidence and
-publication checks belong to the [GitHub release](https://github.com/wisalgroup/labena/releases/tag/v0.2.0).
+The `v0.2.0` initial notification migration creates `push_subscriptions` directly.
+Local verification used Go 1.27.2 on macOS ARM64 with disposable PostgreSQL 17
+and standalone Redis 7. The exact source commit, tagged build evidence and public
+installation results are recorded with the [GitHub release](https://github.com/wisalgroup/labena/releases/tag/v0.2.0).
 
 | Check | Result |
 | --- | --- |
 | Required integration gate | `scripts/verify-integration.sh` passed the complete race-enabled suite with all four PostgreSQL/Redis test settings supplied |
-| Retained-state migration | Original schema populated with active and disabled installations and pending push deliveries; upgrade, downgrade and re-upgrade preserved every stored column; queued delivery selected the original eligible device; refresh retained ID/version and active-token uniqueness held |
-| Fresh schema | Existing notification and Identity suites applied the full history, including the rename, before exercising registration, delivery, logout and pruning |
+| Fresh schema and push behavior | Notification and Identity suites applied the initial schema before exercising registration, rotation, delivery, receipts, logout and pruning |
 | Go checks | Vet, command/example builds and `go mod tidy -diff` passed |
 | Installer distribution | A locally packaged module version installed outside the checkout and generated MyApp with `.env.example`, all example profiles, private `.env`, provenance, rebuilt docs and passing build/configuration/architecture checks |
 | Documentation | Builder tests, all 58 generated pages and browser navigation/search/mobile/fallback checks passed using local Chrome |
 | Vulnerabilities | Pinned govulncheck v1.8.0 found no reachable or imported-package findings; one module-only advisory affects unused code |
 
-The original notification migration is unchanged. This upgrade requires all old
-application processes to stop before migration; mixed-version rolling deployment
-is not supported. See the [upgrade and rollback procedure](upgrading.md#version-02-push-subscription-table-rename).
-These tests do not establish live Expo/SMTP/Google/cloud compatibility, MySQL or
-Redis Cluster support, production load capacity, or deployment-specific recovery.
-No application service is deployed by documentation publication.
+This release establishes the initial schema for fresh applications; it includes no
+separate table-renaming migration or automatic upgrade of earlier development
+schemas. See the [schema adoption notes](upgrading.md#version-02-push-subscription-schema).
+Live Expo/SMTP/Google/cloud compatibility, MySQL, Redis Cluster, production load
+and deployment-specific recovery remain outside this verification.
+Documentation publication deploys only the documentation site.
 
 ## Candidate hardening verification on 2026-10-18
 

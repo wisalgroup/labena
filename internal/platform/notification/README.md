@@ -32,9 +32,9 @@ logout, invalid-token handling and inactivity pruning keep those destinations cu
 Queued push delivery records retain the subscription ID and version so an older
 message cannot follow a reassigned installation.
 
-The schema is created by the normal migrations even when push is disabled. For
-applications using the former `notification_subscriptions` table, follow the
-[version 0.2 migration procedure](../../../docs/upgrading.md#version-02-push-subscription-table-rename).
+The initial notification migration creates these tables directly, even when push
+is disabled. See the [schema adoption notes](../../../docs/upgrading.md#version-02-push-subscription-schema)
+when updating an application created from an earlier development snapshot.
 
 ## Create your first database notification
 

@@ -6,20 +6,17 @@ Labena is distributed as a modular Go application template. Application owners
 retain and customize the generated source, then review and port upstream fixes.
 See [support and compatibility](SUPPORT.md) and the [update guide](docs/upgrading.md).
 
-### Push-subscription schema change
+### Push-subscription schema
 
-- Rename `notification_subscriptions` to `push_subscriptions`, including its indexes
-  and constraints, through the new reversible migration `20261019120000`.
-  Existing migrations are unchanged; registrations and queued delivery references
-  are retained.
-- **Coordinated upgrade required:** stop application, worker and scheduler processes,
-  apply migrations using the new CLI, then start the new version. Old and new
-  binaries cannot share this schema during rollout. Update custom SQL that names
-  the old table. Follow the [upgrade and rollback procedure](docs/upgrading.md#version-02-push-subscription-table-rename).
+- The initial notification migration creates `push_subscriptions` directly, with
+  matching index names. There is no additional alteration migration.
+- The table stores push destinations; `notifications` remains the inbox and
+  `notification_deliveries` remains the delivery ledger.
 - HTTP routes, Go subscription APIs, configuration keys, task names and persisted
-  delivery payloads remain unchanged by the rename. No queue purge or device
-  re-registration is needed. This storage change uses a minor version under the
-  [v0 compatibility policy](SUPPORT.md#compatibility-and-release-notes).
+  delivery payloads are unchanged by this naming change.
+- This release establishes the initial schema for fresh applications. It does not
+  automatically upgrade databases created from earlier development snapshots;
+  review the [schema adoption notes](docs/upgrading.md#version-02-push-subscription-schema).
 
 This is the first GitHub release of the current template and installer. The earlier
 local `v0.1.0` tag remains unchanged; it predates the installer and was not published.

@@ -4,57 +4,22 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
-## Version 0.2: push-subscription table rename
+## Version 0.2: push-subscription schema
 
-Version 0.2 renames `notification_subscriptions` to `push_subscriptions` so its name
-describes device registrations rather than notification preferences. Its indexes
-and constraints are renamed too. The new migration is
-`20261019120000_push_subscriptions.sql`; keep the original
-`20261001120100_notifications.sql` unchanged.
+The initial notification migration, `20261001120100_notifications.sql`, creates
+`push_subscriptions` directly, alongside `notifications` and
+`notification_deliveries`. Its name identifies device registrations rather than
+notification preferences. There is no separate table-renaming migration.
 
-This is a coordinated schema upgrade: old binaries require the old table name,
-and new binaries require the new one. Do not run mixed versions against this
-schema. Update custom SQL, reports and operational scripts that reference the old
-table or index names. There is no data copy, token reset or registration backfill.
-Recipient ownership, installation IDs, session bindings, tokens, disabled state,
-versions and timestamps are preserved. Existing delivery rows and queued jobs
-retain their IDs and frozen subscription versions; they need no payload migration.
-HTTP subscription routes, Go APIs, configuration, task names and event contracts
-are unchanged by this rename.
+Fresh applications run `migrate up` normally. This release updates the initial
+schema; it does not automatically migrate databases created from earlier development
+snapshots. Editing a migration file does not rerun a version already applied by
+Goose. Review any existing database against the current schema before updating its
+application; retained data needs an application-specific migration plan.
 
-### Upgrade an existing application
-
-1. Port the new migration and the matching notification queries/Bun mapping into
-   your application. Back up the database and rehearse on a disposable restored
-   copy, including any customized schema names.
-2. Pause the scheduler and incoming traffic, then gracefully stop all application
-   and worker processes. Let active work finish before changing the table name.
-   Pending delivery intent and Redis jobs can remain queued.
-3. Using the **new** application CLI and the intended database configuration, run
-   `migrate up` and check `migrate status`. From a source checkout, the commands are:
-
-   ```sh
-   go run ./cmd/cli migrate up
-   go run ./cmd/cli migrate status
-   ```
-
-4. Confirm migration `20261019120000` is applied, then start the new workers and
-   application, restore traffic, and resume the scheduler. Check readiness,
-   registration refresh and notification delivery. Normal expiry and session
-   eligibility checks still apply to queued work.
-
-Fresh installations run the complete migration history normally. The table exists
-even when push is disabled, so every installation uses the same schema history.
-
-### Roll back the rename
-
-Stop all processes again. While still using the new CLI, check `migrate version`.
-If `20261019120000` is the latest applied migration, run `migrate down` **once** to
-restore the old table, index and constraint names, then deploy the previous binaries.
-This reversal preserves registrations and delivery intent. If your application has
-later migrations, use its reviewed rollback plan first: `migrate down` always
-reverts the latest migration, not a named one. Do not use `migrate refresh` for an
-upgrade or rollback; it destroys application data.
+The table exists even when push is disabled, so every fresh installation uses the
+same schema history. HTTP subscription routes, Go APIs, configuration, task names
+and event contracts are unchanged by the table naming change.
 
 ## Record your starting point
 

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=25d8a3e4eb6d704c" defer></script>
+<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -154,9 +154,9 @@ subscriptions. A recipient can register multiple installations. Token rotation,
 logout, invalid-token handling and inactivity pruning keep those destinations current.
 Queued push delivery records retain the subscription ID and version so an older
 message cannot follow a reassigned installation.</p>
-<p>The schema is created by the normal migrations even when push is disabled. For
-applications using the former <code>notification_subscriptions</code> table, follow the
-<a href="upgrading.html#version-02-push-subscription-table-rename">version 0.2 migration procedure</a>.</p>
+<p>The initial notification migration creates these tables directly, even when push
+is disabled. See the <a href="upgrading.html#version-02-push-subscription-schema">schema adoption notes</a>
+when updating an application created from an earlier development snapshot.</p>
 <h2 id="create-your-first-database-notification">Create your first database notification<a class="heading-link" href="#create-your-first-database-notification" aria-label="Link to Create your first database notification">#</a></h2>
 <p>Apply the normal application migrations and use the existing <code>Resources.Notifier</code>.
 Database-only <code>Send</code> needs PostgreSQL; it does not need a running worker, Redis,

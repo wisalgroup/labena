@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=25d8a3e4eb6d704c" defer></script>
+<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -197,10 +197,10 @@ skips, and operational limitations. The <a href="testing.html">testing guide</a>
 repeatable core gate; deployment-specific recovery and provider checks remain
 separate.</p>
 <h2 id="version-02-verification-on-2026-10-19">Version 0.2 verification on 2026-10-19<a class="heading-link" href="#version-02-verification-on-2026-10-19" aria-label="Link to Version 0.2 verification on 2026-10-19">#</a></h2>
-<p>The <code>v0.2.0</code> source adds the reversible push-subscription table rename. Local
-verification used Go 1.27.2 on macOS ARM64 with disposable PostgreSQL 17 and
-standalone Redis 7. The release&#39;s exact source commit, tagged build evidence and
-publication checks belong to the <a href="https://github.com/wisalgroup/labena/releases/tag/v0.2.0">GitHub release</a>.</p>
+<p>The <code>v0.2.0</code> initial notification migration creates <code>push_subscriptions</code> directly.
+Local verification used Go 1.27.2 on macOS ARM64 with disposable PostgreSQL 17
+and standalone Redis 7. The exact source commit, tagged build evidence and public
+installation results are recorded with the <a href="https://github.com/wisalgroup/labena/releases/tag/v0.2.0">GitHub release</a>.</p>
 <table>
 <thead>
 <tr>
@@ -214,12 +214,8 @@ publication checks belong to the <a href="https://github.com/wisalgroup/labena/r
 <td><code>scripts/verify-integration.sh</code> passed the complete race-enabled suite with all four PostgreSQL/Redis test settings supplied</td>
 </tr>
 <tr>
-<td>Retained-state migration</td>
-<td>Original schema populated with active and disabled installations and pending push deliveries; upgrade, downgrade and re-upgrade preserved every stored column; queued delivery selected the original eligible device; refresh retained ID/version and active-token uniqueness held</td>
-</tr>
-<tr>
-<td>Fresh schema</td>
-<td>Existing notification and Identity suites applied the full history, including the rename, before exercising registration, delivery, logout and pruning</td>
+<td>Fresh schema and push behavior</td>
+<td>Notification and Identity suites applied the initial schema before exercising registration, rotation, delivery, receipts, logout and pruning</td>
 </tr>
 <tr>
 <td>Go checks</td>
@@ -239,12 +235,12 @@ publication checks belong to the <a href="https://github.com/wisalgroup/labena/r
 </tr>
 </tbody>
 </table>
-<p>The original notification migration is unchanged. This upgrade requires all old
-application processes to stop before migration; mixed-version rolling deployment
-is not supported. See the <a href="upgrading.html#version-02-push-subscription-table-rename">upgrade and rollback procedure</a>.
-These tests do not establish live Expo/SMTP/Google/cloud compatibility, MySQL or
-Redis Cluster support, production load capacity, or deployment-specific recovery.
-No application service is deployed by documentation publication.</p>
+<p>This release establishes the initial schema for fresh applications; it includes no
+separate table-renaming migration or automatic upgrade of earlier development
+schemas. See the <a href="upgrading.html#version-02-push-subscription-schema">schema adoption notes</a>.
+Live Expo/SMTP/Google/cloud compatibility, MySQL, Redis Cluster, production load
+and deployment-specific recovery remain outside this verification.
+Documentation publication deploys only the documentation site.</p>
 <h2 id="candidate-hardening-verification-on-2026-10-18">Candidate hardening verification on 2026-10-18<a class="heading-link" href="#candidate-hardening-verification-on-2026-10-18" aria-label="Link to Candidate hardening verification on 2026-10-18">#</a></h2>
 <p>The local v0.1.0 candidate was checked with Go 1.27.2 and disposable PostgreSQL 17
 and standalone Redis 7. The release bundle records its exact source revision,

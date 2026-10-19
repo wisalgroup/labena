@@ -42,7 +42,7 @@ CREATE TABLE notification_deliveries (
 );
 CREATE INDEX notification_deliveries_due ON notification_deliveries (available_at,id) WHERE status IN ('pending','sending','awaiting_receipt');
 CREATE INDEX notification_deliveries_status ON notification_deliveries (status,created_at DESC,id DESC);
-CREATE TABLE notification_subscriptions (
+CREATE TABLE push_subscriptions (
  id UUID PRIMARY KEY,
  recipient_type TEXT NOT NULL,
  recipient_id TEXT NOT NULL,
@@ -56,10 +56,10 @@ CREATE TABLE notification_subscriptions (
  disabled_at TIMESTAMPTZ,
  UNIQUE(project,installation_id)
 );
-CREATE UNIQUE INDEX notification_subscription_registration ON notification_subscriptions(project,registration_hash) WHERE disabled_at IS NULL;
-CREATE INDEX notification_subscription_recipient ON notification_subscriptions(recipient_type,recipient_id,project) WHERE disabled_at IS NULL;
-CREATE INDEX notification_subscription_stale ON notification_subscriptions(updated_at) WHERE disabled_at IS NULL;
+CREATE UNIQUE INDEX push_subscription_registration ON push_subscriptions(project,registration_hash) WHERE disabled_at IS NULL;
+CREATE INDEX push_subscription_recipient ON push_subscriptions(recipient_type,recipient_id,project) WHERE disabled_at IS NULL;
+CREATE INDEX push_subscription_stale ON push_subscriptions(updated_at) WHERE disabled_at IS NULL;
 -- +goose Down
-DROP TABLE notification_subscriptions;
+DROP TABLE push_subscriptions;
 DROP TABLE notification_deliveries;
 DROP TABLE notifications;
