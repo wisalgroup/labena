@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 # Docker initializes new named volumes with this non-root ownership.
 COPY --from=build --chown=10001:10001 /out/ /app/
-COPY LICENSE /licenses/go-modular/LICENSE
+COPY LICENSE /licenses/labena/LICENSE
 COPY --from=build /usr/local/go/LICENSE /usr/local/go/PATENTS /licenses/go/
 USER 10001:10001
 EXPOSE 8080

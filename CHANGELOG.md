@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Allow all CORS request headers by default, including custom application headers
+  and `Authorization`. Explicit header allowlists remain supported; origin,
+  method, authentication and administrative endpoint policies are unchanged.
+- Complete Labena naming across source, documentation, runtime defaults and
+  deployment examples. Existing applications should review the
+  [rename compatibility notes](docs/upgrading.md#labena-rename-compatibility)
+  before changing token settings, rate-limit namespaces or deployed resources.
+
 ## v0.2.0 — 2026-10-19
 
 Labena is distributed as a modular Go application template. Application owners

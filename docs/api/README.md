@@ -108,7 +108,7 @@ both sides when adding status variants, streams, or custom headers. The
 For client generation or a reviewed release artifact:
 
 ```sh
-curl --fail http://localhost:8080/openapi.json -o /tmp/go-modular-openapi.json
+curl --fail http://localhost:8080/openapi.json -o /tmp/labena-openapi.json
 ```
 
 That file describes the instance you queried, including its enabled routes. It is

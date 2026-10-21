@@ -41,8 +41,8 @@ func TestRefreshRebuildsSchema(t *testing.T) {
 			lockSQL, unlockSQL := "SELECT pg_advisory_lock($1)", "SELECT pg_advisory_unlock($1)"
 			args := []any{lock.DefaultLockID}
 			if driver == database.DriverMySQL {
-				lockSQL = "SELECT GET_LOCK(CONCAT('go-modular:',LEFT(SHA2(DATABASE(),256),48)),1)"
-				unlockSQL = "SELECT RELEASE_LOCK(CONCAT('go-modular:',LEFT(SHA2(DATABASE(),256),48)))"
+				lockSQL = "SELECT GET_LOCK(CONCAT('labena:',LEFT(SHA2(DATABASE(),256),48)),1)"
+				unlockSQL = "SELECT RELEASE_LOCK(CONCAT('labena:',LEFT(SHA2(DATABASE(),256),48)))"
 				args = nil
 			}
 			if _, err = conn.ExecContext(ctx, lockSQL, args...); err != nil {

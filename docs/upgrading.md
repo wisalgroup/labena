@@ -81,19 +81,44 @@ not require adding this repository as a dependency or introducing a second modul
 
 ## Labena rename compatibility
 
-The Labena rename changes the Go module/import prefix from `go-modular` to
-`github.com/wisalgroup/labena`. Instrumentation scopes use the new prefix too.
-The default `APP_NAME` is `labena`. Application API titles, mail defaults and the
-log viewer now inherit `APP_NAME`. Update service-name and instrumentation-scope filters if
-you adopt these defaults; explicitly configured names still take precedence.
-The supplied log queries use `service_name="labena"`.
+The Go module and instrumentation scopes use `github.com/wisalgroup/labena`.
+The default `APP_NAME` is `labena`; API titles, mail defaults, the log viewer and
+telemetry inherit it. Explicit application names still take precedence. The
+supplied log queries use `service_name="labena"`.
 
-Database names, JWT issuer/audience defaults, rate-limit namespaces, problem-type
-URNs, migration locks, Kubernetes namespaces, image names, Prometheus job names
-and dashboard UIDs retain their existing identifiers. This source rename does
-not migrate stored data, invalidate tokens, or reset throttling state. Change
-those identifiers separately only with an application-specific migration plan.
-Historical review records and the original license notice are preserved.
+The changes after version 0.2.0 complete the rename in runtime defaults and
+deployment examples. When porting them into an existing application:
+
+- JWT defaults become issuer `labena` and audience `labena-api`. Keep your previous
+  values explicitly in `AUTH_TOKEN_ISSUER` and `AUTH_TOKEN_AUDIENCE` to preserve existing token
+  validation, or plan for clients to authenticate again when adopting new values.
+- `RATE_LIMIT_NAMESPACE` defaults to `labena`. Changing it selects separate rate
+  budgets; retain your existing explicit namespace if counters must carry over.
+- Application problem types use `urn:labena:error:<code>`. Update clients that
+  match the full type URI. HTTP statuses and the error-code suffixes are unchanged.
+- Database examples, image names, Kubernetes namespaces, Prometheus job names and
+  dashboard identifiers use Labena naming. This does not rename an existing
+  database or move persistent volumes. Preserve deployed values or plan their
+  migration before applying the updated examples.
+- MySQL migration locks use the new `labena:` prefix. Stop older migration tools
+  before running the updated tools; the two prefixes do not coordinate with each
+  other. This changes no SQL schema.
+
+`APP_NAME` controls branding, not these operational identifiers. Check deployment
+configuration and monitoring filters when adopting the new defaults.
+
+## CORS request headers
+
+After version 0.2.0, `HTTP_CORS_ALLOW_HEADERS` defaults to `*`, allowing custom
+request headers without listing each one. The middleware returns the requested
+names in preflight responses, including `Authorization`. Origin and method
+restrictions still apply; credentialed requests still require explicit origins.
+Administrative endpoints remain outside business CORS.
+
+An existing explicit header list continues to restrict headers. To adopt the new
+behavior, set `HTTP_CORS_ALLOW_HEADERS=*` in your application's environment too.
+Keep `HTTP_CORS_EXPOSE_HEADERS` as explicit response-header names; it is a separate
+setting. No schema or retained-state migration is needed for this CORS change.
 
 ## Application branding
 

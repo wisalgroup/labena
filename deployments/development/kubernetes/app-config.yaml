@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: go-modular-dev
+  namespace: labena-dev
 data:
   APP_ENV_FILE: ""
   APP_ENV: "development"
@@ -23,7 +23,7 @@ data:
   HTTP_READINESS_DEPENDENCIES: "true"
   API_RATE_LIMIT_ENABLED: "true"
   RATE_LIMIT_REDIS_URL: "redis://redis:6379/2"
-  RATE_LIMIT_NAMESPACE: "go-modular-dev"
+  RATE_LIMIT_NAMESPACE: "labena-dev"
   DATABASE_DRIVER: "postgres"
   CACHE_DRIVER: "redis"
 

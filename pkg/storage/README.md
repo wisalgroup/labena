@@ -199,12 +199,12 @@ ownership. Run local coverage with `go test -race ./pkg/storage`.
 For the opt-in MinIO suite, use its isolated test service:
 
 ```sh
-docker compose -p go-modular-storage-test -f pkg/storage/compose.test.yaml up --build -d --wait
+docker compose -p labena-storage-test -f pkg/storage/compose.test.yaml up --build -d --wait
 STORAGE_TEST_S3_ENDPOINT=http://127.0.0.1:19000 \
 STORAGE_TEST_S3_ACCESS_KEY_ID=storage-test \
 STORAGE_TEST_S3_SECRET_ACCESS_KEY=storage-test-password \
 go test -race ./pkg/storage
-docker compose -p go-modular-storage-test -f pkg/storage/compose.test.yaml down -v
+docker compose -p labena-storage-test -f pkg/storage/compose.test.yaml down -v
 ```
 
 The suite creates/removes a unique bucket and checks signed PUT/GET as well as

@@ -98,7 +98,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: app-mail
-  namespace: go-modular-dev
+  namespace: labena-dev
 type: Opaque
 stringData:
   MAIL_HOST: sandbox.smtp.mailtrap.io

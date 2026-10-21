@@ -37,7 +37,7 @@ func errorDetails(err error) *Problem {
 			fields = app.Fields()
 		}
 	}
-	p := &Problem{ErrorModel: huma.ErrorModel{Type: "urn:go-modular:error:" + code, Title: http.StatusText(status), Status: status, Detail: detail}}
+	p := &Problem{ErrorModel: huma.ErrorModel{Type: "urn:labena:error:" + code, Title: http.StatusText(status), Status: status, Detail: detail}}
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
@@ -119,7 +119,7 @@ func Transform(_ huma.Context, _ string, value any) (any, error) {
 			code = "internal_error"
 		}
 	}
-	p.Type = "urn:go-modular:error:" + code
+	p.Type = "urn:labena:error:" + code
 	p.Title = http.StatusText(p.Status)
 	p.Detail = p.Title
 	p.Errors = nil

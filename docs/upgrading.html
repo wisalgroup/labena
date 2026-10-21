@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Getting started</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-schema">Version 0.2: push-subscription schema</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-schema">Version 0.2: push-subscription schema</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#cors-request-headers">CORS request headers</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav></details>
 <article><h1 id="adopt-and-update-the-template">Adopt and update the template</h1>
 <p><a href="https://github.com/wisalgroup/labena">Labena</a> supplies the starting source for an application. Your repository
 owns the customized application, its deployments and its updates. Read the
@@ -150,18 +150,40 @@ Then run the required <a href="testing.html">verification suites</a> for your ap
 currently has an independent external release or support promise. Adoption does
 not require adding this repository as a dependency or introducing a second module.</p>
 <h2 id="labena-rename-compatibility">Labena rename compatibility<a class="heading-link" href="#labena-rename-compatibility" aria-label="Link to Labena rename compatibility">#</a></h2>
-<p>The Labena rename changes the Go module/import prefix from <code>go-modular</code> to
-<code>github.com/wisalgroup/labena</code>. Instrumentation scopes use the new prefix too.
-The default <code>APP_NAME</code> is <code>labena</code>. Application API titles, mail defaults and the
-log viewer now inherit <code>APP_NAME</code>. Update service-name and instrumentation-scope filters if
-you adopt these defaults; explicitly configured names still take precedence.
-The supplied log queries use <code>service_name=&#34;labena&#34;</code>.</p>
-<p>Database names, JWT issuer/audience defaults, rate-limit namespaces, problem-type
-URNs, migration locks, Kubernetes namespaces, image names, Prometheus job names
-and dashboard UIDs retain their existing identifiers. This source rename does
-not migrate stored data, invalidate tokens, or reset throttling state. Change
-those identifiers separately only with an application-specific migration plan.
-Historical review records and the original license notice are preserved.</p>
+<p>The Go module and instrumentation scopes use <code>github.com/wisalgroup/labena</code>.
+The default <code>APP_NAME</code> is <code>labena</code>; API titles, mail defaults, the log viewer and
+telemetry inherit it. Explicit application names still take precedence. The
+supplied log queries use <code>service_name=&#34;labena&#34;</code>.</p>
+<p>The changes after version 0.2.0 complete the rename in runtime defaults and
+deployment examples. When porting them into an existing application:</p>
+<ul>
+<li>JWT defaults become issuer <code>labena</code> and audience <code>labena-api</code>. Keep your previous
+values explicitly in <code>AUTH_TOKEN_ISSUER</code> and <code>AUTH_TOKEN_AUDIENCE</code> to preserve existing token
+validation, or plan for clients to authenticate again when adopting new values.</li>
+<li><code>RATE_LIMIT_NAMESPACE</code> defaults to <code>labena</code>. Changing it selects separate rate
+budgets; retain your existing explicit namespace if counters must carry over.</li>
+<li>Application problem types use <code>urn:labena:error:&lt;code&gt;</code>. Update clients that
+match the full type URI. HTTP statuses and the error-code suffixes are unchanged.</li>
+<li>Database examples, image names, Kubernetes namespaces, Prometheus job names and
+dashboard identifiers use Labena naming. This does not rename an existing
+database or move persistent volumes. Preserve deployed values or plan their
+migration before applying the updated examples.</li>
+<li>MySQL migration locks use the new <code>labena:</code> prefix. Stop older migration tools
+before running the updated tools; the two prefixes do not coordinate with each
+other. This changes no SQL schema.</li>
+</ul>
+<p><code>APP_NAME</code> controls branding, not these operational identifiers. Check deployment
+configuration and monitoring filters when adopting the new defaults.</p>
+<h2 id="cors-request-headers">CORS request headers<a class="heading-link" href="#cors-request-headers" aria-label="Link to CORS request headers">#</a></h2>
+<p>After version 0.2.0, <code>HTTP_CORS_ALLOW_HEADERS</code> defaults to <code>*</code>, allowing custom
+request headers without listing each one. The middleware returns the requested
+names in preflight responses, including <code>Authorization</code>. Origin and method
+restrictions still apply; credentialed requests still require explicit origins.
+Administrative endpoints remain outside business CORS.</p>
+<p>An existing explicit header list continues to restrict headers. To adopt the new
+behavior, set <code>HTTP_CORS_ALLOW_HEADERS=*</code> in your application&#39;s environment too.
+Keep <code>HTTP_CORS_EXPOSE_HEADERS</code> as explicit response-header names; it is a separate
+setting. No schema or retained-state migration is needed for this CORS change.</p>
 <h2 id="application-branding">Application branding<a class="heading-link" href="#application-branding" aria-label="Link to Application branding">#</a></h2>
 <p><code>APP_NAME</code> must be nonblank and supplies API titles, the log viewer and mail names,
 as well as telemetry service identity. Empty <code>MAIL_FROM_NAME</code> and <code>MAIL_BRAND_NAME</code>
@@ -285,7 +307,7 @@ in <a href="release-readiness.html">release readiness</a>. Enable and verify the
 </nav>
 <footer><a data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-schema">Version 0.2: push-subscription schema</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#version-02-push-subscription-schema">Version 0.2: push-subscription schema</a></li><li class="toc-level-2"><a href="#record-your-starting-point">Record your starting point</a></li><li class="toc-level-2"><a href="#choose-your-application-module-path">Choose your application module path</a></li><li class="toc-level-2"><a href="#labena-rename-compatibility">Labena rename compatibility</a></li><li class="toc-level-2"><a href="#cors-request-headers">CORS request headers</a></li><li class="toc-level-2"><a href="#application-branding">Application branding</a></li><li class="toc-level-2"><a href="#platform-and-identity-ownership">Platform and Identity ownership</a></li><li class="toc-level-2"><a href="#response-metadata-moves-to-headers">Response metadata moves to headers</a></li><li class="toc-level-2"><a href="#optional-local-log-viewer">Optional local log viewer</a></li><li class="toc-level-2"><a href="#apply-an-upstream-update">Apply an upstream update</a></li><li class="toc-level-3"><a href="#version-01-hardening-changes">Version 0.1 hardening changes</a></li><li class="toc-level-3"><a href="#update-workflow">Update workflow</a></li><li class="toc-level-2"><a href="#prepare-a-template-release">Prepare a template release</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/upgrading.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

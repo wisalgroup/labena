@@ -43,7 +43,7 @@ while IFS= read -r file; do
   shasum -a 256 "$file"
 done < "$output/source-files.txt" > "$output/source.sha256"
 
-tag="go-modular-release:$(date -u +%Y%m%d%H%M%S)-$$"
+tag="labena-release:$(date -u +%Y%m%d%H%M%S)-$$"
 docker build --platform "$platform" --provenance=false --tag "$tag" \
   --build-arg "VERSION=$release_version" --build-arg "REVISION=$revision" \
   -f deployments/Dockerfile .

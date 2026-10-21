@@ -14,7 +14,7 @@ Keep the current foundation, but make the programming model coherent before expa
 
 Prioritize reliable behavior and predictable startup over renaming folders. Keep native Gin, Bun, Asynq, Cobra, Watermill, slog and OpenTelemetry escape hatches. Use third-party libraries behind a small integration only when that integration removes actual application work: ownership, configuration, telemetry, validation, or policy.
 
-Initially publish a template/starter and document which packages are experimental versus supported. Do not promise that downstream projects can upgrade a copied application as though it were an imported framework. Once the reusable interfaces survive real application use, publish those as importable modules if independent versioning provides value. The current `module go-modular` and `internal` packages are appropriate for a copied starter, not an already consumable public framework library. [Go project layout](https://go.dev/doc/modules/layout) and [module release guidance](https://go.dev/doc/modules/release-workflow) explain the distinction.
+Initially publish a template/starter and document which packages are experimental versus supported. Do not promise that downstream projects can upgrade a copied application as though it were an imported framework. Once the reusable interfaces survive real application use, publish those as importable modules if independent versioning provides value. The then-local-only module path and `internal` packages were appropriate for a copied starter, not an already consumable public framework library. [Go project layout](https://go.dev/doc/modules/layout) and [module release guidance](https://go.dev/doc/modules/release-workflow) explain the distinction.
 
 ## Review scope and evidence
 

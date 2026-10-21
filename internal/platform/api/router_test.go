@@ -126,7 +126,7 @@ func TestHTTPRecovery(t *testing.T) {
 				if err := json.Unmarshal(out.Body.Bytes(), &p); err != nil {
 					t.Fatal(err)
 				}
-				if recovered != nil || out.Code != 500 || p.Type != "urn:go-modular:error:internal_error" || out.Header().Get("X-Request-ID") == "" {
+				if recovered != nil || out.Code != 500 || p.Type != "urn:labena:error:internal_error" || out.Header().Get("X-Request-ID") == "" {
 					t.Fatal(recovered, out, p)
 				}
 			}

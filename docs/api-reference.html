@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -220,7 +220,7 @@ both sides when adding status variants, streams, or custom headers. The
 <a href="responses.html">response guide</a> shows each shape.</p>
 <h2 id="export-a-deployment-snapshot">Export a deployment snapshot<a class="heading-link" href="#export-a-deployment-snapshot" aria-label="Link to Export a deployment snapshot">#</a></h2>
 <p>For client generation or a reviewed release artifact:</p>
-<pre><code class="language-sh">curl --fail http://localhost:8080/openapi.json -o /tmp/go-modular-openapi.json
+<pre><code class="language-sh">curl --fail http://localhost:8080/openapi.json -o /tmp/labena-openapi.json
 </code></pre>
 <p>That file describes the instance you queried, including its enabled routes. It is
 an export, not a new hand-maintained source. Generating a client from it is a

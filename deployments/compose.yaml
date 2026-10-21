@@ -1,7 +1,7 @@
 # Local application and infrastructure. Run from the repository root:
 # docker compose -f deployments/compose.yaml up --build -d
 x-app: &app
-  image: go-modular-app:local
+  image: labena-app:local
   build:
     context: ..
     dockerfile: deployments/Dockerfile
@@ -48,13 +48,13 @@ x-app: &app
     PUSH_EXPO_PROJECT_ID: "${PUSH_EXPO_PROJECT_ID:-}"
     PUSH_EXPO_ACCESS_TOKEN: "${PUSH_EXPO_ACCESS_TOKEN:-}"
     DATABASE_DRIVER: postgres
-    DATABASE_URL: postgres://demo:local-demo@postgres:5432/go_modular?sslmode=disable
+    DATABASE_URL: postgres://demo:local-demo@postgres:5432/labena?sslmode=disable
 
 
 services:
   minio:
     profiles: [storage]
-    image: go-modular-minio:local
+    image: labena-minio:local
     build:
       context: ..
       dockerfile: deployments/development/docker/minio.Dockerfile
@@ -74,7 +74,7 @@ services:
       retries: 30
   minio-init:
     profiles: [storage]
-    image: go-modular-minio:local
+    image: labena-minio:local
     build:
       context: ..
       dockerfile: deployments/development/docker/minio.Dockerfile
@@ -168,7 +168,7 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: go_modular
+      POSTGRES_DB: labena
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: local-demo
     ports:
@@ -178,7 +178,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - pg_isready -U demo -d go_modular
+      - pg_isready -U demo -d labena
       interval: 2s
       timeout: 2s
       retries: 30

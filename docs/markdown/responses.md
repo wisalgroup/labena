@@ -166,7 +166,7 @@ The handler returns `nil, response.Error(ctx, err)`. Its response is:
 
 ```json
 {
-  "type": "urn:go-modular:error:validation_failed",
+  "type": "urn:labena:error:validation_failed",
   "title": "Unprocessable Entity",
   "status": 422,
   "detail": "The given data was invalid.",

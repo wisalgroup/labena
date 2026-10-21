@@ -129,7 +129,7 @@ labena new myapp \
   --source /absolute/path/to/labena
 ```
 
-The checkout folder may have a different name, such as `go-modular`; what matters
+The checkout folder may have any name; what matters
 is that it contains Labena's `go.mod`, source and Git metadata. The destination
 directory must be new; the installer never overwrites an existing application.
 

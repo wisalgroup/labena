@@ -86,7 +86,7 @@ func TestHumaValidationAndProblemDetails(t *testing.T) {
 				if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 					t.Fatal(err)
 				}
-				if body.Type != "urn:go-modular:error:"+tc.code || body.Status != tc.status {
+				if body.Type != "urn:labena:error:"+tc.code || body.Status != tc.status {
 					t.Fatal(out.Body.String())
 				}
 				if tc.status == 422 && len(body.Errors) == 0 {
@@ -265,7 +265,7 @@ func TestNativeHumaOutputsAndErrors(t *testing.T) {
 	if err := json.Unmarshal(out.Body.Bytes(), &problem); err != nil {
 		t.Fatal(err)
 	}
-	if out.Code != 429 || problem.Type != "urn:go-modular:error:rate_limited" || out.Header().Get("Retry-After") != "7" || strings.Contains(out.Body.String(), "private") {
+	if out.Code != 429 || problem.Type != "urn:labena:error:rate_limited" || out.Header().Get("Retry-After") != "7" || strings.Contains(out.Body.String(), "private") {
 		t.Fatal(out.Code, out.Header(), out.Body.String())
 	}
 }
@@ -325,7 +325,7 @@ func TestServiceErrorConversionPreservesCauseAndSafeDetails(t *testing.T) {
 	if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 		t.Fatal(err)
 	}
-	if out.Code != 409 || body.Detail != cause.Message() || body.Type != "urn:go-modular:error:conflict" {
+	if out.Code != 409 || body.Detail != cause.Message() || body.Type != "urn:labena:error:conflict" {
 		t.Fatal(out.Code, out.Body.String())
 	}
 }

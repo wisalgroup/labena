@@ -10,7 +10,7 @@ For Compose, from the repository root:
 docker compose --env-file deployments/observability/compose.env -f deployments/compose.yaml up --build -d
 ```
 
-Open [Grafana](http://127.0.0.1:3000/d/go-modular-overview). The dashboard and Prometheus,
+Open [Grafana](http://127.0.0.1:3000/d/labena-overview). The dashboard and Prometheus,
 Loki and Tempo data sources are provisioned. Do not run both setups on the same
 host ports. Both consume the same backend config files in this directory.
 

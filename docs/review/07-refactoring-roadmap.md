@@ -101,8 +101,7 @@ example profiles, deployment app-config, navigation and API schema remain unchan
 Environment files and credentials were not edited. New tests are outside app and
 business service/repository packages. The base revision is `1b78842c26254997b3aa738ab434182ded16dbbb`; the uncommitted
 implementation is identified by the retained file manifest. Complete logs, pre/post manifests, benchmark
-output and the isolated example copy are retained in the local evidence directory
-`/Users/barakat/.codex/outputs/go-modular-harmonization-2026-10-11`.
+output and the isolated example copy are retained in the private verification archive.
 
 This completes the code/documentation harmonization scope. Remaining work is
 optional deeper private SQL extraction, human DX research, target-specific provider/

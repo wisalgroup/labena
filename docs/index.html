@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -110,16 +110,16 @@ process-local Watermill events. Redis persists tasks; local events do not persis
 <h2 id="start-local-dependencies">Start local dependencies<a class="heading-link" href="#start-local-dependencies" aria-label="Link to Start local dependencies">#</a></h2>
 <p>These containers use dedicated host ports and disposable data. The credentials
 below are tutorial values only:</p>
-<pre><code class="language-sh">docker run --rm -d --name go-modular-quickstart-postgres \
+<pre><code class="language-sh">docker run --rm -d --name labena-quickstart-postgres \
   -e POSTGRES_USER=demo -e POSTGRES_PASSWORD=local-demo \
-  -e POSTGRES_DB=go_modular -p 127.0.0.1:55432:5432 postgres:17-alpine
+  -e POSTGRES_DB=labena -p 127.0.0.1:55432:5432 postgres:17-alpine
 
-docker run --rm -d --name go-modular-quickstart-redis \
+docker run --rm -d --name labena-quickstart-redis \
   -p 127.0.0.1:56379:6379 redis:7-alpine
 </code></pre>
 <p>Check both services before starting the application:</p>
-<pre><code class="language-sh">docker exec go-modular-quickstart-postgres pg_isready -U demo -d go_modular
-docker exec go-modular-quickstart-redis redis-cli ping
+<pre><code class="language-sh">docker exec labena-quickstart-postgres pg_isready -U demo -d labena
+docker exec labena-quickstart-redis redis-cli ping
 </code></pre>
 <p>Expect <code>accepting connections</code> and <code>PONG</code>. PostgreSQL may need a few seconds;
 repeat the readiness check if it is still starting. For retained data, see
@@ -252,7 +252,7 @@ explain why these pieces are separate and where shared capabilities fit.</p>
 <p>Press <strong>Ctrl+C</strong> in the application terminal. The application drains admitted work
 within its shutdown budget, then closes owned resources. Remove the tutorial
 containers when finished; this deletes their disposable data:</p>
-<pre><code class="language-sh">docker rm -f go-modular-quickstart-postgres go-modular-quickstart-redis
+<pre><code class="language-sh">docker rm -f labena-quickstart-postgres labena-quickstart-redis
 </code></pre>
 <p>For a quick source check:</p>
 <pre><code class="language-sh">go test ./tests/modules -run TestFirstModule -count=1

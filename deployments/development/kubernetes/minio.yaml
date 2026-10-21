@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: go-modular-dev
+  namespace: labena-dev
 spec:
   replicas: 1
   strategy:
@@ -23,7 +23,7 @@ spec:
         fsGroup: 10001
       containers:
       - name: minio
-        image: go-modular-minio
+        image: labena-minio
         env:
         - name: MINIO_ROOT_USER
           valueFrom:
@@ -74,7 +74,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio
-  namespace: go-modular-dev
+  namespace: labena-dev
 spec:
   selector:
     app: minio
@@ -90,7 +90,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-data
-  namespace: go-modular-dev
+  namespace: labena-dev
 spec:
   accessModes: [ReadWriteOnce]
   resources:

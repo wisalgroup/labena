@@ -26,19 +26,19 @@ These containers use dedicated host ports and disposable data. The credentials
 below are tutorial values only:
 
 ```sh
-docker run --rm -d --name go-modular-quickstart-postgres \
+docker run --rm -d --name labena-quickstart-postgres \
   -e POSTGRES_USER=demo -e POSTGRES_PASSWORD=local-demo \
-  -e POSTGRES_DB=go_modular -p 127.0.0.1:55432:5432 postgres:17-alpine
+  -e POSTGRES_DB=labena -p 127.0.0.1:55432:5432 postgres:17-alpine
 
-docker run --rm -d --name go-modular-quickstart-redis \
+docker run --rm -d --name labena-quickstart-redis \
   -p 127.0.0.1:56379:6379 redis:7-alpine
 ```
 
 Check both services before starting the application:
 
 ```sh
-docker exec go-modular-quickstart-postgres pg_isready -U demo -d go_modular
-docker exec go-modular-quickstart-redis redis-cli ping
+docker exec labena-quickstart-postgres pg_isready -U demo -d labena
+docker exec labena-quickstart-redis redis-cli ping
 ```
 
 Expect `accepting connections` and `PONG`. PostgreSQL may need a few seconds;
@@ -158,7 +158,7 @@ within its shutdown budget, then closes owned resources. Remove the tutorial
 containers when finished; this deletes their disposable data:
 
 ```sh
-docker rm -f go-modular-quickstart-postgres go-modular-quickstart-redis
+docker rm -f labena-quickstart-postgres labena-quickstart-redis
 ```
 
 For a quick source check:

@@ -8,7 +8,7 @@ This is a review, not an implementation plan that supersedes `docs/conventions.m
 
 **Review baseline and scope**
 
-The reviewed working copy is based on commit `124aad93c0c1661b70cac95835808f06da241a12`, with substantial uncommitted application and naming changes already present. The commit alone does not identify the reviewed source. A 387-file manifest of Go/SQL source, tests, examples, verification scripts, workflow YAML, module files, Dockerfile and `.dockerignore` has SHA-256 `2f12f5e9ed758938ce181c5d8bba845743de1badfed02f59f592a8d3f0c9fcc5`; the local manifest is `/tmp/go-modular-release-review-source.sha256`. This is review evidence, not a release bundle.
+The reviewed working copy is based on commit `124aad93c0c1661b70cac95835808f06da241a12`, with substantial uncommitted application and naming changes already present. The commit alone does not identify the reviewed source. A 387-file manifest of Go/SQL source, tests, examples, verification scripts, workflow YAML, module files, Dockerfile and `.dockerignore` has SHA-256 `2f12f5e9ed758938ce181c5d8bba845743de1badfed02f59f592a8d3f0c9fcc5`; the manifest is retained as a local verification artifact. This is review evidence, not a release bundle.
 
 The repository contains 211 production Go files under cmd/internal/pkg and 161 Go test files. Review focused on construction and ownership; authentication and revocation; HTTP authorization, errors and uploads; SQL transaction boundaries; queues, local events and scheduling; notification retries and receipts; media recovery; cache and reusable packages; configuration; documentation; and build/release automation. Tests and source inspection are evidence for the exercised paths, not an exhaustive security certification.
 
@@ -28,7 +28,7 @@ P1 means fix before publication. P2 means a concrete correction or explicit rele
 
 **R1 — An absent stored password must never authenticate**
 
-Location: [pkg/hasher/hasher.go](/Users/barakat/workspace/go-modular/pkg/hasher/hasher.go:65).
+Location: [pkg/hasher/hasher.go](../../pkg/hasher/hasher.go#L65).
 
 `Compare` substitutes a dummy bcrypt hash when `encoded == ""`, but returns the comparison result unchanged. The dummy plaintext is a constant in `New`, so it can match. The timing defense becomes a valid credential for callers that pass an absent credential as an empty hash.
 
@@ -49,7 +49,7 @@ Correction: preserve the dummy bcrypt work, but force a non-match whenever the o
 
 **R2 — Define one policy for session-bound push after revocation**
 
-Locations: [refresh replay](/Users/barakat/workspace/go-modular/internal/modules/identity/repository/session.go:69), [delivery eligibility](/Users/barakat/workspace/go-modular/internal/platform/notification/push.go:34), [explicit revocation](/Users/barakat/workspace/go-modular/internal/modules/identity/service/session.go:118).
+Locations: [refresh replay](../../internal/modules/identity/repository/session.go#L69), [delivery eligibility](../../internal/platform/notification/push.go#L34), [explicit revocation](../../internal/modules/identity/service/session.go#L118).
 
 Explicit `RevokeSession` and `RevokeSessions` revoke and detach registrations in one transaction. Replay detection updates the session directly inside `RotateRefresh`, returns an authentication denial after committing, and never detaches its subscriptions. Delivery checks subscription version and disabled status, but not the owning session's eligibility.
 
@@ -57,13 +57,13 @@ The focused probe created a verified account, session and push registration, rep
 
 Source inspection shows the same missing coordination in single-session sign-in displacement and user changes that revoke sessions. Natural session expiry also does not disable a subscription by itself. Those additional paths were traced, not independently exercised in this probe.
 
-The [notification documentation](/Users/barakat/workspace/go-modular/internal/platform/notification/README.md:364) already states that other lifecycle flows must supply their own detachment policy. The concern is therefore a gap in the shipped Identity policy, not an undocumented promise of universal logout semantics. Push is not an authentication credential; impact depends on notification content, but old devices can continue receiving account-related notifications.
+The [notification documentation](../../internal/platform/notification/README.md#L364) already states that other lifecycle flows must supply their own detachment policy. The concern is therefore a gap in the shipped Identity policy, not an undocumented promise of universal logout semantics. Push is not an authentication credential; impact depends on notification content, but old devices can continue receiving account-related notifications.
 
 Correction: make the intended relationship explicit and apply it to all built-in transitions. For session-bound destinations, either disable them as part of the owning transition or check current delivery eligibility through an explicit owner contract. Preserve the repository-owned commit-on-denial rule for replay detection. A best-effort post-commit event is insufficient for mandatory revocation behavior. Tests should cover replay, displaced sessions, account suspension, expiry, re-registration and already queued deliveries. Existing provider requests cannot be recalled.
 
 **R3 — Enforce the installation limit when admitting registrations**
 
-Locations: [Subscribe](/Users/barakat/workspace/go-modular/internal/platform/notification/subscriptions.go:38), [pushTargets](/Users/barakat/workspace/go-modular/internal/platform/notification/push.go:67).
+Locations: [Subscribe](../../internal/platform/notification/subscriptions.go#L38), [pushTargets](../../internal/platform/notification/push.go#L67).
 
 `Subscribe` accepts unlimited distinct installation IDs. `pushTargets` loads 101 registrations and rejects the entire operation when more than 100 are active. A valid authenticated session can therefore create a state in which every subsequent push attempt for that recipient fails with `ErrInvalidMessage`. This can also happen when a client regenerates installation IDs instead of persisting one.
 
@@ -73,7 +73,7 @@ Correction: enforce a per-recipient/project active-installation limit atomically
 
 **R4 — Bound admitted local events, not just the channel buffer**
 
-Location: [internal/app/infrastructure.go](/Users/barakat/workspace/go-modular/internal/app/infrastructure.go:396).
+Location: [internal/app/infrastructure.go](../../internal/app/infrastructure.go#L396).
 
 The GoChannel configuration sets `OutputChannelBuffer: 64`. Watermill's publisher dispatches asynchronously and the router starts handler goroutines per message; this buffer is not a cap on active handlers or outstanding events. A probe using the installed Watermill version and the same bus configuration admitted 256 simultaneously blocked handlers.
 
@@ -83,7 +83,7 @@ Correction: define limits for active handlers and total outstanding events/bytes
 
 **R5 — Make Redis read memory proportional to the configured budget**
 
-Location: [pkg/cache/redis/operations.go](/Users/barakat/workspace/go-modular/pkg/cache/redis/operations.go:102).
+Location: [pkg/cache/redis/operations.go](../../pkg/cache/redis/operations.go#L102).
 
 `GetMulti` pipelines every GET before calculating `MaxBatchBytes`. All bulk replies have already been read and retained when the loop discovers an oversized result. The returned error is correct; the 8 MiB result limit does not provide an 8 MiB working-memory limit.
 
@@ -93,7 +93,7 @@ Correction: read bounded chunks and stop when the accumulated budget is exhauste
 
 **R6 — Align scheduler startup readiness with the worker**
 
-Location: [pkg/asynqx/scheduler.go](/Users/barakat/workspace/go-modular/pkg/asynqx/scheduler.go:26).
+Location: [pkg/asynqx/scheduler.go](../../pkg/asynqx/scheduler.go#L26).
 
 `SchedulerRunner.Run` closes Ready immediately after native `Start`. In the installed Asynq version, Start launches cron and its heartbeat; it does not verify Redis. App queue construction is lazy. The standalone scheduler can therefore pass lifecycle readiness while its only useful operation, enqueueing schedules, cannot succeed. The worker adapter already performs a bounded startup Ping.
 
@@ -103,7 +103,7 @@ Correction: supply a bounded Redis startup probe to the scheduler adapter, consi
 
 **R7 — Remove obsolete transaction guarantees from active package docs**
 
-Location: [pkg/database/README.md](/Users/barakat/workspace/go-modular/pkg/database/README.md:105).
+Location: [pkg/database/README.md](../../pkg/database/README.md#L105).
 
 The README claims that database queues and pubsub automatically join transactions, outbox writes require them, and transactional async workers use savepoints. It also refers to async schema-publishing commands. Those implementations are absent from the current project. The current queue is Asynq, the event bus is GoChannel, and the framework's external-effect guard rejects transaction contexts. Notification Enqueue supplies a specific SQL delivery ledger.
 
@@ -132,7 +132,7 @@ The long access-token default and unlimited refresh/session lifetimes are delibe
 
 **Publication work that remains**
 
-1. Choose the public module path and product/support identity. `module go-modular` works in this checkout but does not establish an externally resolvable dependency path. Validate the chosen path from an independent consumer project after updating imports. Use a fresh immutable tag for each publication. [Go publishing guidance](https://go.dev/doc/modules/publishing).
+1. Choose the public module path and product/support identity. The local-only module path works in this checkout but does not establish an externally resolvable dependency path. Validate the chosen path from an independent consumer project after updating imports. Use a fresh immutable tag for each publication. [Go publishing guidance](https://go.dev/doc/modules/publishing).
 2. Establish the private security reporting destination and supported-version policy. SECURITY.md explicitly lists these as unfinished. These are release-owner decisions; a review cannot invent the contact or support commitment.
 3. Make module metadata tidy. `go mod tidy -diff` exited 1: it would remove unused `github.com/samber/lo` and add checksum entries for `go.opentelemetry.io/otel/sdk/log/logtest`. This does not invalidate the passed builds. Commit the intentional tidy result during implementation and add a read-only tidy check to CI.
 4. Produce a fresh clean-tag release bundle after all corrections and naming decisions. The existing dated readiness records correctly describe historical evidence and should remain historical. Re-run candidate verification for each advertised architecture; record known skips, toolchain, backend versions, module inventory and notices. Include `.dockerignore` in the source-input manifest because it influences Docker inputs. Update the release-readiness artifact list to include scheduler, which the build script already exports.
@@ -142,7 +142,7 @@ The long access-token default and unlimited refresh/session lifetimes are delibe
 
 | Check | Result and provenance |
 | --- | --- |
-| Full race-enabled integration suite | Passed immediately before this review, on the same production source, using disposable PostgreSQL 17 and Redis 7 with all required test endpoints; retained local log `/tmp/go-modular-names-tests.log` |
+| Full race-enabled integration suite | Passed immediately before this review, on the same production source, using disposable PostgreSQL 17 and Redis 7 with all required test endpoints; the log is retained as a local verification artifact |
 | Vet and command/example builds | Passed in that same preceding verification |
 | Documentation tests and generation | Passed in the preceding verification; 53 pages generated |
 | Current vulnerability scan | `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...` exited 0 during this review: zero reachable and zero imported-package findings; one module-only advisory in code not called by this project |
@@ -209,13 +209,13 @@ retained; this pass establishes no new public support promise for it.
 Verification completed on the updated behavior:
 
 - Full `scripts/verify-integration.sh` race suite with all required endpoints against
-  disposable PostgreSQL 17 and Redis 7; log `/tmp/go-modular-hardening-full.log`.
-- Focused real-backend regressions; log `/tmp/go-modular-hardening-focused.log`.
+  disposable PostgreSQL 17 and Redis 7; the log is retained as a local verification artifact.
+- Focused real-backend regressions; the log is retained as a local verification artifact.
 - `go vet ./...`, command/example builds, documentation builder tests and generation.
 - Shared Docker image built for Linux AMD64. This verifies compilation/image
   construction, not a deployed load or outage rehearsal.
 - Pinned govulncheck: zero reachable and imported-package findings; one module-only
-  advisory remains outside called code. Log `/tmp/go-modular-hardening-vuln.log`.
+  advisory remains outside called code. The log is retained as a local verification artifact.
 - Read-only tidy and whitespace checks passed.
 
 Existing user changes were preserved. No commit, tag, registry publication, live
@@ -233,8 +233,8 @@ source, renaming the starter module and manually porting upstream fixes. README,
 contributor guidance and release readiness link those policies; the documentation
 site publishes the adoption, support and security pages.
 
-The template intentionally retains `module go-modular`; a public import path is
-not required to distribute this source template. No `pkg` package is independently
+At this review baseline, the template retained a local-only module path; a public
+import path was not required to distribute that source template. No `pkg` package is independently
 released or supported as an external dependency. The earlier public-module-path
 gate applies if that distribution model changes.
 

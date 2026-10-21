@@ -55,7 +55,7 @@ Choose one setup because their host ports overlap. The Compose environment file
 starts backends **and** enables app signals; `--profile observability` alone does
 not configure the app. Shell environment overrides still apply.
 
-Open [Labena · Overview](http://localhost:3000/d/go-modular-overview). Data
+Open [Labena · Overview](http://localhost:3000/d/labena-overview). Data
 sources and the dashboard are provisioned. Local Grafana permits anonymous Viewer
 access, so a login form is not required to view data. Both full profiles select
 `stderr,file,observability` log channels: readable console, readable daily files,

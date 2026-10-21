@@ -18,8 +18,8 @@ type AuthConfig struct {
 	GoogleTrustedPresenterIDs []string      `env:"AUTH_GOOGLE_TRUSTED_PRESENTER_IDS" envSeparator:","` // Additional azp clients; never additional audiences.
 	Enabled                   bool          `env:"AUTH_ENABLED" envDefault:"false"`
 	AccessTokenKey            string        `env:"AUTH_ACCESS_TOKEN_KEY" json:"-"`
-	TokenIssuer               string        `env:"AUTH_TOKEN_ISSUER" envDefault:"go-modular"`
-	TokenAudience             string        `env:"AUTH_TOKEN_AUDIENCE" envDefault:"go-modular-api"`
+	TokenIssuer               string        `env:"AUTH_TOKEN_ISSUER" envDefault:"labena"`
+	TokenAudience             string        `env:"AUTH_TOKEN_AUDIENCE" envDefault:"labena-api"`
 	AccessTTL                 time.Duration `env:"AUTH_ACCESS_TTL" envDefault:"168h"` // 7 days
 	RefreshTTL                time.Duration `env:"AUTH_REFRESH_TTL" envDefault:"0"`   // Zero disables refresh-token expiry; rotation and revocation still apply.
 	SessionTTL                time.Duration `env:"AUTH_SESSION_TTL" envDefault:"0"`   // Zero disables the absolute session deadline.

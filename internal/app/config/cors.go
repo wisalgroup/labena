@@ -15,7 +15,7 @@ type CORSConfig struct {
 	Enabled          bool          `env:"HTTP_CORS_ENABLED" envDefault:"true"`
 	AllowOrigins     []string      `env:"HTTP_CORS_ALLOW_ORIGINS" envDefault:"*"`
 	AllowMethods     []string      `env:"HTTP_CORS_ALLOW_METHODS" envDefault:"GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"`
-	AllowHeaders     []string      `env:"HTTP_CORS_ALLOW_HEADERS" envDefault:"Origin,Content-Type,Authorization"`
+	AllowHeaders     []string      `env:"HTTP_CORS_ALLOW_HEADERS" envDefault:"*"`
 	ExposeHeaders    []string      `env:"HTTP_CORS_EXPOSE_HEADERS" envDefault:"X-Request-ID,X-API-Version"`
 	AllowCredentials bool          `env:"HTTP_CORS_ALLOW_CREDENTIALS" envDefault:"false"`
 	MaxAge           time.Duration `env:"HTTP_CORS_MAX_AGE" envDefault:"12h"`
@@ -23,6 +23,8 @@ type CORSConfig struct {
 
 // Options returns a fresh native configuration. Origins are exact HTTP(S)
 // origins or a single '*'; regular expressions and subdomain wildcards are excluded.
+// A single '*' in AllowHeaders lets the middleware echo requested header names,
+// including Authorization, rather than send a literal wildcard to the browser.
 func (c CORSConfig) Options() cors.Options {
 	return cors.Options{
 		AllowedOrigins:   append([]string(nil), c.AllowOrigins...),
@@ -64,11 +66,17 @@ func (c CORSConfig) Validate() error {
 			return errors.New("config: CORS methods must be uppercase HTTP tokens")
 		}
 	}
-	for _, headers := range [][]string{c.AllowHeaders, c.ExposeHeaders} {
-		for _, header := range headers {
-			if !headerToken(header) || header == "*" {
-				return errors.New("config: CORS headers must be explicit HTTP header names")
-			}
+	for _, header := range c.AllowHeaders {
+		if header == "*" && len(c.AllowHeaders) == 1 {
+			continue
+		}
+		if !headerToken(header) || header == "*" {
+			return errors.New("config: CORS allowed headers must be HTTP header names or a single '*'")
+		}
+	}
+	for _, header := range c.ExposeHeaders {
+		if !headerToken(header) || header == "*" {
+			return errors.New("config: CORS exposed headers must be explicit HTTP header names")
 		}
 	}
 	return nil

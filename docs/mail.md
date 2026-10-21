@@ -94,7 +94,7 @@ The logo is optional.
 
 Keep credentials in ignored `.env` for local runs or a secret manager for deployment. The accent accepts a six-digit hex color; logo, website and action links require HTTPS. Configure your own artwork and addresses before real delivery. Brand text remains visible when images are blocked. A renderer with an empty `LogoURL` omits the image entirely.
 
-Tilt also loads an optional, ignored `.env.mail.yaml` Kubernetes Secret named `app-mail` in namespace `go-modular-dev`. Its `stringData` contains the same `MAIL_*` keys. Both the migration container and application reference it. Local `.env` values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.
+Tilt also loads an optional, ignored `.env.mail.yaml` Kubernetes Secret named `app-mail` in namespace `labena-dev`. Its `stringData` contains the same `MAIL_*` keys. Both the migration container and application reference it. Local `.env` values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.
 
 App SMTP uses verified STARTTLS on the configured port (2525 by default) and a
 ten-second connection timeout. A username/password pair enables automatic

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -371,7 +371,7 @@ and pings configured connections; migrations only run on explicit command. See
 </tr>
 <tr>
 <td><code>HTTP_CORS_ALLOW_HEADERS</code></td>
-<td><code>Origin,Content-Type,Authorization</code></td>
+<td><code>*</code></td>
 </tr>
 <tr>
 <td><code>HTTP_CORS_EXPOSE_HEADERS</code></td>
@@ -394,10 +394,18 @@ configured database, queue Redis and limiter Redis under one shared deadline.
 Cache, SMTP and telemetry are excluded; <code>/healthz</code> never probes dependencies.
 A worker-only process has no HTTP health listener. See
 <a href="application-lifecycle.html#startup-and-readiness">readiness</a>.</p>
-<p>Origins, methods and header lists are comma-separated. Wildcard origins cannot
-be combined with credentialed CORS. For a browser that needs to read request IDs,
-<code>X-Request-ID</code> and <code>X-API-Version</code> are exposed by default through <code>HTTP_CORS_EXPOSE_HEADERS</code>. CORS is browser policy, not access
-control; bearer authorization still applies. See <a href="middleware.html">middleware</a>.</p>
+<p>Origins, methods and header lists are independent, comma-separated policies.
+<code>HTTP_CORS_ALLOW_ORIGINS=*</code> allows any origin; it does not override the method or
+request-header policy. <code>HTTP_CORS_ALLOW_HEADERS=*</code> allows any requested header,
+including <code>Authorization</code> and application-specific names. Successful preflights
+return the requested names in <code>Access-Control-Allow-Headers</code>, so this also works
+with credentialed requests. To restrict headers, set an explicit list instead,
+such as <code>Authorization,Content-Type,X-Client-Version</code>; do not mix names with <code>*</code>.</p>
+<p>Wildcard origins cannot be combined with credentialed CORS; credentials require
+explicit allowed origins. <code>HTTP_CORS_EXPOSE_HEADERS</code> separately controls which
+response headers browser JavaScript can read. It requires explicit names and
+exposes <code>X-Request-ID</code> and <code>X-API-Version</code> by default. CORS is browser policy, not
+access control; bearer authorization still applies. See <a href="middleware.html">middleware</a>.</p>
 <p>Administrative paths under <code>/admin</code> are excluded from business CORS. Both built-in
 dashboards require their separate Basic Auth credentials, reject cross-origin
 reads and mutations, disable caching and framing, and must be served over HTTPS
@@ -660,11 +668,11 @@ real delivery. See <a href="mail.html">mail</a> and <a href="templates.html">tem
 </tr>
 <tr>
 <td><code>AUTH_TOKEN_ISSUER</code></td>
-<td><code>go-modular</code></td>
+<td><code>labena</code></td>
 </tr>
 <tr>
 <td><code>AUTH_TOKEN_AUDIENCE</code></td>
-<td><code>go-modular-api</code></td>
+<td><code>labena-api</code></td>
 </tr>
 <tr>
 <td><code>AUTH_ACCESS_TTL</code></td>
@@ -728,7 +736,7 @@ See <a href="identity.html">Identity</a> for exact routes and account behavior.<
 </tr>
 <tr>
 <td><code>RATE_LIMIT_NAMESPACE</code></td>
-<td><code>go-modular</code></td>
+<td><code>labena</code></td>
 </tr>
 <tr>
 <td><code>API_RATE_LIMIT_REQUESTS</code></td>

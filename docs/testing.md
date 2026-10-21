@@ -96,17 +96,17 @@ Use disposable PostgreSQL and Redis. The following creates dedicated local test
 containers; use different names or ports if those are already occupied:
 
 ```sh
-docker run --rm -d --name go-modular-test-postgres \
+docker run --rm -d --name labena-test-postgres \
   -e POSTGRES_PASSWORD=test-only -p 15432:5432 postgres:17-alpine
-docker run --rm -d --name go-modular-test-redis \
+docker run --rm -d --name labena-test-redis \
   -p 16379:6379 redis:7-alpine
 ```
 
 Wait until both readiness commands succeed:
 
 ```sh
-docker exec go-modular-test-postgres pg_isready -U postgres
-docker exec go-modular-test-redis redis-cli ping
+docker exec labena-test-postgres pg_isready -U postgres
+docker exec labena-test-redis redis-cli ping
 ```
 
 Then configure all four test endpoints in that terminal:
@@ -125,7 +125,7 @@ provider tests still need their own setup; a core pass does not certify them.
 When finished, remove only these disposable containers:
 
 ```sh
-docker stop go-modular-test-postgres go-modular-test-redis
+docker stop labena-test-postgres labena-test-redis
 ```
 
 Their `--rm` option removes the containers. This procedure intentionally supplies

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -162,7 +162,7 @@ internal package itself.</p>
 			<span class="go-keyword">if</span> tc<span class="go-punctuation">.</span>called <span class="go-operator">&amp;&amp;</span> body<span class="go-punctuation">.</span>Data<span class="go-punctuation">.</span>Name <span class="go-operator">!=</span> <span class="go-string">&#34;Ada&#34;</span> <span class="go-bracket-4">{</span>
 				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;data=%+v&#34;</span><span class="go-punctuation">,</span> body<span class="go-punctuation">.</span>Data<span class="go-bracket-5">)</span>
 			<span class="go-bracket-4">}</span>
-			<span class="go-keyword">if</span> tc<span class="go-punctuation">.</span>status <span class="go-operator">==</span> <span class="go-number">422</span> <span class="go-operator">&amp;&amp;</span> body<span class="go-punctuation">.</span>Type <span class="go-operator">!=</span> <span class="go-string">&#34;urn:go-modular:error:validation_failed&#34;</span> <span class="go-bracket-4">{</span>
+			<span class="go-keyword">if</span> tc<span class="go-punctuation">.</span>status <span class="go-operator">==</span> <span class="go-number">422</span> <span class="go-operator">&amp;&amp;</span> body<span class="go-punctuation">.</span>Type <span class="go-operator">!=</span> <span class="go-string">&#34;urn:labena:error:validation_failed&#34;</span> <span class="go-bracket-4">{</span>
 				<span class="go-parameter">t</span><span class="go-punctuation">.</span><span class="go-function">Fatalf</span><span class="go-bracket-5">(</span><span class="go-string">&#34;problem type=%q&#34;</span><span class="go-punctuation">,</span> body<span class="go-punctuation">.</span>Type<span class="go-bracket-5">)</span>
 			<span class="go-bracket-4">}</span>
 		<span class="go-bracket-3">}</span><span class="go-bracket-2">)</span>

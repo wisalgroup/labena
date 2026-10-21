@@ -1,6 +1,6 @@
 apiVersion: 1
 providers:
-  - name: go-modular
+  - name: labena
     folder: Labena
     type: file
     disableDeletion: true

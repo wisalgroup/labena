@@ -1,6 +1,6 @@
 # Executive summary
 
-Review date: 2026-10-11. Subject: the current `go-modular` working copy. **Original review baseline: production files were not changed during review.**
+Review date: 2026-10-11. Subject: the current `labena` working copy. **Original review baseline: production files were not changed during review.**
 
 The subsequent approved implementation is recorded in [07 — Implementation record](07-refactoring-roadmap.md#implementation-record--2026-10-11). The assessment and findings below intentionally preserve the evidence that motivated it.
 

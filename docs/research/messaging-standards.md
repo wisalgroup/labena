@@ -1,6 +1,6 @@
 # Primary-source criteria for queue and pub/sub architecture
 
-Researched 2026-09-29 for the comparison of `go-modular` and `freight`. This note establishes review criteria; it does not inspect or rate either implementation. Sources are official Go, broker, or library documentation. Broker features must be checked against the versions and configuration used by each project; current RabbitMQ pages describe 4.3.
+Researched 2026-09-29 for the comparison of `labena` and `freight`. This note establishes review criteria; it does not inspect or rate either implementation. Sources are official Go, broker, or library documentation. Broker features must be checked against the versions and configuration used by each project; current RabbitMQ pages describe 4.3.
 
 ## 1. Separate distribution semantics from durability
 

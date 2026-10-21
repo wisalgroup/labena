@@ -117,7 +117,7 @@ a bounded channel wait verifies progress without arbitrary sleeps.
 Start disposable Redis on a dedicated test port in another terminal:
 
 ```sh
-docker run --rm --name go-modular-queue-test -p 16379:6379 redis:7-alpine
+docker run --rm --name labena-queue-test -p 16379:6379 redis:7-alpine
 ```
 
 Run the existing suites:

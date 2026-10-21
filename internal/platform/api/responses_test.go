@@ -111,7 +111,7 @@ func TestApplicationValidationMatchesHumaDetails(t *testing.T) {
 		if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 			t.Fatal(err)
 		}
-		if out.Code != 422 || body.Status != 422 || body.Type != "urn:go-modular:error:validation_failed" || len(body.Errors) < 2 {
+		if out.Code != 422 || body.Status != 422 || body.Type != "urn:labena:error:validation_failed" || len(body.Errors) < 2 {
 			t.Fatal(out.Code, out.Body.String())
 		}
 		assertResponseHeaders(t, out, "v1")

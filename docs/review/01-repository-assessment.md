@@ -1,10 +1,10 @@
 # Repository assessment and understanding report
 
-Review date: 2026-10-11. Scope: the current working copy of `go-modular`, including existing uncommitted work. This is a factual baseline; proposed changes are in [03](03-platform-harmonization.md) and execution tasks in [07](07-refactoring-roadmap.md). No production changes were made for this review.
+Review date: 2026-10-11. Scope: the current working copy of `labena`, including existing uncommitted work. This is a factual baseline; proposed changes are in [03](03-platform-harmonization.md) and execution tasks in [07](07-refactoring-roadmap.md). No production changes were made for this review.
 
 ## Repository understanding gate
 
-The repository is a **Go application template with reusable foundation packages**, not a separately published framework library. Its single Go module is `go-modular`, targeting Go 1.27.2. `internal/platform` deliberately cannot be imported by unrelated Go modules. That fits a clone-and-customize template; publishing an independently importable framework would be a different product decision.
+The repository is a **Go application template with reusable foundation packages**, not a separately published framework library. At this baseline, its single Go module used a local-only path and targeted Go 1.27.2. `internal/platform` deliberately cannot be imported by unrelated Go modules. That fits a clone-and-customize template; publishing an independently importable framework would be a different product decision.
 
 The application already uses a small number of coherent patterns: explicit construction, borrowed dependencies, native transport registration, narrow service contracts, context-carried transactions, and centrally owned runtime resources. Most complexity in notification delivery, authentication, and shutdown protects real failure semantics. File count alone does not establish overengineering.
 
@@ -177,7 +177,7 @@ All results below were obtained during this review unless explicitly identified 
 | Four review-only probes in isolated copy | Observations reproduced | HTTP logging, SMTP failure cleanup/cancellation, config mismatch, retry telemetry. These deliberately assert baseline behavior, not desired regressions |
 | Content-preservation check | Pass at understanding gate | SHA-256 of all 608 preexisting tracked/untracked nonignored files unchanged |
 
-Private local evidence is under `/Users/barakat/.codex/outputs/go-modular-platform-review-2026-10-11/`: baseline logs, package inventory, pre-review manifest, required-integration result and `review-probes.log`. Disposable test services were removed. No messages were sent to live SMTP/Expo/Google services.
+Private local evidence is retained in the verification archive: baseline logs, package inventory, pre-review manifest, required-integration result and `review-probes.log`. Disposable test services were removed. No messages were sent to live SMTP/Expo/Google services.
 
 The repository already records release-image, Kubernetes termination, outage and restore exercises in `docs/release-readiness.md`. Those records were read, but those exercises were **not rerun for this review**. The current CI includes Docker-image and vulnerability checks; a described CI job is not evidence of a fresh remote CI run.
 

@@ -85,7 +85,7 @@ Concrete evidence:
 9. CI now has real PostgreSQL/Redis jobs, but its integration script checks nonempty
    variables, not a required set of executed test outcomes. Documentation examples
    were checked manually in recent phases, not all automatically by CI.
-10. `go.mod` still uses the local `go-modular` module path. Security reporting,
+10. At this review baseline, `go.mod` used a local-only module path. Security reporting,
     license inventory, recovery evidence and release artifacts remain incomplete.
 
 ## What to preserve

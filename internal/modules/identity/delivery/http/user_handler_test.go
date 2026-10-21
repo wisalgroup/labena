@@ -61,7 +61,7 @@ func TestUserResponses(t *testing.T) {
 			if err := json.Unmarshal(out.Body.Bytes(), &result); err != nil {
 				t.Fatal(err)
 			}
-			if tc.code != "" && result.Type != "urn:go-modular:error:"+tc.code {
+			if tc.code != "" && result.Type != "urn:labena:error:"+tc.code {
 				t.Fatal(out.Body.String())
 			}
 			if tc.user != nil && result.Data.ID != tc.user.ID {

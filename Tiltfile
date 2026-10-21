@@ -35,17 +35,17 @@ if settings.get('extra-brokers', False):
     k8s_yaml('deployments/development/kubernetes/nats-deployment.yaml')
     k8s_resource('nats', port_forwards=['4222:4222', '8222:8222'], labels=['brokers'])
 if storage:
-    docker_build('go-modular-minio', '.', dockerfile='deployments/development/docker/minio.Dockerfile', only=['deployments/development/docker/minio.Dockerfile'])
+    docker_build('labena-minio', '.', dockerfile='deployments/development/docker/minio.Dockerfile', only=['deployments/development/docker/minio.Dockerfile'])
     k8s_yaml('deployments/development/kubernetes/minio.yaml')
     k8s_resource('minio', port_forwards=['9000:9000', '9001:9001'], labels=['storage'])
-docker_build('go-modular-app', '.', dockerfile='deployments/Dockerfile')
+docker_build('labena-app', '.', dockerfile='deployments/Dockerfile')
 # Docker Desktop kubeadm exposes shared Mac folders directly to its node.
 local('mkdir -p storage/logs storage/app', quiet=True)
 app_resources = decode_yaml_stream(read_file('deployments/development/kubernetes/app-deployment.yaml'))
 app_resources += decode_yaml_stream(read_file('deployments/development/kubernetes/scheduler-deployment.yaml'))
 for resource in app_resources:
     if resource['kind'] == 'Deployment':
-        resource['spec']['template']['metadata'].setdefault('annotations', {})['go-modular/observability'] = str(observability)
+        resource['spec']['template']['metadata'].setdefault('annotations', {})['labena/observability'] = str(observability)
         pod = resource['spec']['template']['spec']
         if not storage:
             pod['initContainers'] = [container for container in pod['initContainers'] if container['name'] != 'minio-init']

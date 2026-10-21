@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-data
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: grafana
     part-of: observability
@@ -18,7 +18,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: grafana
     part-of: observability
@@ -120,7 +120,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: grafana
     part-of: observability
@@ -136,7 +136,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-data
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: prometheus
     part-of: observability
@@ -151,7 +151,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: prometheus
     part-of: observability
@@ -231,7 +231,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: prometheus
     part-of: observability
@@ -247,7 +247,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: tempo-data
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: tempo
     part-of: observability
@@ -262,7 +262,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tempo
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: tempo
     part-of: observability
@@ -344,7 +344,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tempo
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: tempo
     part-of: observability
@@ -363,7 +363,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: loki-data
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: loki
     part-of: observability
@@ -378,7 +378,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loki
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: loki
     part-of: observability
@@ -455,7 +455,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: loki
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: loki
     part-of: observability
@@ -471,7 +471,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: alloy-data
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: alloy
     part-of: observability
@@ -486,7 +486,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: alloy
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: alloy
     part-of: observability
@@ -568,7 +568,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: alloy
-  namespace: go-modular-dev
+  namespace: labena-dev
   labels:
     app: alloy
     part-of: observability

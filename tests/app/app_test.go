@@ -190,11 +190,14 @@ func TestServeHTTPMetricsAndQueue(t *testing.T) {
 		request, _ := http.NewRequestWithContext(t.Context(), "OPTIONS", base+"/api/v1/users", nil)
 		request.Header.Set("Origin", origin)
 		request.Header.Set("Access-Control-Request-Method", "POST")
-		request.Header.Set("Access-Control-Request-Headers", "authorization,content-type")
+		request.Header.Set("Access-Control-Request-Headers", "authorization,content-type,x-client-version,x-platform,x-tenant-id")
 		response, _ := requestBody(t, request)
 		if origin == "https://app.example" {
 			if response.StatusCode != 204 || response.Header.Get("Access-Control-Allow-Origin") != origin || response.Header.Get("Access-Control-Allow-Credentials") != "true" {
 				t.Fatal("CORS preflight", response.StatusCode, response.Header)
+			}
+			if response.Header.Get("Access-Control-Allow-Headers") != request.Header.Get("Access-Control-Request-Headers") {
+				t.Fatal("custom request headers rejected", response.Header)
 			}
 		} else if response.Header.Get("Access-Control-Allow-Origin") != "" {
 			t.Fatal("unlisted origin accepted", response.StatusCode)

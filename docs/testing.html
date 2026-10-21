@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -232,14 +232,14 @@ The live HTTP specification has no checked-in generation step: test it with
 <h2 id="run-the-required-integration-gate-locally">Run the required integration gate locally<a class="heading-link" href="#run-the-required-integration-gate-locally" aria-label="Link to Run the required integration gate locally">#</a></h2>
 <p>Use disposable PostgreSQL and Redis. The following creates dedicated local test
 containers; use different names or ports if those are already occupied:</p>
-<pre><code class="language-sh">docker run --rm -d --name go-modular-test-postgres \
+<pre><code class="language-sh">docker run --rm -d --name labena-test-postgres \
   -e POSTGRES_PASSWORD=test-only -p 15432:5432 postgres:17-alpine
-docker run --rm -d --name go-modular-test-redis \
+docker run --rm -d --name labena-test-redis \
   -p 16379:6379 redis:7-alpine
 </code></pre>
 <p>Wait until both readiness commands succeed:</p>
-<pre><code class="language-sh">docker exec go-modular-test-postgres pg_isready -U postgres
-docker exec go-modular-test-redis redis-cli ping
+<pre><code class="language-sh">docker exec labena-test-postgres pg_isready -U postgres
+docker exec labena-test-redis redis-cli ping
 </code></pre>
 <p>Then configure all four test endpoints in that terminal:</p>
 <pre><code class="language-sh">export DATABASE_TEST_POSTGRES=&#39;postgres://postgres:test-only@127.0.0.1:15432/postgres?sslmode=disable&#39;
@@ -252,7 +252,7 @@ export CACHE_TEST_REDIS=&#39;redis://127.0.0.1:16379/4&#39;
 settings fail before the suite starts. Optional MySQL, Redis Cluster, and live
 provider tests still need their own setup; a core pass does not certify them.
 When finished, remove only these disposable containers:</p>
-<pre><code class="language-sh">docker stop go-modular-test-postgres go-modular-test-redis
+<pre><code class="language-sh">docker stop labena-test-postgres labena-test-redis
 </code></pre>
 <p>Their <code>--rm</code> option removes the containers. This procedure intentionally supplies
 no persistent data volume. Do not reuse an application database or Redis instance

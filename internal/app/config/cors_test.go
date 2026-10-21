@@ -13,6 +13,9 @@ func TestCORSConfiguration(t *testing.T) {
 	if !slices.Contains(cfg.HTTP.CORS.ExposeHeaders, "X-Request-ID") || !slices.Contains(cfg.HTTP.CORS.ExposeHeaders, "X-API-Version") {
 		t.Fatal("response metadata headers must be readable by browser clients")
 	}
+	if !slices.Equal(cfg.HTTP.CORS.AllowHeaders, []string{"*"}) {
+		t.Fatal("custom request headers must be allowed by default")
+	}
 	empty := cfg.HTTP.CORS
 	empty.AllowOrigins = nil
 	if err := empty.Validate(); err == nil {
@@ -52,5 +55,13 @@ func TestCORSConfiguration(t *testing.T) {
 	}
 	if _, err := loadTestConfig(t, map[string]string{"HTTP_CORS_ENABLED": "true", "HTTP_CORS_ALLOW_ORIGINS": "*", "HTTP_CORS_ALLOW_CREDENTIALS": "true"}); err == nil {
 		t.Fatal("accepted credentials with wildcard origin")
+	}
+	for _, headers := range []string{"*", "Authorization,Content-Type,X-Client-Version"} {
+		if _, err := loadTestConfig(t, map[string]string{"HTTP_CORS_ALLOW_HEADERS": headers}); err != nil {
+			t.Fatalf("rejected request header policy %q: %v", headers, err)
+		}
+	}
+	if _, err := loadTestConfig(t, map[string]string{"HTTP_CORS_ALLOW_HEADERS": "*,Authorization"}); err == nil {
+		t.Fatal("accepted wildcard mixed with explicit request headers")
 	}
 }

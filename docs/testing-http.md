@@ -75,7 +75,7 @@ func TestNameEndpoint(t *testing.T) {
 			if tc.called && body.Data.Name != "Ada" {
 				t.Fatalf("data=%+v", body.Data)
 			}
-			if tc.status == 422 && body.Type != "urn:go-modular:error:validation_failed" {
+			if tc.status == 422 && body.Type != "urn:labena:error:validation_failed" {
 				t.Fatalf("problem type=%q", body.Type)
 			}
 		})

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -205,7 +205,7 @@ MAIL_FOOTER=&#34;Account updates, thoughtfully delivered.&#34;
 <p>Blank sender and brand names inherit <code>APP_NAME</code>; set either to override it.
 The logo is optional.</p>
 <p>Keep credentials in ignored <code>.env</code> for local runs or a secret manager for deployment. The accent accepts a six-digit hex color; logo, website and action links require HTTPS. Configure your own artwork and addresses before real delivery. Brand text remains visible when images are blocked. A renderer with an empty <code>LogoURL</code> omits the image entirely.</p>
-<p>Tilt also loads an optional, ignored <code>.env.mail.yaml</code> Kubernetes Secret named <code>app-mail</code> in namespace <code>go-modular-dev</code>. Its <code>stringData</code> contains the same <code>MAIL_*</code> keys. Both the migration container and application reference it. Local <code>.env</code> values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.</p>
+<p>Tilt also loads an optional, ignored <code>.env.mail.yaml</code> Kubernetes Secret named <code>app-mail</code> in namespace <code>labena-dev</code>. Its <code>stringData</code> contains the same <code>MAIL_*</code> keys. Both the migration container and application reference it. Local <code>.env</code> values are not automatically copied into Kubernetes; configure the Secret separately. Never commit this file or bake credentials into an image.</p>
 <p>App SMTP uses verified STARTTLS on the configured port (2525 by default) and a
 ten-second connection timeout. A username/password pair enables automatic
 authentication negotiation; omitting both permits a relay that requires no SMTP

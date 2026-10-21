@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=283bc7ed6b3ac2eb" defer></script>
+<script src="search-index.js?v=53898752b79b734f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -188,7 +188,7 @@ return an error or nil and let the router acknowledge. Subscribe before publishi
 a bounded channel wait verifies progress without arbitrary sleeps.</p>
 <h2 id="test-real-drivers">Test real drivers<a class="heading-link" href="#test-real-drivers" aria-label="Link to Test real drivers">#</a></h2>
 <p>Start disposable Redis on a dedicated test port in another terminal:</p>
-<pre><code class="language-sh">docker run --rm --name go-modular-queue-test -p 16379:6379 redis:7-alpine
+<pre><code class="language-sh">docker run --rm --name labena-queue-test -p 16379:6379 redis:7-alpine
 </code></pre>
 <p>Run the existing suites:</p>
 <pre><code class="language-sh">QUEUE_TEST_REDIS=redis://127.0.0.1:16379/1   go test -race -count=1 -v ./tests/app ./tests/queue ./pkg/asynqx/... ./internal/platform/cli

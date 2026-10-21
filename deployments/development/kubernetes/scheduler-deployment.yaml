@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: scheduler
-  namespace: go-modular-dev
+  namespace: labena-dev
 spec:
   replicas: 1
   strategy:
@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       initContainers:
       - name: minio-init
-        image: go-modular-minio
+        image: labena-minio
         command:
         - /bin/sh
         - -ec
@@ -58,7 +58,7 @@ spec:
           limits:
             memory: 256Mi
       - name: migrate
-        image: go-modular-app
+        image: labena-app
         workingDir: /app
         command:
         - /app/cli
@@ -91,7 +91,7 @@ spec:
             memory: 512Mi
       containers:
       - name: scheduler
-        image: go-modular-app
+        image: labena-app
         workingDir: /app
         envFrom:
         - configMapRef:

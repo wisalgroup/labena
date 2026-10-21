@@ -40,15 +40,15 @@ func TestMySQLMigrationConcurrencyAndLock(t *testing.T) {
 	}
 	wg.Wait()
 	var count int
-	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name<>'goose_db_version'").Scan(&count); err != nil || count != 5 {
-		t.Fatal(count, err)
+	if err := db.QueryRowContext(ctx, "SELECT count(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='cache_entries'").Scan(&count); err != nil || count != 1 {
+		t.Fatal("cache migration was not applied", count, err)
 	}
 	conn, err := db.DB.Conn(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	const name = "CONCAT('go-modular:',LEFT(SHA2(DATABASE(),256),48))"
+	const name = "CONCAT('labena:',LEFT(SHA2(DATABASE(),256),48))"
 	var acquired int
 	if err := conn.QueryRowContext(ctx, "SELECT GET_LOCK("+name+",1)").Scan(&acquired); err != nil || acquired != 1 {
 		t.Fatal(acquired, err)

@@ -120,8 +120,8 @@ import (
     "errors"
 
     "github.com/hibiken/asynq"
-    "go-modular/internal/platform/mail"
-    "go-modular/pkg/mailview"
+    "github.com/wisalgroup/labena/internal/platform/mail"
+    "github.com/wisalgroup/labena/pkg/mailview"
 )
 
 // Enqueue borrows collaborators. The caller authorizes the recipient.

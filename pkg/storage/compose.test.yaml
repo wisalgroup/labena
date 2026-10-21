@@ -1,6 +1,6 @@
 services:
   minio:
-    image: go-modular-minio:local
+    image: labena-minio:local
     build:
       context: ../..
       dockerfile: deployments/development/docker/minio.Dockerfile

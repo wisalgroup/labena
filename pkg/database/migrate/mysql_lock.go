@@ -11,7 +11,7 @@ import (
 // independent databases can migrate concurrently without another lock table.
 type mysqlLocker struct{ name string }
 
-const mysqlLockName = "CONCAT('go-modular:',LEFT(SHA2(DATABASE(),256),48))"
+const mysqlLockName = "CONCAT('labena:',LEFT(SHA2(DATABASE(),256),48))"
 
 func (l mysqlLocker) SessionLock(ctx context.Context, conn *sql.Conn) error {
 	for {

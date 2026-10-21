@@ -124,7 +124,7 @@ and pings configured connections; migrations only run on explicit command. See
 | `HTTP_CORS_ENABLED` | `true` |
 | `HTTP_CORS_ALLOW_ORIGINS` | `*` |
 | `HTTP_CORS_ALLOW_METHODS` | `GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS` |
-| `HTTP_CORS_ALLOW_HEADERS` | `Origin,Content-Type,Authorization` |
+| `HTTP_CORS_ALLOW_HEADERS` | `*` |
 | `HTTP_CORS_EXPOSE_HEADERS` | `X-Request-ID,X-API-Version` |
 | `HTTP_CORS_ALLOW_CREDENTIALS` | `false` |
 | `HTTP_CORS_MAX_AGE` | `12h` |
@@ -138,10 +138,19 @@ Cache, SMTP and telemetry are excluded; `/healthz` never probes dependencies.
 A worker-only process has no HTTP health listener. See
 [readiness](../docs/application-lifecycle.md#startup-and-readiness).
 
-Origins, methods and header lists are comma-separated. Wildcard origins cannot
-be combined with credentialed CORS. For a browser that needs to read request IDs,
-`X-Request-ID` and `X-API-Version` are exposed by default through `HTTP_CORS_EXPOSE_HEADERS`. CORS is browser policy, not access
-control; bearer authorization still applies. See [middleware](../docs/middleware.md).
+Origins, methods and header lists are independent, comma-separated policies.
+`HTTP_CORS_ALLOW_ORIGINS=*` allows any origin; it does not override the method or
+request-header policy. `HTTP_CORS_ALLOW_HEADERS=*` allows any requested header,
+including `Authorization` and application-specific names. Successful preflights
+return the requested names in `Access-Control-Allow-Headers`, so this also works
+with credentialed requests. To restrict headers, set an explicit list instead,
+such as `Authorization,Content-Type,X-Client-Version`; do not mix names with `*`.
+
+Wildcard origins cannot be combined with credentialed CORS; credentials require
+explicit allowed origins. `HTTP_CORS_EXPOSE_HEADERS` separately controls which
+response headers browser JavaScript can read. It requires explicit names and
+exposes `X-Request-ID` and `X-API-Version` by default. CORS is browser policy, not
+access control; bearer authorization still applies. See [middleware](../docs/middleware.md).
 
 Administrative paths under `/admin` are excluded from business CORS. Both built-in
 dashboards require their separate Basic Auth credentials, reject cross-origin
@@ -284,8 +293,8 @@ real delivery. See [mail](../docs/mail.md) and [templates](../docs/templates.md)
 | `AUTH_GOOGLE_TRUSTED_PRESENTER_IDS` | unset |
 | `AUTH_ENABLED` | `false` |
 | `AUTH_ACCESS_TOKEN_KEY` | unset |
-| `AUTH_TOKEN_ISSUER` | `go-modular` |
-| `AUTH_TOKEN_AUDIENCE` | `go-modular-api` |
+| `AUTH_TOKEN_ISSUER` | `labena` |
+| `AUTH_TOKEN_AUDIENCE` | `labena-api` |
 | `AUTH_ACCESS_TTL` | `168h` |
 | `AUTH_REFRESH_TTL` | `0` |
 | `AUTH_SESSION_TTL` | `0` |
@@ -324,7 +333,7 @@ See [Identity](../internal/modules/identity/README.md) for exact routes and acco
 | --- | --- |
 | `API_RATE_LIMIT_ENABLED` | `false` |
 | `RATE_LIMIT_REDIS_URL` | `redis://127.0.0.1:6379/2` |
-| `RATE_LIMIT_NAMESPACE` | `go-modular` |
+| `RATE_LIMIT_NAMESPACE` | `labena` |
 | `API_RATE_LIMIT_REQUESTS` | `120` |
 | `API_RATE_LIMIT_BURST` | `120` |
 | `API_RATE_LIMIT_PERIOD` | `1m` |
