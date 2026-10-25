@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=53898752b79b734f" defer></script>
+<script src="search-index.js?v=b8f98b16758ab6c6" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -153,20 +153,25 @@ users<span class="go-punctuation">,</span> err <span class="go-operator">:=</spa
 They call the same rules; only their input/output adaptation differs. Follow the
 <a href="persistent-workflow.html">persisted HTTP and CLI workflow</a> to see both callers.</p>
 <h2 id="service-and-repository-contracts">Service and repository contracts<a class="heading-link" href="#service-and-repository-contracts" aria-label="Link to Service and repository contracts">#</a></h2>
-<p>Keep public contracts in the owner&#39;s package:</p>
+<p>The required layout keeps public contracts in the owner&#39;s package and entity
+implementations in plural-named files:</p>
 <pre><code class="language-text">identity/service/
   service.go      UserService and AuthService interfaces
-  user.go         userService and NewUserService
+  users.go        userService and NewUserService
   auth.go         authService and NewAuthService
-  session.go      Authentication methods on *authService
+  refresh.go      Example large use case on *authService
 
 identity/repository/
   repository.go   Focused repository interfaces
-  user.go         userRepository and NewUserRepository
-  session.go      sessionRepository and NewSessionRepository
+  users.go        userRepository and NewUserRepository
+  sessions.go     sessionRepository and NewSessionRepository
 </code></pre>
-<p>A larger use case can live in another file on the same receiver. File organization
-does not require another abstraction, service instance or constructor.</p>
+<p>Each implementation type is private; exported <code>New&lt;Subject&gt;Service</code> and
+<code>New&lt;Subject&gt;Repository</code> constructors return the owner interface, optionally with an
+error when validation can fail. A larger service use case can live in another file
+on the same receiver. File organization does not require another abstraction,
+service instance or constructor. Follow the mandatory
+<a href="conventions.html#mandatory-module-contract-and-implementation-layout">contract and filename rules</a>.</p>
 <p>Multiple consumers import the same owner contract. Avoid duplicating
 <code>UserService</code>, <code>mail.Sender</code> or <code>messaging.Publisher</code> in each caller just to change
 the package name. Add interfaces where substitution or a stable business API is

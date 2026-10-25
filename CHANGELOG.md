@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.3.0 — 2026-10-25
+
+- Add owner-authorized media visibility changes through `Library.SetVisibility`,
+  `PATCH /media/{id}/visibility` and the media CLI. Preserve asset IDs while moving
+  storage objects across the public/private boundary. An additive migration and
+  existing recovery worker retain interrupted changes; see the
+  [adoption notes](docs/upgrading.md#mutable-media-visibility).
+- Align `AGENTS.md` and `CLAUDE.md` with mandatory module interface locations,
+  plural entity filenames, private implementations and interface-returning
+  constructors. Newly generated applications include both guidance files.
 - Allow all CORS request headers by default, including custom application headers
   and `Authorization`. Explicit header allowlists remain supported; origin,
   method, authentication and administrative endpoint policies are unchanged.
@@ -9,6 +19,20 @@
   deployment examples. Existing applications should review the
   [rename compatibility notes](docs/upgrading.md#labena-rename-compatibility)
   before changing token settings, rate-limit namespaces or deployed resources.
+
+### Adoption and release scope
+
+Source is the commit identified by the annotated `v0.3.0` tag. Go 1.27.2 is
+required. Apply the additive media migration before starting updated API and
+worker processes; keep recovery scheduled. Drain pending visibility changes before
+rollback. Existing queued task and event payloads need no conversion. Review the
+linked rename notes for changed operational defaults when upgrading from v0.2.0.
+
+Verification on macOS ARM64 with Go 1.27.2 passed: the full race-enabled test
+suite, the required integration suite with disposable PostgreSQL 17 and Redis 7,
+dependency tidy checks, vet, command/example builds, and documentation tests and
+regeneration. Container image builds, vulnerability scanning, browser checks and
+live cloud providers were not reverified for this release.
 
 ## v0.2.0 — 2026-10-19
 

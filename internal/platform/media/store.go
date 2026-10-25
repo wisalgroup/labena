@@ -18,7 +18,9 @@ type assetStore interface {
 	Get(context.Context, Owner, uuid.UUID) (*Asset, error)
 	Find(context.Context, uuid.UUID) (*Asset, error)
 	List(context.Context, Owner, string, pagination.Pagination) ([]*Asset, int, error)
-	MarkDeleting(context.Context, Owner, uuid.UUID) error
+	BeginVisibilityChange(context.Context, Owner, uuid.UUID, Visibility) (*Asset, error)
+	CompleteVisibilityChange(context.Context, *Asset, string) (*Asset, error)
+	MarkDeleting(context.Context, Owner, uuid.UUID) (*Asset, error)
 	MarkDeleted(context.Context, uuid.UUID) error
 	Recoverable(context.Context) ([]*Asset, error)
 }
@@ -84,22 +86,24 @@ func (r *store) List(ctx context.Context, owner Owner, collection string, p pagi
 	count, err := query.Order("created_at DESC", "id DESC").Limit(p.PerPage).Offset(p.Offset()).ScanAndCount(ctx)
 	return rows, count, err
 }
-func (r *store) MarkDeleting(ctx context.Context, owner Owner, id uuid.UUID) error {
+func (r *store) MarkDeleting(ctx context.Context, owner Owner, id uuid.UUID) (*Asset, error) {
 	db, err := r.executor(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Keep timestamps of existing deletion work so a busy resource is not starved.
-	result, err := db.NewRaw(`UPDATE media_assets SET status=CASE WHEN status='deleted' THEN status ELSE 'deleting' END,
- updated_at=CASE WHEN status IN ('ready','pending') THEN now() ELSE updated_at END WHERE id=? AND owner_type=? AND owner_id=?`, id, owner.Type, owner.ID).Exec(ctx)
-	if err != nil {
-		return err
+	// Return the current key atomically: a visibility change may have moved it.
+	row := new(Asset)
+	err = db.NewRaw(`UPDATE media_assets SET status=CASE WHEN status='deleted' THEN status ELSE 'deleting' END,
+ updated_at=CASE WHEN status IN ('ready','pending') THEN now() ELSE updated_at END
+ WHERE id=? AND owner_type=? AND owner_id=? AND status<>'changing_visibility' RETURNING *`, id, owner.Type, owner.ID).Scan(ctx, row)
+	if errors.Is(err, sql.ErrNoRows) {
+		if _, err := r.Get(ctx, owner, id); err != nil {
+			return nil, err
+		}
+		return nil, ErrNotReady
 	}
-	n, err := result.RowsAffected()
-	if err == nil && n == 0 {
-		return ErrAssetNotFound
-	}
-	return err
+	return row, err
 }
 func (r *store) MarkDeleted(ctx context.Context, id uuid.UUID) error {
 	db, err := r.executor(ctx)
@@ -117,7 +121,8 @@ func (r *store) Recoverable(ctx context.Context) ([]*Asset, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Uploads have a two-minute deadline; ten minutes is a conservative crash grace.
+	// Uploads, visibility changes and recovery batches have two-minute deadlines;
+	// ten minutes is a conservative crash grace before retrying a move.
 	// Bound both the state change and scan so recovery never locks the full backlog.
 	_, err = db.NewRaw(`UPDATE media_assets SET status='deleting',updated_at=now() WHERE id IN
  (SELECT id FROM media_assets WHERE status='pending' AND created_at<now()-interval '10 minutes' ORDER BY created_at,id LIMIT 100)`).Exec(ctx)
@@ -127,7 +132,9 @@ func (r *store) Recoverable(ctx context.Context) ([]*Asset, error) {
 	rows := make([]*Asset, 0)
 	// Rotate attempted rows so a missing disk cannot starve the rest of the backlog.
 	err = db.NewRaw(`WITH batch AS (
- SELECT id FROM media_assets WHERE status='deleting' ORDER BY updated_at,id LIMIT 100 FOR UPDATE SKIP LOCKED
+ SELECT id FROM media_assets WHERE status='deleting'
+ OR (status='changing_visibility' AND updated_at<now()-interval '10 minutes')
+ ORDER BY updated_at,id LIMIT 100 FOR UPDATE SKIP LOCKED
  ) UPDATE media_assets SET updated_at=now() FROM batch WHERE media_assets.id=batch.id RETURNING media_assets.*`).Scan(ctx, &rows)
 	return rows, err
 }
@@ -142,6 +149,45 @@ func (r *store) Find(ctx context.Context, id uuid.UUID) (*Asset, error) {
 	err = db.NewSelect().Model(row).Where("id = ?", id).Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAssetNotFound
+	}
+	return row, err
+}
+
+// BeginVisibilityChange serializes competing changes and deletions before blob I/O.
+func (r *store) BeginVisibilityChange(ctx context.Context, owner Owner, id uuid.UUID, visibility Visibility) (*Asset, error) {
+	db, err := r.executor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	row := new(Asset)
+	err = db.NewRaw(`UPDATE media_assets SET status='changing_visibility',visibility_target=?,updated_at=now()
+ WHERE id=? AND owner_type=? AND owner_id=? AND status='ready' AND visibility<>? RETURNING *`, visibility, id, owner.Type, owner.ID, visibility).Scan(ctx, row)
+	if !errors.Is(err, sql.ErrNoRows) {
+		return row, err
+	}
+	row, err = r.Get(ctx, owner, id)
+	if err != nil {
+		return nil, err
+	}
+	if row.Status == AssetDeleted || row.Status == AssetDeleting {
+		return nil, ErrAssetNotFound
+	}
+	if row.Status == AssetReady && row.Visibility == visibility {
+		return row, nil
+	}
+	return nil, ErrNotReady
+}
+
+func (r *store) CompleteVisibilityChange(ctx context.Context, asset *Asset, key string) (*Asset, error) {
+	db, err := r.executor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	row := new(Asset)
+	err = db.NewRaw(`UPDATE media_assets SET status='ready',visibility=visibility_target,visibility_target='',key=?,updated_at=now()
+ WHERE id=? AND key=? AND status='changing_visibility' AND visibility_target=? RETURNING *`, key, asset.ID, asset.Key, asset.VisibilityTarget).Scan(ctx, row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotReady
 	}
 	return row, err
 }

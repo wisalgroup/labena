@@ -21,6 +21,7 @@ type Assets interface {
 	URL(ctx context.Context, asset *media.Asset) (*media.Link, error)
 	TemporaryURL(ctx context.Context, owner media.Owner, assetID uuid.UUID, ttl time.Duration) (*media.Link, error)
 	Upload(ctx context.Context, input media.UploadInput) (*media.Asset, error)
+	SetVisibility(ctx context.Context, owner media.Owner, assetID uuid.UUID, visibility media.Visibility) (*media.Asset, error)
 	Get(ctx context.Context, owner media.Owner, assetID uuid.UUID) (*media.Asset, error)
 	List(ctx context.Context, owner media.Owner, collection string, page pagination.Pagination) (*pagination.Page[*media.Asset], error)
 	Open(ctx context.Context, owner media.Owner, assetID uuid.UUID) (*media.Asset, *blob.Reader, error)
@@ -100,6 +101,20 @@ func (h *mediaHandler) get(ctx context.Context, in *AssetRequest) (*response.JSO
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}
+	return response.OK(out), nil
+}
+
+func (h *mediaHandler) setVisibility(ctx context.Context, in *SetAssetVisibilityRequest) (*response.JSON[AssetResponse], error) {
+	owner, id, err := ownerAndID(ctx, in.ID)
+	if err != nil {
+		return nil, response.Error(ctx, err)
+	}
+	a, err := h.svc.SetVisibility(ctx, owner, id, in.Body.Visibility)
+	if err != nil {
+		return nil, response.Error(ctx, err)
+	}
+	// As with upload, signing failure must not disguise a committed change.
+	out, _ := h.assetResponse(ctx, a)
 	return response.OK(out), nil
 }
 

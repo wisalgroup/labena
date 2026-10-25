@@ -4,6 +4,32 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
+## Mutable media visibility
+
+Adopting the v0.3.0 visibility-change operation requires the additive media
+migration `20261022000000_media_visibility_changes.sql`. Apply `migrate up` before
+serving the updated application. It preserves `media_assets.visibility`, adds
+`visibility_target` for interrupted changes, and permits the `changing_visibility`
+status. Published migrations are unchanged; no database reset is needed.
+
+Port the media library/store/recovery changes together with Identity's media HTTP
+interface, request, handler, route and response status enum. The new owner-authorized
+operation is `PATCH /api/v1/media/{id}/visibility` with `{"visibility":"public"}`
+or `{"visibility":"private"}`. Go callers use `Library.SetVisibility` outside SQL
+transactions. Existing upload defaults remain unchanged.
+
+The operation copies and deletes storage objects when crossing the `public/`
+boundary. Verify permissions on both paths, restrict anonymous reads to `public/*`,
+and keep the media recovery schedule/workers running (or schedule `media recover`).
+Interrupted changes retain their intent and return 503; they are retried after a
+ten-minute grace. Do not report a failed private change as completed privacy.
+Review [visibility and link behavior](media.html#change-an-existing-assets-visibility),
+including cached copies and existing signed links, before adopting the endpoint.
+
+Drain all processes using this operation and finish pending visibility changes
+before downgrading code or schema. Migration rollback rejects pending work so its
+recovery intent cannot be silently lost.
+
 ## Version 0.2: push-subscription schema
 
 The initial notification migration, `20261001120100_notifications.sql`, creates

@@ -91,6 +91,7 @@ func registerMedia(router huma.API, svc Assets) {
 	}, h.upload)
 	huma.Register(routes, huma.Operation{OperationID: "media.list", Method: "GET", Path: "/media", Summary: "List your assets"}, h.list)
 	huma.Register(routes, huma.Operation{OperationID: "media.get", Method: "GET", Path: "/media/{id}", Summary: "Get owned asset metadata"}, h.get)
+	huma.Register(routes, huma.Operation{OperationID: "media.setVisibility", Method: "PATCH", Path: "/media/{id}/visibility", Summary: "Change an owned asset's visibility"}, h.setVisibility)
 	huma.Register(routes, huma.Operation{OperationID: "media.download", Method: "GET", Path: "/media/{id}/download", Summary: "Download an owned ready asset",
 		Responses: map[string]*huma.Response{"200": {Description: "Private attachment", Content: map[string]*huma.MediaType{"application/octet-stream": {Schema: &huma.Schema{Type: "string", Format: "binary"}}}}},
 	}, h.download)

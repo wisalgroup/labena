@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=53898752b79b734f" defer></script>
+<script src="search-index.js?v=b8f98b16758ab6c6" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -393,6 +393,12 @@ bytes. Use provider/CDN controls and a separate media origin for untrusted conte
 Changing to internal URL mode does not revoke existing public storage permissions.</p>
 <p>Legacy public objects outside <code>public/</code> retain internal URLs until explicitly
 copied and their keys updated. Configuration changes do not move objects.</p>
+<p>To change an existing Media asset, use <code>Library.SetVisibility</code> or the authenticated
+<code>PATCH /media/{id}/visibility</code> endpoint. This moves bytes across the public prefix
+and persists the result while keeping the asset ID. Grant the application read/copy,
+write and delete access to both paths. See <a href="media.html#change-an-existing-assets-visibility">changing visibility</a>
+for pending recovery, cache and signed-link behavior. A whole public bucket cannot
+provide private objects merely by changing a database field or key prefix.</p>
 <h2 id="storage-limits-and-verification">Storage limits and verification<a class="heading-link" href="#storage-limits-and-verification" aria-label="Link to Storage limits and verification">#</a></h2>
 <p>Remote buckets/containers must already exist. Constructing a client does not probe
 bucket existence or permissions; the first operation can still fail. Use HTTPS

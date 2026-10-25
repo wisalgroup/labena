@@ -1,6 +1,6 @@
 # Project conventions
 
-This is the canonical architecture guide for contributors. Use these defaults for
+This is the canonical architecture guide for contributors. Follow its rules for
 new code and refactoring. The other guides explain usage; they should not introduce
 competing patterns. This is a modular application template built with explicit Go
 composition, not a runtime dependency container.
@@ -10,8 +10,9 @@ composition, not a runtime dependency container.
 This page is the architecture contract. Use [your first module](modules.html) for
 an introduction, [module registration](module-registration.html) for assembly,
 and [dependency injection](dependency-injection.html) for ownership examples.
-The rules below describe the current design, not a migration roadmap. Historical
-reviews and plans do not override current APIs or this contract.
+Keep the root `AGENTS.md` and `CLAUDE.md` identical and aligned with this guide.
+The rules below define the required design; existing code is not an exception to
+them. Historical reviews and plans do not override current APIs or this contract.
 
 ## 1. Package responsibilities
 
@@ -59,11 +60,11 @@ internal/modules/<module>/
   register.go            Construction and registration
   service/
     service.go           Public service interfaces
-    <subject>.go         Private implementation and constructor
+    <plural_entity>.go   One private implementation and its constructor
     <use_case>.go        Substantial method on the same receiver, when useful
   repository/
     repository.go        Public persistence interfaces
-    <subject>.go         Private implementation, constructor and queries
+    <plural_entity>.go   One private implementation, constructor and queries
   delivery/
     http/                Routes, requests, responses and handlers
     cli/                 Commands
@@ -180,10 +181,34 @@ hints. Transport implementation types stay private when registration functions a
 the public API. Request `Input(...)` methods keep mapping beside their request types;
 handlers supply trusted context and perform authorization.
 
-Public business contracts live in `service/service.go` and
-`repository/repository.go`, not separate `contracts` packages or shared contract
-catalogs. Multiple consumers import the owner's contract. Keep each contract
-cohesive; do not create an interface per consumer or mirror every private helper.
+### Mandatory module contract and implementation layout
+
+All repository interfaces belonging to a business module must be defined in
+`internal/modules/<module>/repository/repository.go`. All of its service interfaces
+must be defined in `internal/modules/<module>/service/service.go`. These are the
+owner contracts imported by every consumer. Keep each contract cohesive; do not
+create an interface per consumer or mirror every private helper. Interfaces do not
+belong in implementation files, delivery packages, shared business definitions or
+separate contract catalogs.
+
+Each repository implementation has one dedicated sibling file containing its
+private concrete type, constructor and repository methods. Name that file after
+the entity in plural, using lowercase snake_case: `users.go`, `sessions.go` or
+`verification_challenges.go`. Each service implementation follows the same filename
+rule and keeps its private type and constructor together. Large service use cases
+may occupy separate descriptive files, with methods on the same private receiver;
+this does not introduce another service, interface or constructor. A capability
+that does not represent an entity keeps its meaningful name, such as `auth.go`.
+
+Implementation types must be unexported, such as `userRepository` and `userService`.
+Export `New<Subject>Repository` and `New<Subject>Service` constructors that return
+the corresponding interface, or `(Interface, error)` when construction can fail.
+Module repository/service constructors must not expose their concrete return types.
+Keep singular subjects in Go type and constructor names; entity filenames are plural.
+For example, `repository/users.go` defines `userRepository` and
+`NewUserRepository(...) UserRepository`; `service/users.go` defines `userService`
+and `NewUserService(...) (UserService, error)` when it validates collaborators.
+These are signature patterns; constructors still take their actual dependencies.
 
 Platform capabilities may expose meaningful concrete types such as `Notifier`,
 and `Library`. Reuse existing package contracts such as `mail.Sender`, `mail.Mailer`
@@ -357,6 +382,10 @@ migrations; use the [update guide](upgrading.md) for the consumer workflow.
 Keep service/repository packages and app free of test files. Put business
 integration and public-behavior tests in `tests/<module>`; reusable package and
 platform tests may stay beside their owners. Moving tests must preserve coverage.
+
+For every repository/service added or reorganized, review interface placement,
+plural entity filenames, private implementation types and constructor return types.
+Keep both agent files identical when changing these conventions.
 
 Protect behavior, transaction boundaries and authorization. Architecture checks
 should enforce dependency direction and ownership, not arbitrary file counts.

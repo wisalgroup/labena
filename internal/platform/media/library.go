@@ -215,15 +215,12 @@ func (s *Library) Delete(ctx context.Context, owner Owner, id uuid.UUID) error {
 	if err := database.RequireNoTransaction(ctx); err != nil {
 		return err
 	}
-	a, err := s.repo.Get(ctx, owner, id)
+	a, err := s.repo.MarkDeleting(ctx, owner, id)
 	if err != nil {
 		return err
 	}
 	if a.Status == AssetDeleted {
 		return nil
-	}
-	if err := s.repo.MarkDeleting(ctx, owner, id); err != nil {
-		return err
 	}
 	return s.remove(ctx, a)
 }
@@ -239,12 +236,16 @@ func (s *Library) remove(ctx context.Context, a *Asset) error {
 	return s.repo.MarkDeleted(ctx, a.ID)
 }
 
-// Recover repairs bounded batches of interrupted uploads and deletions. It is
+// Recover repairs bounded batches of interrupted uploads, visibility changes and deletions. It is
 // safe to repeat and run concurrently; it never scans arbitrary bucket objects.
 func (s *Library) Recover(ctx context.Context) (int, error) {
 	if err := database.RequireNoTransaction(ctx); err != nil {
 		return 0, err
 	}
+	// Bound the whole batch, including rows waiting behind slower moves, well
+	// inside the ten-minute grace before another worker can reclaim them.
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
 	rows, err := s.repo.Recoverable(ctx)
 	if err != nil {
 		return 0, err
@@ -255,7 +256,13 @@ func (s *Library) Recover(ctx context.Context) (int, error) {
 		if err := ctx.Err(); err != nil {
 			return completed, errors.Join(failures, err)
 		}
-		if err := s.remove(ctx, a); err != nil {
+		var err error
+		if a.Status == AssetChangingVisibility {
+			_, err = s.finishVisibilityChange(ctx, a)
+		} else {
+			err = s.remove(ctx, a)
+		}
+		if err != nil {
 			failures = errors.Join(failures, err)
 		} else {
 			completed++

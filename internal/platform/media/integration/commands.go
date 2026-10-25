@@ -46,7 +46,18 @@ func newCommands(svc *media.Library) *cobra.Command {
 		}
 		return svc.Delete(cmd.Context(), owner, id)
 	}})
-	group.AddCommand(&cobra.Command{Use: "recover", Short: "Clean interrupted uploads and deletions", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
+	group.AddCommand(&cobra.Command{Use: "visibility OWNER_TYPE OWNER_ID ASSET_ID VISIBILITY", Short: "Set an owned asset's visibility to public or private", Args: cobra.ExactArgs(4), RunE: func(cmd *cobra.Command, args []string) error {
+		id, err := uuid.Parse(args[2])
+		if err != nil {
+			return err
+		}
+		asset, err := svc.SetVisibility(cmd.Context(), media.Owner{Type: args[0], ID: args[1]}, id, media.Visibility(args[3]))
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(cmd.OutOrStdout()).Encode(asset)
+	}})
+	group.AddCommand(&cobra.Command{Use: "recover", Short: "Recover interrupted uploads, visibility changes and deletions", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
 		n, err := svc.Recover(cmd.Context())
 		if err != nil {
 			return err

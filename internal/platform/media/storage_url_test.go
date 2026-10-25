@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/wisalgroup/labena/pkg/storage"
 	"gocloud.dev/blob"
+	"gocloud.dev/gcerrors"
 )
 
 // Uses only a uniquely named bucket on an explicitly supplied disposable server.
@@ -46,7 +47,7 @@ func TestDirectStorageURLs(t *testing.T) {
 		cleanup, stop := context.WithTimeout(context.Background(), 15*time.Second)
 		defer stop()
 		for _, key := range keys {
-			if err := connection.Bucket.Delete(cleanup, key); err != nil {
+			if err := connection.Bucket.Delete(cleanup, key); err != nil && gcerrors.Code(err) != gcerrors.NotFound {
 				t.Error(err)
 			}
 		}
@@ -110,4 +111,49 @@ func TestDirectStorageURLs(t *testing.T) {
 		}
 		read(temporary.URL, http.StatusOK)
 	}
+	t.Run("visibility-change", func(t *testing.T) {
+		db, _ := databaseFixture(t)
+		library, err := New(db, map[string]*blob.Bucket{"test": connection.Bucket}, "test", Config{Disks: map[string]DiskConfig{"test": {URLMode: "direct", PublicURL: base}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		a, err := library.Upload(ctx, UploadInput{Owner: owner, Filename: "mutable.txt", Body: strings.NewReader("hello"), Policy: Policy{MaxBytes: 100}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		keys = append(keys, a.Key, strings.TrimPrefix(a.Key, "public/"))
+		publicURL := base + "/" + a.Key
+		read(publicURL, http.StatusOK)
+		a, err = library.SetVisibility(ctx, owner, a.ID, Private)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The former public URL must stop serving bytes, independently of app auth.
+		response, err := httpClient.Get(publicURL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		response.Body.Close()
+		if response.StatusCode != http.StatusForbidden && response.StatusCode != http.StatusNotFound {
+			t.Fatal("old public URL still readable", response.StatusCode)
+		}
+		read(base+"/"+a.Key, http.StatusForbidden)
+		link, err := library.URL(ctx, a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		read(link.URL, http.StatusOK)
+		a, err = library.SetVisibility(ctx, owner, a.ID, Public)
+		if err != nil {
+			t.Fatal(err)
+		}
+		link, err = library.URL(ctx, a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		read(link.URL, http.StatusOK)
+		if link.URL != publicURL {
+			t.Fatal("public URL changed unexpectedly")
+		}
+	})
 }

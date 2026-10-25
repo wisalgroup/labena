@@ -16,32 +16,35 @@ import (
 // Asset is an object owned by a model, grouped into a named collection.
 type Asset struct {
 	bun.BaseModel `bun:"table:media_assets,alias:a"`
-	ID            uuid.UUID   `bun:",pk,type:uuid" json:"id"`
-	Owner         Owner       `bun:"embed:owner_" json:"owner"`
-	Collection    string      `json:"collection"`
-	Visibility    Visibility  `json:"visibility"`
-	Disk          string      `json:"-"`
-	Key           string      `json:"-"`
-	Filename      string      `json:"filename"`
-	ContentType   string      `json:"content_type"`
-	Size          int64       `json:"size"`
-	Status        AssetStatus `json:"status"`
-	CreatedAt     time.Time   `json:"created_at"`
-	UpdatedAt     time.Time   `json:"updated_at"`
+	ID            uuid.UUID  `bun:",pk,type:uuid" json:"id"`
+	Owner         Owner      `bun:"embed:owner_" json:"owner"`
+	Collection    string     `json:"collection"`
+	Visibility    Visibility `json:"visibility"`
+	// VisibilityTarget is durable recovery intent, cleared when the change completes.
+	VisibilityTarget Visibility  `json:"-"`
+	Disk             string      `json:"-"`
+	Key              string      `json:"-"`
+	Filename         string      `json:"filename"`
+	ContentType      string      `json:"content_type"`
+	Size             int64       `json:"size"`
+	Status           AssetStatus `json:"status"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
 }
 
-// AssetStatus is owned by platform Media. Pending assets cannot be downloaded.
+// AssetStatus is owned by platform Media. Only ready assets can be downloaded.
 type AssetStatus string
 
 const (
-	AssetPending  AssetStatus = "pending"
-	AssetReady    AssetStatus = "ready"
-	AssetDeleting AssetStatus = "deleting"
-	AssetDeleted  AssetStatus = "deleted"
+	AssetPending            AssetStatus = "pending"
+	AssetReady              AssetStatus = "ready"
+	AssetChangingVisibility AssetStatus = "changing_visibility"
+	AssetDeleting           AssetStatus = "deleting"
+	AssetDeleted            AssetStatus = "deleted"
 )
 
 func AssetStatusValues() []AssetStatus {
-	return []AssetStatus{AssetPending, AssetReady, AssetDeleting, AssetDeleted}
+	return []AssetStatus{AssetPending, AssetReady, AssetChangingVisibility, AssetDeleting, AssetDeleted}
 }
 func (s AssetStatus) Valid() bool { return slices.Contains(AssetStatusValues(), s) }
 
@@ -73,6 +76,8 @@ var (
 	ErrContentType          = apperror.Validation("This file type is not allowed.")
 	ErrUnavailable          = apperror.Unavailable("The asset disk is not configured.")
 	ErrNotReady             = apperror.Conflict("The asset is not ready.")
+	ErrInvalidVisibility    = apperror.Validation("Visibility must be public or private.")
+	ErrVisibilityPending    = apperror.Unavailable("The visibility change was recorded but could not finish. Recovery will retry; check the asset status before relying on its new visibility.")
 	ErrDependenciesRequired = apperror.Internal("media: repository and valid named disks required")
 	ErrLibraryRequired      = apperror.Internal("media: library required")
 )

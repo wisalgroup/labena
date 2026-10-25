@@ -545,7 +545,7 @@ All application routes below are prefixed by `/api/v1`:
 | `POST /auth/refresh` | Current refresh credential |
 | `GET/PATCH /users/me`, `GET /users/{id}` | Bearer session and ownership |
 | `/auth/logout`, `/auth/sessions` | Bearer session |
-| `/media`, `/media/{id}`, `/media/{id}/download`, `/media/{id}/url` | Bearer session and user asset ownership |
+| `/media`, `/media/{id}`, `/media/{id}/download`, `/media/{id}/url`, `/media/{id}/visibility` | Bearer session and user asset ownership |
 | `/notifications`, `/notifications/unread-count`, `/notifications/{id}/read` | Bearer session and recipient ownership |
 | `/notifications/subscriptions`, `/notifications/subscriptions/{id}` | Bearer session; registration rechecks the session under Identity's account lock |
 

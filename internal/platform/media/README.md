@@ -1,6 +1,6 @@
 # Media assets
 
-Media adds owned asset records, visibility, URLs and recoverable deletion above
+Media adds owned asset records, mutable visibility, URLs and recoverable deletion above
 [file storage](../../../docs/filesystems.md). PostgreSQL stores metadata; a named
 Go CDK disk stores bytes. Use it for files attached to users or other business
 models. Use raw storage for an object that needs no asset lifecycle.
@@ -112,14 +112,62 @@ Visibility and delivery mode are separate decisions:
 | Private | `direct` | Provider-signed URL, normally 15 minutes | Possession of the link |
 
 New uploads inherit the selected disk's visibility; explicit upload visibility
-wins. Changing the default affects new uploads only. Visibility is fixed for an
-existing asset; replacing it creates another asset ID.
+wins. Changing the default affects new uploads only. Use `SetVisibility` to change
+an existing asset while keeping its ID, owner, collection and content.
 
 For direct mode, configure public prefixes, signing credentials and a
 client-reachable endpoint as described in
 [filesystem URL settings](../../../docs/filesystems.md#media-visibility-and-urls).
 Local disks require internal mode. Internal mode does not remove a bucket's existing
 public permissions.
+
+### Change an existing asset's visibility
+
+```sh
+curl -i -X PATCH http://127.0.0.1:8080/api/v1/media/ASSET_ID/visibility \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  --data '{"visibility":"private"}'
+```
+
+Use `public` to make it public again. Expect **200** with the updated asset and
+resolved URL in `data`. The caller must own the asset; a different owner receives
+**404**. Missing/invalid visibility returns **422**. Only ready assets can change;
+an upload or visibility change still in progress returns **409**. Repeating the
+current visibility on a ready asset is a no-op.
+
+For an already authorized owner in Go:
+
+```go
+asset, err := library.SetVisibility(ctx, owner, assetID, media.Private)
+if err != nil {
+    return err
+}
+```
+
+Visibility is persisted in `media_assets.visibility`. Before moving bytes, the
+library records `status=changing_visibility` and the desired visibility in the
+same table. It copies the object across the `public/` prefix boundary and removes
+the source before saving the new key/visibility and returning to `ready`. This
+applies in both internal and direct URL modes; changing only a database flag would
+leave the old public storage URL exposed. Storage credentials need copy/read,
+write and delete permissions on both paths. Bucket access policies must restrict
+anonymous reads to `public/*`.
+
+An interrupted move returns **503** (`ErrVisibilityPending` in Go): the change was
+recorded and recovery will retry. Check `GET /media/{id}` for completion. Until
+then, `visibility` retains the previous value, `status` is `changing_visibility`,
+and `url` is empty. App downloads/signing, deletion and another visibility change
+are blocked; the asset is omitted from ready-only lists. A failed private change
+may leave the old public object accessible until recovery succeeds. Do not treat
+the error as confirmation of privacy or as a rollback.
+
+Already downloaded copies and provider/CDN caches cannot be recalled. Review
+version-retention access separately for versioned buckets. Internal signed links
+remain bearer grants until expiry because they identify the asset, not its path.
+Provider links to a removed key stop working; making the asset public again can
+restore its previous public URL. Visibility changes are not a general link
+revocation mechanism.
 
 ### Resolve an existing asset URL
 
@@ -202,7 +250,7 @@ Private direct signing can fail because a disk is missing, credentials cannot si
 or the provider operation fails. `Library.URL` returns an authenticated internal
 fallback **and an error** in that case.
 
-The supplied upload HTTP handler returns its already committed asset with that
+The supplied upload and visibility-change HTTP handlers return their already committed asset with that
 fallback. Metadata/list requests surface the signing error, and explicit temporary
 link requests return an error. A successful upload response therefore does not
 prove provider signing is configured. Always inspect the returned URL mode/expiry
@@ -305,22 +353,26 @@ Copy/verify bytes and update metadata explicitly when changing providers. Local
 storage needs an intentionally shared filesystem across replicas. Remote
 permissions must match the selected visibility/URL policy.
 
-### Upload and deletion state
+### Asset lifecycle
 
 ```mermaid
 stateDiagram-v2
     accTitle: Asset state follows the object lifecycle
-    accDescr: Upload saves pending metadata, writes and closes the object, then marks it ready. Failed uploads and explicit deletion become deleting work. Recovery retries removal before leaving a deleted tombstone.
+    accDescr: Upload becomes ready after storage completes. Visibility changes move the object and return to ready. Failed uploads and explicit deletion become deleting work. Recovery retries interrupted moves and removal.
     [*] --> Pending: Save metadata
     Pending --> Ready: Write object and close writer
     Pending --> Deleting: Failure or stale upload
+    Ready --> ChangingVisibility: Persist desired visibility
+    ChangingVisibility --> Ready: Move object and save visibility
+    ChangingVisibility --> ChangingVisibility: Recovery retries interrupted move
     Ready --> Deleting: Delete requested
     Deleting --> Deleting: Removal failed
     Deleting --> Deleted: Object removed or absent
 ```
 
-Blob I/O cannot join a SQL transaction. `Upload`, `Delete` and `Recover` reject a
-caller SQL transaction context. Upload has a two-minute deadline; failed/canceled
+Blob I/O cannot join a SQL transaction. `Upload`, `SetVisibility`, `Delete` and
+`Recover` reject a caller SQL transaction context. Upload, visibility changes and
+whole recovery batches have two-minute deadlines; failed/canceled
 uploads attempt cleanup with a separate five-second budget and preserve cleanup
 errors. SQL metadata remains recoverable if cleanup fails.
 
@@ -336,14 +388,16 @@ go run ./cmd/cli media recover
 ```
 
 Recovery marks uploads older than ten minutes for cleanup and attempts at most
-100 deletion rows per batch. Failed rows rotate through the backlog; concurrent
-and repeated runs are supported. It scans known metadata, not arbitrary bucket
+100 deletion/visibility rows per batch. Visibility changes are eligible ten minutes
+after their last attempt, allowing active calls and late provider writes to settle.
+Failed rows rotate through the backlog; concurrent and repeated runs are supported.
+It scans known metadata, not arbitrary bucket
 objects. A provider capable of completing writes beyond this grace requires a
 longer deliberate recovery policy.
 
 App schedules `media.recover.v1` every five minutes when disks exist. Run one
 scheduler and workers, or invoke recovery through an operator schedule. Monitor
-old pending/deleting rows and task failures. Back up metadata and objects together;
+old pending/changing_visibility/deleting rows and task failures. Back up metadata and objects together;
 a database restored behind its bucket needs explicit inventory reconciliation.
 Tombstone retention is a separate policy because removing tombstones changes
 repeated-delete behavior.
@@ -362,6 +416,7 @@ All routes below are beneath `/api/v1`:
 | `POST /media` | Owner-authenticated multipart upload; **201** |
 | `GET /media?page=1&per_page=20&collection=avatar` | Owner-scoped ready assets |
 | `GET /media/{id}` | Owner-scoped metadata and resolved URL |
+| `PATCH /media/{id}/visibility` | Owner-authorized public/private change; **200** |
 | `GET /media/{id}/download` | Owner-authenticated attachment |
 | `GET /media/{id}/content` | Ready public content or a valid signed link |
 | `POST /media/{id}/url` | Owner-authorized temporary link |
@@ -376,6 +431,7 @@ Trusted operators can select other owner types:
 ```sh
 go run ./cmd/cli media upload user USER_ID ./document.pdf --collection documents --visibility private
 go run ./cmd/cli media list user USER_ID --collection documents
+go run ./cmd/cli media visibility user USER_ID ASSET_ID private
 go run ./cmd/cli media delete user USER_ID ASSET_ID
 go run ./cmd/cli media recover
 ```
@@ -389,6 +445,12 @@ The visibility migration preserves existing rows as private and defaults new row
 to public. Apply it with `migrate up`; no database reset is needed. Internal mode
 needs no public bucket policy. Direct public mode requires explicit scoped
 permissions, as documented in [file storage](../../../docs/filesystems.md).
+
+The additive `20261022000000_media_visibility_changes.sql` migration adds recovery
+intent and the `changing_visibility` status without changing existing visibility
+values. Apply it before enabling the new operation. Finish pending changes before
+rolling it back; rollback refuses to discard unfinished work. Existing migrations
+remain unchanged. See the [adoption notes](../../../docs/upgrading.md#mutable-media-visibility).
 
 Image variants, antivirus scanning, direct-upload verification and video processing
 are extension work. Native storage can create signed PUT URLs, but Media does not
@@ -408,6 +470,7 @@ notify; Media does not automatically call Notifications.
 | Public direct link returns access denied | Read-only policy on `public/*`, account restrictions and correct PublicURL |
 | Upload succeeded but returned an internal download URL | Provider signing failed and the upload adapter used its fallback |
 | Deleted direct content is still visible | Object removal or CDN/provider caching |
+| Visibility change returned 503 | Inspect asset status, disk permissions and recovery jobs; privacy is not confirmed until completion |
 
 Tests cover owner separation, visibility, URL modes, cleanup and recovery. Use
 [disposable integration services](../../../docs/testing-database.md) to verify

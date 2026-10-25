@@ -60,23 +60,28 @@ They call the same rules; only their input/output adaptation differs. Follow the
 
 ## Service and repository contracts
 
-Keep public contracts in the owner's package:
+The required layout keeps public contracts in the owner's package and entity
+implementations in plural-named files:
 
 ```text
 identity/service/
   service.go      UserService and AuthService interfaces
-  user.go         userService and NewUserService
+  users.go        userService and NewUserService
   auth.go         authService and NewAuthService
-  session.go      Authentication methods on *authService
+  refresh.go      Example large use case on *authService
 
 identity/repository/
   repository.go   Focused repository interfaces
-  user.go         userRepository and NewUserRepository
-  session.go      sessionRepository and NewSessionRepository
+  users.go        userRepository and NewUserRepository
+  sessions.go     sessionRepository and NewSessionRepository
 ```
 
-A larger use case can live in another file on the same receiver. File organization
-does not require another abstraction, service instance or constructor.
+Each implementation type is private; exported `New<Subject>Service` and
+`New<Subject>Repository` constructors return the owner interface, optionally with an
+error when validation can fail. A larger service use case can live in another file
+on the same receiver. File organization does not require another abstraction,
+service instance or constructor. Follow the mandatory
+[contract and filename rules](conventions.html#mandatory-module-contract-and-implementation-layout).
 
 Multiple consumers import the same owner contract. Avoid duplicating
 `UserService`, `mail.Sender` or `messaging.Publisher` in each caller just to change

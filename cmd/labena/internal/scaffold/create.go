@@ -198,5 +198,5 @@ func included(name string) bool {
 	if slices.Contains([]string{"cmd", "internal", "pkg", "tests", "examples", "docs", "deployments", "scripts", ".github"}, first) {
 		return true
 	}
-	return !nested && (slices.Contains([]string{"go.mod", "go.sum", "LICENSE", "README.md", "SUPPORT.md", "SECURITY.md", "CONTRIBUTING.md", "AGENTS.md", "Tiltfile", ".gitignore", ".dockerignore"}, name) || (strings.HasPrefix(path.Base(name), ".env") && strings.HasSuffix(name, ".example")))
+	return !nested && (slices.Contains([]string{"go.mod", "go.sum", "LICENSE", "README.md", "SUPPORT.md", "SECURITY.md", "CONTRIBUTING.md", "AGENTS.md", "CLAUDE.md", "Tiltfile", ".gitignore", ".dockerignore"}, name) || (strings.HasPrefix(path.Base(name), ".env") && strings.HasSuffix(name, ".example")))
 }

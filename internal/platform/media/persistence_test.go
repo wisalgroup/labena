@@ -415,7 +415,7 @@ func TestMediaVisibilityPersists(t *testing.T) {
 
 func TestVisibilityMigrationKeepsExistingAssetsPrivate(t *testing.T) {
 	db := testdb.OpenDriver(t, database.DriverPostgres)
-	for _, name := range []string{"20261001120200_media_assets.sql", "20261012130000_media_visibility.sql"} {
+	for _, name := range []string{"20261001120200_media_assets.sql", "20261012130000_media_visibility.sql", "20261022000000_media_visibility_changes.sql"} {
 		source, err := modulemigrations.Files.ReadFile(name)
 		if err != nil {
 			t.Fatal(err)
@@ -434,5 +434,43 @@ func TestVisibilityMigrationKeepsExistingAssetsPrivate(t *testing.T) {
 	var visibility string
 	if err := db.NewRaw("SELECT visibility FROM media_assets WHERE key='legacy'").Scan(t.Context(), &visibility); err != nil || visibility != "private" {
 		t.Fatal("migration exposed old asset", visibility, err)
+	}
+}
+
+func TestVisibilityMigrationRollbackPreservesPendingWork(t *testing.T) {
+	db, ownerID := databaseFixture(t)
+	repo := newStore(db)
+	a := &Asset{ID: uuid.New(), Owner: ownerRef(ownerID), Collection: DefaultCollection, Visibility: Public, Disk: "local", Key: "public/assets/rollback", Filename: "file.txt", ContentType: "text/plain", Status: AssetReady, Size: 5}
+	if err := repo.Create(t.Context(), a); err != nil {
+		t.Fatal(err)
+	}
+	pending, err := repo.BeginVisibilityChange(t.Context(), a.Owner, a.ID, Private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, err := modulemigrations.Files.ReadFile("20261022000000_media_visibility_changes.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, down, _ := strings.Cut(string(source), "-- +goose Down")
+	rollback := func() error {
+		return db.RunInTx(t.Context(), nil, func(ctx context.Context, tx bun.Tx) error { _, err := tx.ExecContext(ctx, down); return err })
+	}
+	if err := rollback(); err == nil {
+		t.Fatal("rollback discarded pending visibility change")
+	}
+	stored, err := repo.Get(t.Context(), a.Owner, a.ID)
+	if err != nil || stored.VisibilityTarget != Private || stored.Status != AssetChangingVisibility {
+		t.Fatal("failed rollback lost recovery intent", stored, err)
+	}
+	if _, err := repo.CompleteVisibilityChange(t.Context(), pending, "assets/rollback"); err != nil {
+		t.Fatal(err)
+	}
+	if err := rollback(); err != nil {
+		t.Fatal(err)
+	}
+	var visibility string
+	if err := db.NewRaw("SELECT visibility FROM media_assets WHERE id=?", a.ID).Scan(t.Context(), &visibility); err != nil || visibility != "private" {
+		t.Fatal("rollback changed completed visibility", visibility, err)
 	}
 }

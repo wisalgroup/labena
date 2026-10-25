@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=53898752b79b734f" defer></script>
+<script src="search-index.js?v=b8f98b16758ab6c6" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,9 +89,9 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Architecture</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav></details>
 <article><h1 id="project-conventions">Project conventions</h1>
-<p>This is the canonical architecture guide for contributors. Use these defaults for
+<p>This is the canonical architecture guide for contributors. Follow its rules for
 new code and refactoring. The other guides explain usage; they should not introduce
 competing patterns. This is a modular application template built with explicit Go
 composition, not a runtime dependency container.</p>
@@ -99,8 +99,9 @@ composition, not a runtime dependency container.</p>
 <p>This page is the architecture contract. Use <a href="modules.html">your first module</a> for
 an introduction, <a href="module-registration.html">module registration</a> for assembly,
 and <a href="dependency-injection.html">dependency injection</a> for ownership examples.
-The rules below describe the current design, not a migration roadmap. Historical
-reviews and plans do not override current APIs or this contract.</p>
+Keep the root <code>AGENTS.md</code> and <code>CLAUDE.md</code> identical and aligned with this guide.
+The rules below define the required design; existing code is not an exception to
+them. Historical reviews and plans do not override current APIs or this contract.</p>
 <h2 id="1-package-responsibilities">1. Package responsibilities<a class="heading-link" href="#1-package-responsibilities" aria-label="Link to 1. Package responsibilities">#</a></h2>
 <table>
 <thead>
@@ -171,11 +172,11 @@ job, repository or interface just to fill out a directory structure.</p>
   register.go            Construction and registration
   service/
     service.go           Public service interfaces
-    &lt;subject&gt;.go         Private implementation and constructor
+    &lt;plural_entity&gt;.go   One private implementation and its constructor
     &lt;use_case&gt;.go        Substantial method on the same receiver, when useful
   repository/
     repository.go        Public persistence interfaces
-    &lt;subject&gt;.go         Private implementation, constructor and queries
+    &lt;plural_entity&gt;.go   One private implementation, constructor and queries
   delivery/
     http/                Routes, requests, responses and handlers
     cli/                 Commands
@@ -361,10 +362,31 @@ Name same-typed interface parameters so their order and purpose are clear in edi
 hints. Transport implementation types stay private when registration functions are
 the public API. Request <code>Input(...)</code> methods keep mapping beside their request types;
 handlers supply trusted context and perform authorization.</p>
-<p>Public business contracts live in <code>service/service.go</code> and
-<code>repository/repository.go</code>, not separate <code>contracts</code> packages or shared contract
-catalogs. Multiple consumers import the owner&#39;s contract. Keep each contract
-cohesive; do not create an interface per consumer or mirror every private helper.</p>
+<h3 id="mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout<a class="heading-link" href="#mandatory-module-contract-and-implementation-layout" aria-label="Link to Mandatory module contract and implementation layout">#</a></h3>
+<p>All repository interfaces belonging to a business module must be defined in
+<code>internal/modules/&lt;module&gt;/repository/repository.go</code>. All of its service interfaces
+must be defined in <code>internal/modules/&lt;module&gt;/service/service.go</code>. These are the
+owner contracts imported by every consumer. Keep each contract cohesive; do not
+create an interface per consumer or mirror every private helper. Interfaces do not
+belong in implementation files, delivery packages, shared business definitions or
+separate contract catalogs.</p>
+<p>Each repository implementation has one dedicated sibling file containing its
+private concrete type, constructor and repository methods. Name that file after
+the entity in plural, using lowercase snake_case: <code>users.go</code>, <code>sessions.go</code> or
+<code>verification_challenges.go</code>. Each service implementation follows the same filename
+rule and keeps its private type and constructor together. Large service use cases
+may occupy separate descriptive files, with methods on the same private receiver;
+this does not introduce another service, interface or constructor. A capability
+that does not represent an entity keeps its meaningful name, such as <code>auth.go</code>.</p>
+<p>Implementation types must be unexported, such as <code>userRepository</code> and <code>userService</code>.
+Export <code>New&lt;Subject&gt;Repository</code> and <code>New&lt;Subject&gt;Service</code> constructors that return
+the corresponding interface, or <code>(Interface, error)</code> when construction can fail.
+Module repository/service constructors must not expose their concrete return types.
+Keep singular subjects in Go type and constructor names; entity filenames are plural.
+For example, <code>repository/users.go</code> defines <code>userRepository</code> and
+<code>NewUserRepository(...) UserRepository</code>; <code>service/users.go</code> defines <code>userService</code>
+and <code>NewUserService(...) (UserService, error)</code> when it validates collaborators.
+These are signature patterns; constructors still take their actual dependencies.</p>
 <p>Platform capabilities may expose meaningful concrete types such as <code>Notifier</code>,
 and <code>Library</code>. Reuse existing package contracts such as <code>mail.Sender</code>, <code>mail.Mailer</code>
 and <code>messaging.Publisher</code>; do not redeclare them in each module. These two shapes
@@ -538,6 +560,9 @@ migrations; use the <a href="upgrading.html">update guide</a> for the consumer w
 <p>Keep service/repository packages and app free of test files. Put business
 integration and public-behavior tests in <code>tests/&lt;module&gt;</code>; reusable package and
 platform tests may stay beside their owners. Moving tests must preserve coverage.</p>
+<p>For every repository/service added or reorganized, review interface placement,
+plural entity filenames, private implementation types and constructor return types.
+Keep both agent files identical when changing these conventions.</p>
 <p>Protect behavior, transaction boundaries and authorization. Architecture checks
 should enforce dependency direction and ownership, not arbitrary file counts.
 Examples must compile against shipped APIs; proposed APIs must be labeled.</p>
@@ -574,7 +599,7 @@ check cannot prove business correctness or safe authorization.</p>
 </nav>
 <footer><a data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

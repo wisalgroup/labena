@@ -267,6 +267,13 @@ Changing to internal URL mode does not revoke existing public storage permission
 Legacy public objects outside `public/` retain internal URLs until explicitly
 copied and their keys updated. Configuration changes do not move objects.
 
+To change an existing Media asset, use `Library.SetVisibility` or the authenticated
+`PATCH /media/{id}/visibility` endpoint. This moves bytes across the public prefix
+and persists the result while keeping the asset ID. Grant the application read/copy,
+write and delete access to both paths. See [changing visibility](media.html#change-an-existing-assets-visibility)
+for pending recovery, cache and signed-link behavior. A whole public bucket cannot
+provide private objects merely by changing a database field or key prefix.
+
 ## Storage limits and verification
 
 Remote buckets/containers must already exist. Constructing a client does not probe

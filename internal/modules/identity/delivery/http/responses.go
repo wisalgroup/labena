@@ -102,7 +102,7 @@ type AssetResponse struct {
 	Filename     string            `json:"filename"`
 	ContentType  string            `json:"content_type"`
 	Size         int64             `json:"size"`
-	Status       media.AssetStatus `json:"status" enum:"pending,ready,deleting,deleted"`
+	Status       media.AssetStatus `json:"status" enum:"pending,ready,changing_visibility,deleting,deleted"`
 	CreatedAt    time.Time         `json:"created_at" format:"date-time"`
 }
 

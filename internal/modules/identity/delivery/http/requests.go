@@ -8,6 +8,7 @@ import (
 	"github.com/wisalgroup/labena/internal/modules/identity/service"
 	"github.com/wisalgroup/labena/internal/modules/shared/enums"
 	"github.com/wisalgroup/labena/internal/platform/api"
+	"github.com/wisalgroup/labena/internal/platform/media"
 )
 
 type GetUserRequest struct {
@@ -74,6 +75,13 @@ type TemporaryURLRequest struct {
 	AssetRequest
 	Body struct {
 		ExpiresIn int `json:"expires_in,omitempty" minimum:"1" maximum:"86400" default:"900" doc:"Link lifetime in seconds"`
+	}
+}
+
+type SetAssetVisibilityRequest struct {
+	AssetRequest
+	Body struct {
+		Visibility media.Visibility `json:"visibility" enum:"public,private"`
 	}
 }
 

@@ -26,6 +26,8 @@ func fixture(t *testing.T) string {
 		"internal/app/config/app.go":   "package config\ntype AppConfig struct { AppName string `env:\"APP_NAME\" envDefault:\"labena\"` }\n",
 		".env.quickstart.example":      "# Tutorial\nAPP_NAME=labena\nAUTH_ENABLED=false\n",
 		".env.example":                 "APP_NAME=labena\n",
+		"AGENTS.md":                    "# Project guidance\nRead docs/conventions.md.\n",
+		"CLAUDE.md":                    "# Project guidance\nRead docs/conventions.md.\n",
 		".gitignore":                   ".env\nprivate.txt\nbuild/\n",
 		"deployments/configuration.md": "| `APP_NAME` | `labena` |\n",
 		"deployments/compose.yaml":     "environment:\n  APP_NAME: \"labena\"\n",
@@ -88,6 +90,11 @@ func TestCreatesIndependentApplication(t *testing.T) {
 	for _, name := range []string{".git", "cmd/labena", "build", "private.txt"} {
 		if _, err := os.Lstat(filepath.Join(directory, name)); !os.IsNotExist(err) {
 			t.Fatalf("copied excluded path %s", name)
+		}
+	}
+	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
+		if read(t, directory, name) != read(t, options.Source, name) {
+			t.Fatalf("agent guidance changed during application creation: %s", name)
 		}
 	}
 	read(t, directory, "internal/app/config/uncommitted.go")

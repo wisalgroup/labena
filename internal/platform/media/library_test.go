@@ -40,9 +40,15 @@ func (r *assetRepo) Get(_ context.Context, owner Owner, id uuid.UUID) (*Asset, e
 	copy := *r.asset
 	return &copy, nil
 }
-func (r *assetRepo) MarkDeleting(context.Context, Owner, uuid.UUID) error {
-	r.asset.Status = AssetDeleting
-	return nil
+func (r *assetRepo) MarkDeleting(ctx context.Context, owner Owner, id uuid.UUID) (*Asset, error) {
+	a, err := r.Get(ctx, owner, id)
+	if err != nil {
+		return nil, err
+	}
+	if a.Status != AssetDeleted {
+		r.asset.Status = AssetDeleting
+	}
+	return r.Get(ctx, owner, id)
 }
 func (r *assetRepo) MarkDeleted(context.Context, uuid.UUID) error {
 	r.asset.Status = AssetDeleted
