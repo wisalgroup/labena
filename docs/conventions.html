@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=b8f98b16758ab6c6" defer></script>
+<script src="search-index.js?v=a9e46be462fe624f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -187,6 +187,7 @@ job, repository or interface just to fill out a directory structure.</p>
   mailviews/             Email content using the shared renderer
   integrations/          External provider integration
   domain/                Shared module policies and operation errors, if needed
+  seeders/               Named initial datasets, when needed
   migrations/            Module-owned SQL
 
 tests/&lt;module&gt;/           Business integration and public-behavior tests
@@ -445,7 +446,13 @@ transports. Validate required collaborators before mutation, register sequential
 and discard partial application construction on error. No discovery, reflection,
 service locator, module startup hooks or lazy application callbacks are needed.</p>
 <p>The intended registration location is <code>register.go</code> for HTTP, CLI, jobs, events,
-migrations. Scheduling is the intentional exception: app/schedules.go centrally
+migrations and seeders. Dedicated seeders live in a module&#39;s <code>seeders/</code> directory,
+with files named by dataset or purpose. Constructors receive individual services;
+services retain business rules and transaction boundaries. Register objects through
+<code>Targets.Seeders.Register</code> using the platform <code>Seeder</code> contract (<code>Name</code>, <code>Seed</code>),
+or existing methods through <code>RegisterFunc(name, fn)</code>. Both forms share a unique
+module-qualified namespace and execute only on explicit command invocation.
+Scheduling is the intentional exception: app/schedules.go centrally
 declares recurring timing, feature conditions and enqueue options using existing
 <code>asynqx.TaskSchedule</code> and <code>asynqx.CommandSchedule</code> definitions. Modules retain task
 handlers and command factories. App validates and installs schedules after module

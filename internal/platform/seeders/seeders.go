@@ -12,6 +12,13 @@ import (
 
 var validName = regexp.MustCompile(`^[a-z][a-z0-9_.-]{0,127}$`)
 
+// Seeder is a named, explicitly invoked initial-data operation.
+// Name must be stable and module-qualified. Seed must be safe to rerun.
+type Seeder interface {
+	Name() string
+	Seed(context.Context) error
+}
+
 // Registry's zero value is ready to use. Register during sequential module
 // assembly, then treat the registry as immutable. Seeders borrow dependencies
 // and must join their work before returning. They own their transaction scope
@@ -21,9 +28,18 @@ type Registry struct {
 	names      []string
 }
 
-// Register records an operation without executing it. Names must be unique;
-// prefer module-qualified names such as orders.example.
-func (r *Registry) Register(name string, run func(context.Context) error) error {
+// Register records a seeder without executing Seed. The seeder and any
+// dependencies it retains must be non-nil. Name is captured at registration.
+func (r *Registry) Register(seeder Seeder) error {
+	if seeder == nil {
+		return errors.New("seeders: a seeder is required")
+	}
+	return r.RegisterFunc(seeder.Name(), seeder.Seed)
+}
+
+// RegisterFunc records an operation without executing it. Names must be unique
+// across both registration forms; prefer module-qualified names like orders.example.
+func (r *Registry) RegisterFunc(name string, run func(context.Context) error) error {
 	if !validName.MatchString(name) || run == nil {
 		return errors.New("seeders: a valid name and operation are required")
 	}

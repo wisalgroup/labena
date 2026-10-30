@@ -24,6 +24,86 @@ The default total deadline is five minutes. Seeders receive the command context
 and its logger. CLI construction opens configured dependencies; executing a seeder
 does not start HTTP, queue workers, or event processing.
 
+## Register a module seeder
+
+Use `Register(seeder)` for a named object or `RegisterFunc(name, fn)` for an
+existing service method. Both forms share validation, execution and one namespace.
+Register each operation once, using either form.
+
+The shared contract lives in `internal/platform/seeders`:
+
+```go
+type Seeder interface {
+    Name() string
+    Seed(context.Context) error
+}
+```
+
+Put dedicated implementations in `internal/modules/<module>/seeders/`. Organize
+files by dataset or purpose, such as `defaults.go` or `demo_products.go`; a seeder
+can span several entities. Create the directory only when needed. Keep required
+defaults separate from optional demo data.
+
+The following is a proposed addition to the Catalog products tutorial. First add
+`SeedDefaults(context.Context) error` to the owner `service.ProductService`
+interface and implement it as shown below. Then create
+`internal/modules/catalog/seeders/defaults.go`:
+
+```go
+package seeders
+
+import (
+    "context"
+    "errors"
+
+    "github.com/wisalgroup/labena/internal/modules/catalog/service"
+    platformseeders "github.com/wisalgroup/labena/internal/platform/seeders"
+)
+
+type defaults struct {
+    products service.ProductService
+}
+
+func NewDefaults(products service.ProductService) (platformseeders.Seeder, error) {
+    if products == nil {
+        return nil, errors.New("catalog defaults: product service is required")
+    }
+    return &defaults{products: products}, nil
+}
+
+func (s *defaults) Name() string { return "catalog.defaults" }
+
+func (s *defaults) Seed(ctx context.Context) error {
+    return s.products.SeedDefaults(ctx)
+}
+```
+
+Construct and register it in the module's `register.go`, importing the module
+package as `catalogseeders`:
+
+```go
+if targets.Seeders != nil {
+    defaults, err := catalogseeders.NewDefaults(products)
+    if err != nil {
+        return err
+    }
+    if err := targets.Seeders.Register(defaults); err != nil {
+        return err
+    }
+}
+```
+
+Constructors receive individual services, validate required dependencies, and do
+no I/O. Reuse the service's owner interface; do not define another service contract
+in the seeder package. Pass initialized, non-nil implementations, including when
+using interface values. `Name` must be stable and side-effect-free; the registry
+captures it at registration. Only an explicit run invokes `Seed`.
+
+This small example delegates to one service operation. Use a dedicated seeder
+when it helps organize datasets or sequences of service calls. Business validation,
+SQL and transaction boundaries remain in services and repositories. For a single
+existing method, the function form below is sufficient.
+
 ## Register a service operation
 
 Extend the [Catalog products tutorial](database-queries.md) with a
@@ -34,7 +114,7 @@ repository, then register the bound method in `internal/modules/catalog/register
 ```go
 // Inside Register; products is the constructed ProductService.
 if targets.Seeders != nil {
-    if err := targets.Seeders.Register("catalog.defaults", products.SeedDefaults); err != nil {
+    if err := targets.Seeders.RegisterFunc("catalog.defaults", products.SeedDefaults); err != nil {
         return err
     }
 }
@@ -51,7 +131,7 @@ unique. A nil function or duplicate name is rejected during registration.
 
 Keep the SQL in the repository. Add `EnsureDefaults(ctx context.Context) error` to
 Catalog's `ProductRepository` and this method to
-`internal/modules/catalog/repository/product.go` from the query tutorial:
+`internal/modules/catalog/repository/products.go` from the query tutorial:
 
 ```go
 func (r *productRepository) EnsureDefaults(ctx context.Context) error {
@@ -74,7 +154,7 @@ converge on one row. Apply the tutorial's products migration first.
 The service operation delegates to its repository:
 
 ```go
-// In internal/modules/catalog/service/product.go; s.products is ProductRepository.
+// In internal/modules/catalog/service/products.go; s.products is ProductRepository.
 func (s *productService) SeedDefaults(ctx context.Context) error {
     if err := s.products.EnsureDefaults(ctx); err != nil {
         return err
@@ -128,7 +208,7 @@ explicit in the command or in one orchestrating operation.
 
 ## Own transaction boundaries
 
-A seeder with several dependent writes should use its injected transaction manager:
+A service operation with several dependent writes should use its injected transaction manager:
 
 ```go
 return s.transactions.Execute(ctx, func(ctx context.Context) error {

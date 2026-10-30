@@ -4,6 +4,16 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
+## Seeder registration forms
+
+Replace existing `registry.Register(name, fn)` calls with
+`registry.RegisterFunc(name, fn)`. `Register` now accepts a `seeders.Seeder`
+implementing `Name() string` and `Seed(context.Context) error`. Names and CLI
+commands are unchanged; do not register the same name through both forms.
+Dedicated implementations can live in the owning module's `seeders/` directory;
+see the [constructor example](seeders.md#register-a-module-seeder). This source API
+change requires no database migration or queued-payload conversion.
+
 ## Mutable media visibility
 
 Adopting the v0.3.0 visibility-change operation requires the additive media

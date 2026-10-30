@@ -75,6 +75,7 @@ internal/modules/<module>/
   mailviews/             Email content using the shared renderer
   integrations/          External provider integration
   domain/                Shared module policies and operation errors, if needed
+  seeders/               Named initial datasets, when needed
   migrations/            Module-owned SQL
 
 tests/<module>/           Business integration and public-behavior tests
@@ -278,7 +279,13 @@ and discard partial application construction on error. No discovery, reflection,
 service locator, module startup hooks or lazy application callbacks are needed.
 
 The intended registration location is `register.go` for HTTP, CLI, jobs, events,
-migrations. Scheduling is the intentional exception: app/schedules.go centrally
+migrations and seeders. Dedicated seeders live in a module's `seeders/` directory,
+with files named by dataset or purpose. Constructors receive individual services;
+services retain business rules and transaction boundaries. Register objects through
+`Targets.Seeders.Register` using the platform `Seeder` contract (`Name`, `Seed`),
+or existing methods through `RegisterFunc(name, fn)`. Both forms share a unique
+module-qualified namespace and execute only on explicit command invocation.
+Scheduling is the intentional exception: app/schedules.go centrally
 declares recurring timing, feature conditions and enqueue options using existing
 `asynqx.TaskSchedule` and `asynqx.CommandSchedule` definitions. Modules retain task
 handlers and command factories. App validates and installs schedules after module

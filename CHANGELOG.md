@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add the platform `seeders.Seeder` contract with `Name` and `Seed`, registered
+  through `Registry.Register`. Rename the previous name/function registration
+  method to `RegisterFunc`; existing callers must update that method name.
+  Both forms share validation and execution. Document module-owned `seeders/`
+  implementations with constructor-injected services. No schema or queued-payload
+  changes are required.
+
 ## v0.3.0 — 2026-10-25
 
 - Add owner-authorized media visibility changes through `Library.SetVisibility`,

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=b8f98b16758ab6c6" defer></script>
+<script src="search-index.js?v=a9e46be462fe624f" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Data and storage</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-module-seeder">Register a module seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav></details>
 <article><h1 id="seeders">Seeders</h1>
 <p>Seeders create or update deliberate initial data through named service operations.
 Run them explicitly from the CLI after applying migrations. They do not run during
@@ -106,6 +106,72 @@ go run ./cmd/cli seed catalog.defaults --timeout=10m
 <p>The default total deadline is five minutes. Seeders receive the command context
 and its logger. CLI construction opens configured dependencies; executing a seeder
 does not start HTTP, queue workers, or event processing.</p>
+<h2 id="register-a-module-seeder">Register a module seeder<a class="heading-link" href="#register-a-module-seeder" aria-label="Link to Register a module seeder">#</a></h2>
+<p>Use <code>Register(seeder)</code> for a named object or <code>RegisterFunc(name, fn)</code> for an
+existing service method. Both forms share validation, execution and one namespace.
+Register each operation once, using either form.</p>
+<p>The shared contract lives in <code>internal/platform/seeders</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">type</span> <span class="go-type">Seeder</span> <span class="go-keyword">interface</span> <span class="go-bracket-0">{</span>
+    Name<span class="go-bracket-1">(</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">string</span>
+    Seed<span class="go-bracket-1">(</span><span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Put dedicated implementations in <code>internal/modules/&lt;module&gt;/seeders/</code>. Organize
+files by dataset or purpose, such as <code>defaults.go</code> or <code>demo_products.go</code>; a seeder
+can span several entities. Create the directory only when needed. Keep required
+defaults separate from optional demo data.</p>
+<p>The following is a proposed addition to the Catalog products tutorial. First add
+<code>SeedDefaults(context.Context) error</code> to the owner <code>service.ProductService</code>
+interface and implement it as shown below. Then create
+<code>internal/modules/catalog/seeders/defaults.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">package</span> seeders
+
+<span class="go-keyword">import</span> <span class="go-bracket-0">(</span>
+    <span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">context</span><span class="go-string">&#34;</span>
+    <span class="go-string">&#34;</span><span class="go-import-path"></span><span class="go-import-name">errors</span><span class="go-string">&#34;</span>
+
+    <span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/modules/catalog/</span><span class="go-import-name">service</span><span class="go-string">&#34;</span>
+    <span class="go-package">platformseeders</span> <span class="go-string">&#34;</span><span class="go-import-path">github.com/wisalgroup/labena/internal/platform/</span><span class="go-import-name">seeders</span><span class="go-string">&#34;</span>
+<span class="go-bracket-0">)</span>
+
+<span class="go-keyword">type</span> <span class="go-type">defaults</span> <span class="go-keyword">struct</span> <span class="go-bracket-0">{</span>
+    products <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">ProductService</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-function">NewDefaults</span><span class="go-bracket-0">(</span><span class="go-parameter">products</span> <span class="go-type">service</span><span class="go-punctuation">.</span><span class="go-type">ProductService</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-type">platformseeders</span><span class="go-punctuation">.</span><span class="go-type">Seeder</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">if</span> <span class="go-parameter">products</span> <span class="go-operator">==</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-2">(</span><span class="go-string">&#34;catalog defaults: product service is required&#34;</span><span class="go-bracket-2">)</span>
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">return</span> <span class="go-operator">&amp;</span><span class="go-type">defaults</span><span class="go-bracket-1">{</span><span class="go-parameter">products</span><span class="go-punctuation">:</span> <span class="go-parameter">products</span><span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
+<span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>s <span class="go-operator">*</span><span class="go-type">defaults</span><span class="go-bracket-0">)</span> <span class="go-function">Name</span><span class="go-bracket-0">(</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">string</span> <span class="go-bracket-0">{</span> <span class="go-keyword">return</span> <span class="go-string">&#34;catalog.defaults&#34;</span> <span class="go-bracket-0">}</span>
+
+<span class="go-keyword">func</span> <span class="go-bracket-0">(</span>s <span class="go-operator">*</span><span class="go-type">defaults</span><span class="go-bracket-0">)</span> <span class="go-function">Seed</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> s<span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">SeedDefaults</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Construct and register it in the module&#39;s <code>register.go</code>, importing the module
+package as <code>catalogseeders</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    defaults<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">catalogseeders</span><span class="go-punctuation">.</span><span class="go-function">NewDefaults</span><span class="go-bracket-1">(</span>products<span class="go-bracket-1">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span>defaults<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-1">}</span>
+<span class="go-bracket-0">}</span>
+</code></pre>
+<p>Constructors receive individual services, validate required dependencies, and do
+no I/O. Reuse the service&#39;s owner interface; do not define another service contract
+in the seeder package. Pass initialized, non-nil implementations, including when
+using interface values. <code>Name</code> must be stable and side-effect-free; the registry
+captures it at registration. Only an explicit run invokes <code>Seed</code>.</p>
+<p>This small example delegates to one service operation. Use a dedicated seeder
+when it helps organize datasets or sequences of service calls. Business validation,
+SQL and transaction boundaries remain in services and repositories. For a single
+existing method, the function form below is sufficient.</p>
 <h2 id="register-a-service-operation">Register a service operation<a class="heading-link" href="#register-a-service-operation" aria-label="Link to Register a service operation">#</a></h2>
 <p>Extend the <a href="database-queries.html">Catalog products tutorial</a> with a
 <code>SeedDefaults(ctx context.Context) error</code> method on its <code>ProductService</code> interface
@@ -113,7 +179,7 @@ in <code>internal/modules/catalog/service/service.go</code>. Construct that serv
 repository, then register the bound method in <code>internal/modules/catalog/register.go</code>:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Inside Register; products is the constructed ProductService.</span>
 <span class="go-keyword">if</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
-    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders<span class="go-punctuation">.</span><span class="go-function">Register</span><span class="go-bracket-1">(</span><span class="go-string">&#34;catalog.defaults&#34;</span><span class="go-punctuation">,</span> <span class="go-package">products</span><span class="go-punctuation">.</span>SeedDefaults<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">targets</span><span class="go-punctuation">.</span>Seeders<span class="go-punctuation">.</span><span class="go-function">RegisterFunc</span><span class="go-bracket-1">(</span><span class="go-string">&#34;catalog.defaults&#34;</span><span class="go-punctuation">,</span> <span class="go-package">products</span><span class="go-punctuation">.</span>SeedDefaults<span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
         <span class="go-keyword">return</span> err
     <span class="go-bracket-1">}</span>
 <span class="go-bracket-0">}</span>
@@ -126,7 +192,7 @@ unique. A nil function or duplicate name is rejected during registration.</p>
 <h2 id="insert-defaults-safely">Insert defaults safely<a class="heading-link" href="#insert-defaults-safely" aria-label="Link to Insert defaults safely">#</a></h2>
 <p>Keep the SQL in the repository. Add <code>EnsureDefaults(ctx context.Context) error</code> to
 Catalog&#39;s <code>ProductRepository</code> and this method to
-<code>internal/modules/catalog/repository/product.go</code> from the query tutorial:</p>
+<code>internal/modules/catalog/repository/products.go</code> from the query tutorial:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-bracket-0">(</span>r <span class="go-operator">*</span><span class="go-type">productRepository</span><span class="go-bracket-0">)</span> <span class="go-function">EnsureDefaults</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
     executor<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">database</span><span class="go-punctuation">.</span><span class="go-function">Executor</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> r<span class="go-punctuation">.</span>db<span class="go-bracket-1">)</span>
     <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
@@ -143,7 +209,7 @@ Catalog&#39;s <code>ProductRepository</code> and this method to
 statement preserves an existing product. Its primary key makes concurrent runs
 converge on one row. Apply the tutorial&#39;s products migration first.</p>
 <p>The service operation delegates to its repository:</p>
-<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// In internal/modules/catalog/service/product.go; s.products is ProductRepository.</span>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// In internal/modules/catalog/service/products.go; s.products is ProductRepository.</span>
 <span class="go-keyword">func</span> <span class="go-bracket-0">(</span>s <span class="go-operator">*</span><span class="go-type">productService</span><span class="go-bracket-0">)</span> <span class="go-function">SeedDefaults</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-0">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-0">{</span>
     <span class="go-keyword">if</span> err <span class="go-operator">:=</span> s<span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">EnsureDefaults</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
         <span class="go-keyword">return</span> err
@@ -201,7 +267,7 @@ requested order and stop on the first error or cancellation.</p>
 selection, retry, rollback, or once-only tracking. If order matters, make it
 explicit in the command or in one orchestrating operation.</p>
 <h2 id="own-transaction-boundaries">Own transaction boundaries<a class="heading-link" href="#own-transaction-boundaries" aria-label="Link to Own transaction boundaries">#</a></h2>
-<p>A seeder with several dependent writes should use its injected transaction manager:</p>
+<p>A service operation with several dependent writes should use its injected transaction manager:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">s</span><span class="go-punctuation">.</span>transactions<span class="go-punctuation">.</span><span class="go-function">Execute</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
     <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">EnsureDefaults</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-bracket-2">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-2">{</span>
         <span class="go-keyword">return</span> err
@@ -259,7 +325,7 @@ coverage in <code>tests/catalog</code>, not the service or repository package.</
 </nav>
 <footer><a data-markdown href="markdown/seeders.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/seeders.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#run-a-seeder">Run a seeder</a></li><li class="toc-level-2"><a href="#register-a-module-seeder">Register a module seeder</a></li><li class="toc-level-2"><a href="#register-a-service-operation">Register a service operation</a></li><li class="toc-level-2"><a href="#insert-defaults-safely">Insert defaults safely</a></li><li class="toc-level-3"><a href="#choose-a-rerun-policy">Choose a rerun policy</a></li><li class="toc-level-2"><a href="#run-several-seeders">Run several seeders</a></li><li class="toc-level-2"><a href="#own-transaction-boundaries">Own transaction boundaries</a></li><li class="toc-level-2"><a href="#verify-and-troubleshoot">Verify and troubleshoot</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/seeders.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

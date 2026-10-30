@@ -24,6 +24,7 @@ internal/
         <use_case>.go             Optional large use case on the same receiver
       delivery/{http,cli,events,jobs}/
       domain/                     Module policies and errors, when needed
+      seeders/                    Named initial datasets, when needed
       migrations/                 Module-owned SQL
     shared/                       Shared business entities, enums and events
   platform/                       Technical capabilities supporting modules
@@ -95,3 +96,10 @@ transaction and verification rules. Check interface placement, plural entity
 filenames, private implementation types and constructor return types for every
 repository/service added or reorganized. Keep both agent files identical and
 regenerate the documentation site after changing its source guides.
+
+Dedicated seeders live in `internal/modules/<module>/seeders/`, with files named by
+dataset or purpose. Constructors receive individual services; services retain
+business rules and transaction boundaries. Register them in the module's
+`register.go` through `Targets.Seeders.Register(Seeder)` or
+`RegisterFunc(name, fn)`. Use stable module-qualified names and safe rerun behavior;
+registration never executes seed work.

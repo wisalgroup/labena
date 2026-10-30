@@ -14,7 +14,7 @@ func TestRegistryExecution(t *testing.T) {
 	var called []string
 	want := errors.New("seed failure")
 	for _, name := range []string{"orders", "products", "failed"} {
-		if err := registry.Register(name, func(context.Context) error {
+		if err := registry.RegisterFunc(name, func(context.Context) error {
 			called = append(called, name)
 			if name == "failed" {
 				return want
@@ -58,17 +58,17 @@ func TestRegistryExecution(t *testing.T) {
 func TestValidationAndCancellation(t *testing.T) {
 	var registry seeders.Registry
 	for _, name := range []string{"", "bad name", "../path"} {
-		if err := registry.Register(name, func(context.Context) error { return nil }); err == nil {
+		if err := registry.RegisterFunc(name, func(context.Context) error { return nil }); err == nil {
 			t.Fatal("accepted", name)
 		}
 	}
-	if err := registry.Register("nil", nil); err == nil {
+	if err := registry.RegisterFunc("nil", nil); err == nil {
 		t.Fatal("accepted nil operation")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	called := 0
-	if err := registry.Register("first", func(got context.Context) error {
+	if err := registry.RegisterFunc("first", func(got context.Context) error {
 		if got != ctx {
 			t.Error("wrong context")
 		}
@@ -78,10 +78,10 @@ func TestValidationAndCancellation(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := registry.Register("first", func(context.Context) error { return nil }); err == nil {
+	if err := registry.RegisterFunc("first", func(context.Context) error { return nil }); err == nil {
 		t.Fatal("accepted duplicate")
 	}
-	if err := registry.Register("second", func(context.Context) error { called++; return nil }); err != nil {
+	if err := registry.RegisterFunc("second", func(context.Context) error { called++; return nil }); err != nil {
 		t.Fatal(err)
 	}
 	if err := registry.Run(ctx, "first", "second"); !errors.Is(err, context.Canceled) || called != 1 {
@@ -89,5 +89,68 @@ func TestValidationAndCancellation(t *testing.T) {
 	}
 	if err := registry.Run(ctx, "first"); !errors.Is(err, context.Canceled) || called != 1 {
 		t.Fatal(called, err)
+	}
+}
+
+// namedOperation lets the registry tests mix both public registration forms.
+type namedOperation struct {
+	name string
+	run  func(context.Context) error
+}
+
+func (s namedOperation) Name() string                   { return s.name }
+func (s namedOperation) Seed(ctx context.Context) error { return s.run(ctx) }
+
+func TestMixedRegistration(t *testing.T) {
+	var registry seeders.Registry
+	var calls []string
+	ctx := context.Background()
+	want := errors.New("seed failed")
+	operation := namedOperation{"catalog.defaults", func(got context.Context) error {
+		if got != ctx {
+			t.Fatal("context was replaced")
+		}
+		calls = append(calls, "defaults")
+		return want
+	}}
+	if err := registry.Register(operation); err != nil {
+		t.Fatal(err)
+	}
+	if err := registry.RegisterFunc("catalog.demo", func(context.Context) error {
+		calls = append(calls, "demo")
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if len(calls) != 0 {
+		t.Fatal("registration executed operations")
+	}
+	if err := registry.RegisterFunc("catalog.defaults", operation.Seed); err == nil {
+		t.Fatal("accepted duplicate object name")
+	}
+	if err := registry.Register(namedOperation{"catalog.demo", operation.Seed}); err == nil {
+		t.Fatal("accepted duplicate function name")
+	}
+	if !reflect.DeepEqual(registry.Names(), []string{"catalog.defaults", "catalog.demo"}) {
+		t.Fatal(registry.Names())
+	}
+	if err := registry.Run(ctx, "catalog.demo", "catalog.defaults"); !errors.Is(err, want) {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(calls, []string{"demo", "defaults"}) {
+		t.Fatal(calls)
+	}
+}
+
+func TestInvalidSeeder(t *testing.T) {
+	var registry seeders.Registry
+	if err := registry.Register(nil); err == nil {
+		t.Fatal("accepted nil seeder")
+	}
+	if err := registry.Register(namedOperation{"bad name", func(context.Context) error { return nil }}); err == nil {
+		t.Fatal("accepted invalid seeder name")
+	}
+	if len(registry.Names()) != 0 {
+		t.Fatal("invalid registration mutated names")
 	}
 }

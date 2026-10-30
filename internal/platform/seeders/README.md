@@ -2,11 +2,21 @@
 
 A seeder is an explicitly invoked operation that inserts or updates initial data.
 It is separate from a migration and has no automatic version history. Modules
-register named functions inside the module's Register function; registration never runs them.
+register objects or named functions inside the module's Register function;
+registration never runs them. Dedicated implementations live in
+`internal/modules/<module>/seeders/`, grouped by dataset or purpose. Their
+constructors receive individual services; services retain business rules and
+transaction boundaries.
 
 ```go
-return deps.Seeders.Register("catalog.defaults", svc.SeedDefaults)
+// Choose one form for each unique name.
+err := targets.Seeders.Register(defaults) // Implements Name() string and Seed(context.Context) error.
+err = targets.Seeders.RegisterFunc("catalog.defaults", svc.SeedDefaults)
 ```
+
+Both forms share name validation and duplicate detection. `Register` captures the
+name without executing `Seed`. Pass non-nil implementations and dependencies.
+See the [constructor-injected module example](../../../docs/seeders.md#register-a-module-seeder).
 
 ```sh
 go run ./cmd/cli seed                         # List names; run nothing
