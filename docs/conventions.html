@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=a9e46be462fe624f" defer></script>
+<script src="search-index.js?v=b4a06c61b47fc560" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>Architecture</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-3"><a href="#name-folders-by-what-they-represent">Name folders by what they represent</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav></details>
 <article><h1 id="project-conventions">Project conventions</h1>
 <p>This is the canonical architecture guide for contributors. Follow its rules for
 new code and refactoring. The other guides explain usage; they should not introduce
@@ -196,6 +196,71 @@ tests/&lt;module&gt;/           Business integration and public-behavior tests
 can start with a single <code>Register</code> function in <code>register.go</code>. A larger use case
 can occupy another file without creating another service. Keep nested module
 folders; do not flatten them or introduce a service per table or endpoint.</p>
+<h3 id="name-folders-by-what-they-represent">Name folders by what they represent<a class="heading-link" href="#name-folders-by-what-they-represent" aria-label="Link to Name folders by what they represent">#</a></h3>
+<p>Use singular names for architectural layers or areas of responsibility, and plural
+names for collections of concrete components or artifacts. This is the project&#39;s
+naming convention, not a Go language requirement. The distinction describes the
+package&#39;s role; it does not depend on how many types or files it contains.</p>
+<table>
+<thead>
+<tr>
+<th>Folder kind</th>
+<th>Preferred names</th>
+<th>What the name communicates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architectural layer</td>
+<td><code>service</code>, <code>repository</code>, <code>delivery</code></td>
+<td>Business operations, persistence, or transport delivery as a responsibility</td>
+</tr>
+<tr>
+<td>Policy area</td>
+<td><code>domain</code></td>
+<td>The module&#39;s policies and errors</td>
+</tr>
+<tr>
+<td>Collection of implementations</td>
+<td><code>seeders</code>, <code>integrations</code></td>
+<td>Named seed operations or external-provider integrations</td>
+</tr>
+<tr>
+<td>Collection of artifacts</td>
+<td><code>jobs</code>, <code>notifications</code>, <code>mailviews</code>, <code>migrations</code></td>
+<td>Task payloads, notification definitions, email views, or SQL migrations</td>
+</tr>
+<tr>
+<td>Transport or handler category</td>
+<td><code>delivery/http</code>, <code>delivery/cli</code>, <code>delivery/events</code>, <code>delivery/jobs</code></td>
+<td>A protocol/tool name, or the collection of events/jobs being handled</td>
+</tr>
+</tbody>
+</table>
+<p>For example, <code>service</code> can contain several services and <code>repository</code> can contain
+several repositories. Keep these layer names singular: <code>service.ProductService</code>
+and <code>repository.ProductRepository</code>. A module&#39;s <code>seeders</code> package groups executable
+seeders, so <code>seeders.NewDefaults(products)</code> reads naturally. Prefer <code>seeders</code> over
+<code>seeds</code> for these implementations; <code>seeds</code> suggests datasets or fixture files,
+while <code>seed</code> is the CLI command.</p>
+<p>Folder, filename and Go identifier naming are separate choices:</p>
+<pre><code class="language-text">catalog/
+  service/
+    service.go          ProductService interface
+    products.go         productService and NewProductService
+  repository/
+    repository.go       ProductRepository interface
+    products.go         productRepository and NewProductRepository
+  seeders/
+    defaults.go         defaults seeder and NewDefaults
+</code></pre>
+<p>Entity implementation filenames remain plural (<code>products.go</code>), while Go type and
+constructor subjects remain singular (<code>ProductService</code>, <code>NewProductService</code>).
+Seeder filenames describe their dataset or purpose (<code>defaults.go</code>,
+<code>demo_products.go</code>); they need not map one-to-one to entities. Capability names
+such as <code>auth.go</code> retain their meaningful names. Do not pluralize every package or
+create empty folders for consistency; choose from the established module layout
+when real behavior needs it.</p>
 <h2 id="3-type-ownership">3. Type ownership<a class="heading-link" href="#3-type-ownership" aria-label="Link to 3. Type ownership">#</a></h2>
 <table>
 <thead>
@@ -606,7 +671,7 @@ check cannot prove business correctness or safe authorization.</p>
 </nav>
 <footer><a data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#read-this-alongside-the-guides">Read this alongside the guides</a></li><li class="toc-level-2"><a href="#1-package-responsibilities">1. Package responsibilities</a></li><li class="toc-level-2"><a href="#2-one-business-module-shape">2. One business-module shape</a></li><li class="toc-level-3"><a href="#name-folders-by-what-they-represent">Name folders by what they represent</a></li><li class="toc-level-2"><a href="#3-type-ownership">3. Type ownership</a></li><li class="toc-level-2"><a href="#4-contracts-and-names">4. Contracts and names</a></li><li class="toc-level-3"><a href="#mandatory-module-contract-and-implementation-layout">Mandatory module contract and implementation layout</a></li><li class="toc-level-2"><a href="#5-construction-registration-and-lifetime">5. Construction, registration and lifetime</a></li><li class="toc-level-2"><a href="#6-transactions-errors-and-delivery">6. Transactions, errors and delivery</a></li><li class="toc-level-2"><a href="#verification-and-change-discipline">Verification and change discipline</a></li><li class="toc-level-2"><a href="#automated-checks">Automated checks</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/conventions.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

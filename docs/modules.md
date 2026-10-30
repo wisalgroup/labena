@@ -134,10 +134,10 @@ internal/modules/catalog/
   register.go
   service/
     service.go       Public business interface
-    product.go       Private implementation and constructor
+    products.go      Private implementation and constructor
   repository/
     repository.go    Persistence interface
-    product.go       Queries, implementation and constructor
+    products.go      Queries, implementation and constructor
   delivery/
     http/            Requests, responses, handlers and registration
 ```
@@ -170,13 +170,20 @@ A substantial method can move to a separate file without creating a new service:
 ```text
 service/
   service.go        ProductService interface
-  product.go        productService and NewProductService
+  products.go       productService and NewProductService
   import.go         Import method on *productService
 ```
 
 Constructors stay beside implementations. Contracts stay with their owners in
 `service/service.go` and `repository/repository.go`. Consumers import those
 contracts rather than redefining them or using a global contracts directory.
+
+Keep the architectural layer folders `service`, `repository` and `delivery`
+singular, regardless of how many implementations they contain. Use plural names
+for collections such as `seeders`, `jobs`, `notifications` and `migrations`.
+Entity implementation files remain plural (`products.go`), while Go type subjects
+remain singular (`ProductService`). See [folder naming](conventions.html#name-folders-by-what-they-represent)
+for the distinction between layers, concrete components and filenames.
 
 Services receive narrow dependencies; only module assembly receives the complete
 Resources bundle. See [dependency injection](dependency-injection.html).

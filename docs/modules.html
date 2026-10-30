@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=a9e46be462fe624f" defer></script>
+<script src="search-index.js?v=b4a06c61b47fc560" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -207,10 +207,10 @@ and passed explicitly, as with Identity authentication:</p>
   register.go
   service/
     service.go       Public business interface
-    product.go       Private implementation and constructor
+    products.go      Private implementation and constructor
   repository/
     repository.go    Persistence interface
-    product.go       Queries, implementation and constructor
+    products.go      Queries, implementation and constructor
   delivery/
     http/            Requests, responses, handlers and registration
 </code></pre>
@@ -272,12 +272,18 @@ handlers; app owns when recurring work runs. Details are in
 <p>A substantial method can move to a separate file without creating a new service:</p>
 <pre><code class="language-text">service/
   service.go        ProductService interface
-  product.go        productService and NewProductService
+  products.go       productService and NewProductService
   import.go         Import method on *productService
 </code></pre>
 <p>Constructors stay beside implementations. Contracts stay with their owners in
 <code>service/service.go</code> and <code>repository/repository.go</code>. Consumers import those
 contracts rather than redefining them or using a global contracts directory.</p>
+<p>Keep the architectural layer folders <code>service</code>, <code>repository</code> and <code>delivery</code>
+singular, regardless of how many implementations they contain. Use plural names
+for collections such as <code>seeders</code>, <code>jobs</code>, <code>notifications</code> and <code>migrations</code>.
+Entity implementation files remain plural (<code>products.go</code>), while Go type subjects
+remain singular (<code>ProductService</code>). See <a href="conventions.html#name-folders-by-what-they-represent">folder naming</a>
+for the distinction between layers, concrete components and filenames.</p>
 <p>Services receive narrow dependencies; only module assembly receives the complete
 Resources bundle. See <a href="dependency-injection.html">dependency injection</a>.</p>
 <h2 id="learn-from-an-existing-operation">Learn from an existing operation<a class="heading-link" href="#learn-from-an-existing-operation" aria-label="Link to Learn from an existing operation">#</a></h2>

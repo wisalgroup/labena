@@ -35,6 +35,13 @@ tests/<owner>/                    App and business integration/behavior tests
 Create only the directories needed by real behavior. Keep nested business modules;
 `modules/shared` contains definitions and is not a registrable module.
 
+Name architectural layers and responsibility areas in the singular: `service`,
+`repository`, `delivery`, `domain`. Use plural names for collections of components
+or artifacts: `seeders`, `jobs`, `notifications`, `mailviews`, `integrations`,
+`migrations`. This describes package roles, not type counts. Keep entity filenames
+plural and Go type/constructor subjects singular; name seeder files by purpose.
+See the canonical guide's folder naming table for examples.
+
 ## Mandatory repository and service rules
 
 - Define **all module repository interfaces** in

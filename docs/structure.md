@@ -138,13 +138,14 @@ internal/modules/<module>/
   domain/                 Policies and operation errors
   service/
     service.go            Public business-service interfaces
-    user.go, auth.go       Private implementations and constructors
+    users.go, auth.go      Private implementations and constructors
     verification.go       Related methods on the same service receiver
     session.go            Substantial authentication use cases
   repository/
     repository.go         Focused persistence interfaces
-    user.go, ...          Private repositories, constructors and queries
+    users.go, ...         Private repositories, constructors and queries
     transaction.go        Shared transaction helpers
+  seeders/                Named initial-data operations, grouped by purpose
   migrations/             Embedded module-owned SQL
   jobs/                   Native Asynq task types, payloads and constructors
   notifications/          Business notification content and channel choices
@@ -161,6 +162,23 @@ Create only the directories your behavior needs. A matching interface for every
 struct, a module registry, and a generic repository are not required. Service and
 repository directories contain production code only; Identity's public-behavior
 and persistence tests live under `tests/identity`.
+
+## Why some folder names are singular and others plural
+
+`service`, `repository` and `delivery` name architectural layers; `domain` names
+a policy area. Keep those names singular even when the package contains several
+implementations. `seeders`, `jobs`, `notifications`, `mailviews`, `integrations`
+and `migrations` name collections of concrete components or artifacts.
+
+For example, `service/products.go` implements `service.ProductService`, while
+`seeders/defaults.go` defines a named seeder constructed with `seeders.NewDefaults`.
+The folder describes its role, the file describes its entity or purpose, and the
+Go identifier names a single service or repository. `http` and `cli` retain their
+protocol/tool names; `delivery/events` and `delivery/jobs` group handlers.
+
+This is a project convention, not a requirement to make all Go packages singular
+or plural. See the [folder naming table](conventions.html#name-folders-by-what-they-represent)
+for the full rationale and examples.
 
 ## Preserve ownership across shared definitions
 

@@ -86,6 +86,50 @@ can start with a single `Register` function in `register.go`. A larger use case
 can occupy another file without creating another service. Keep nested module
 folders; do not flatten them or introduce a service per table or endpoint.
 
+### Name folders by what they represent
+
+Use singular names for architectural layers or areas of responsibility, and plural
+names for collections of concrete components or artifacts. This is the project's
+naming convention, not a Go language requirement. The distinction describes the
+package's role; it does not depend on how many types or files it contains.
+
+| Folder kind | Preferred names | What the name communicates |
+| --- | --- | --- |
+| Architectural layer | `service`, `repository`, `delivery` | Business operations, persistence, or transport delivery as a responsibility |
+| Policy area | `domain` | The module's policies and errors |
+| Collection of implementations | `seeders`, `integrations` | Named seed operations or external-provider integrations |
+| Collection of artifacts | `jobs`, `notifications`, `mailviews`, `migrations` | Task payloads, notification definitions, email views, or SQL migrations |
+| Transport or handler category | `delivery/http`, `delivery/cli`, `delivery/events`, `delivery/jobs` | A protocol/tool name, or the collection of events/jobs being handled |
+
+For example, `service` can contain several services and `repository` can contain
+several repositories. Keep these layer names singular: `service.ProductService`
+and `repository.ProductRepository`. A module's `seeders` package groups executable
+seeders, so `seeders.NewDefaults(products)` reads naturally. Prefer `seeders` over
+`seeds` for these implementations; `seeds` suggests datasets or fixture files,
+while `seed` is the CLI command.
+
+Folder, filename and Go identifier naming are separate choices:
+
+```text
+catalog/
+  service/
+    service.go          ProductService interface
+    products.go         productService and NewProductService
+  repository/
+    repository.go       ProductRepository interface
+    products.go         productRepository and NewProductRepository
+  seeders/
+    defaults.go         defaults seeder and NewDefaults
+```
+
+Entity implementation filenames remain plural (`products.go`), while Go type and
+constructor subjects remain singular (`ProductService`, `NewProductService`).
+Seeder filenames describe their dataset or purpose (`defaults.go`,
+`demo_products.go`); they need not map one-to-one to entities. Capability names
+such as `auth.go` retain their meaningful names. Do not pluralize every package or
+create empty folders for consistency; choose from the established module layout
+when real behavior needs it.
+
 ## 3. Type ownership
 
 | Type | Location |
