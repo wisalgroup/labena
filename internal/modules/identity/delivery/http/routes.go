@@ -65,11 +65,11 @@ func registerAuth(public, protected huma.API, svc service.AuthService, social bo
 		op.Responses["201"] = &created
 	})
 
-	huma.Register(routes, huma.Operation{OperationID: "identity.requestSignIn", Method: "POST", Path: "/auth/otp/send", Summary: "Send a passwordless sign-in code", DefaultStatus: 202, MaxBodyBytes: 1024}, h.requestSignIn)
-	huma.Register(signIns, huma.Operation{OperationID: "identity.confirmSignIn", Method: "POST", Path: "/auth/otp/verify", Summary: "Sign in or create an account with an email code", MaxBodyBytes: 2048}, h.confirmSignIn)
+	huma.Register(routes, huma.Operation{OperationID: "identity.requestSignIn", Method: "POST", Path: "/auth/otp/send", Summary: "Send Email OTP", DefaultStatus: 202, MaxBodyBytes: 1024}, h.requestSignIn)
+	huma.Register(signIns, huma.Operation{OperationID: "identity.confirmSignIn", Method: "POST", Path: "/auth/otp/verify", Summary: "Verify OTP and Sign In / Sign Up", MaxBodyBytes: 2048}, h.confirmSignIn)
 	huma.Register(routes, huma.Operation{OperationID: "identity.refresh", Method: "POST", Path: "/auth/refresh", Summary: "Rotate a refresh token", MaxBodyBytes: 1024}, h.refresh)
 	if social {
-		huma.Register(signIns, huma.Operation{OperationID: "identity.socialSignIn", Method: "POST", Path: "/auth/social/{provider}", Summary: "Sign in with a provider ID token", MaxBodyBytes: 20 * 1024}, h.socialSignIn)
+		huma.Register(signIns, huma.Operation{OperationID: "identity.socialSignIn", Method: "POST", Path: "/auth/social/{provider}", Summary: "Social Sign In / Sign Up", MaxBodyBytes: 20 * 1024}, h.socialSignIn)
 	}
 	if protected == nil {
 		return
