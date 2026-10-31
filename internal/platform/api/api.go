@@ -16,6 +16,20 @@ import (
 	"github.com/wisalgroup/labena/internal/platform/api/response"
 )
 
+const (
+	defaultTitle               = "Application API"
+	defaultVersion             = "dev"
+	defaultAPIVersion          = "v1"
+	invalidTrustedProxyMessage = "api: invalid trusted proxy CIDR"
+	jsonMediaType              = "application/json"
+	jsonFormatName             = "json"
+	bearerSecurityScheme       = "Bearer"
+	httpSecuritySchemeType     = "http"
+	bearerScheme               = "bearer"
+	jwtBearerFormat            = "JWT"
+	disabledEndpointPath       = ""
+)
+
 // Options configures a server without starting a listener. Zero values are usable.
 // Middleware contains standard net/http middleware and runs inside observability.
 type Options struct {
@@ -47,31 +61,31 @@ type Server struct {
 // New creates an API with safe defaults and live documentation. It starts no I/O.
 func New(options Options) (*Server, error) {
 	if options.Title == "" {
-		options.Title = "Application API"
+		options.Title = defaultTitle
 	}
 	if options.Version == "" {
-		options.Version = "dev"
+		options.Version = defaultVersion
 	}
 	options.TrustedProxies = slices.Clone(options.TrustedProxies)
 	for _, prefix := range options.TrustedProxies {
 		if !validProxyPrefix(prefix) {
-			return nil, errors.New("api: invalid trusted proxy CIDR")
+			return nil, errors.New(invalidTrustedProxyMessage)
 		}
 	}
 	if options.APIVersion == "" {
-		options.APIVersion = "v1"
+		options.APIVersion = defaultAPIVersion
 	}
 	config := huma.DefaultConfig(options.Title, options.Version)
 	// Keep response bodies identical to their Go types; schemas remain in OpenAPI.
 	config.CreateHooks = nil
-	config.SchemasPath = ""
-	config.DocsPath, config.OpenAPIPath = "", ""
-	config.Formats = map[string]huma.Format{"application/json": {Marshal: huma.DefaultJSONFormat.Marshal, Unmarshal: decodeJSON}, "json": {Marshal: huma.DefaultJSONFormat.Marshal, Unmarshal: decodeJSON}}
-	config.DefaultFormat = "application/json"
+	config.SchemasPath = disabledEndpointPath
+	config.DocsPath, config.OpenAPIPath = disabledEndpointPath, disabledEndpointPath
+	config.Formats = map[string]huma.Format{jsonMediaType: {Marshal: huma.DefaultJSONFormat.Marshal, Unmarshal: decodeJSON}, jsonFormatName: {Marshal: huma.DefaultJSONFormat.Marshal, Unmarshal: decodeJSON}}
+	config.DefaultFormat = jsonMediaType
 	config.Transformers = []huma.Transformer{response.Transform}
 	// Document problem details and optional meta without changing Huma's global hooks.
 	config.Components.Schemas.RegisterTypeAlias(reflect.TypeFor[huma.ErrorModel](), reflect.TypeFor[response.Problem]())
-	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{"Bearer": {Type: "http", Scheme: "bearer", BearerFormat: "JWT"}}
+	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{bearerSecurityScheme: {Type: httpSecuritySchemeType, Scheme: bearerScheme, BearerFormat: jwtBearerFormat}}
 	mux := http.NewServeMux()
 	server := &Server{API: humago.New(mux, config), Mux: mux}
 	server.UseMiddleware(requestEncoding(server))
