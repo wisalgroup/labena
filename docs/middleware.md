@@ -15,6 +15,46 @@ the status already committed; an aborted transport is marked separately.
 Upgrades record handler lifetime rather than individual messages. Redirects and
 unmatched routes also pass through the same policies. Logging lives in `api/http.go`. See [logging](logging.md) for output settings.
 
+## Middleware ownership
+
+Reusable HTTP middleware lives in `internal/platform/api/middleware`, with
+purpose-named files such as `auth.go`, `cache.go`, `ratelimit.go` and
+`multipart.go`. Add shared HTTP policies there; keep module-specific business
+checks in the owning module's `delivery/http`. Use the native Huma or standard
+`net/http` middleware function signature rather than introducing another interface.
+
+The API package owns server construction, trusted-proxy resolution and its private
+request pipeline. It may import `middleware`; middleware must not import its
+parent `api` package. `api.Authenticated` remains the group composition helper
+that combines `middleware.Bearer` with the OpenAPI security declaration.
+The server's `api.ClientIPKey` and `api.PeerIPKey` can be passed to
+`middleware.RateLimit`; trusted proxy configuration remains owned by the server.
+
+Import `github.com/wisalgroup/labena/internal/platform/api/middleware`:
+
+```go
+// Apply to sensitive public routes before other middleware that may reject.
+signIn := huma.NewGroup(public, "/sign-in")
+signIn.UseMiddleware(middleware.NoStore)
+
+// App composition applies the broad rate limit.
+public.UseMiddleware(middleware.RateLimit(limiter, limit, api.ClientIPKey))
+```
+
+These snippets show registration patterns; register middleware before the affected
+operations. `NoStore` sets `Cache-Control: no-store` before calling the next
+middleware, so downstream errors receive it too. `Bearer` includes the same
+policy even when used directly. Do not disable caching globally merely to cover
+sensitive routes: docs, public content and administrative endpoints own their policies.
+
+Principal data and transport-independent helpers live in `internal/platform/auth`:
+`Authenticator`, `Principal`, `FromContext`, `CurrentUserID` and
+`RequireCurrentUser`. Only trusted authentication code should call
+`auth.WithPrincipal`, after credential verification. It copies identity into a
+child context without dropping cancellation; it does not authenticate a request.
+Lookup rejects missing or incomplete principals. User loading and session/business
+rules remain with Identity services.
+
 ## Write and scope middleware
 
 A module can add bounded context fields:
@@ -102,8 +142,8 @@ when an operation panics or aborts a stream.
 `api.Authenticated` combines bearer enforcement and its OpenAPI security declaration.
 It fails closed with a nil authenticator, preserves operational authentication errors,
 and accepts credentials only from one Authorization header. A trusted principal
-lives in `context.Context`; handlers use `api.Principal`, `CurrentUserID` or
-`RequireCurrentUser`. A principal is not automatic permission to access another user's resource.
+lives in `context.Context`; handlers use `auth.FromContext`, `auth.CurrentUserID` or
+`auth.RequireCurrentUser`. A principal is not automatic permission to access another user's resource.
 
 Broad limits use the direct connection address, hashed before it becomes a key.
 Forwarding headers cannot alter the budget. Identity also has explicit service-level

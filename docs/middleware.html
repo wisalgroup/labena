@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
+<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>HTTP APIs</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#middleware-ownership">Middleware ownership</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav></details>
 <article><h1 id="middleware">Middleware</h1>
 <p>Application middleware uses Huma&#39;s <code>func(huma.Context, func(huma.Context))</code> shape.
 Server-wide policies use standard <code>func(http.Handler) http.Handler</code> middleware.</p>
@@ -102,6 +102,38 @@ request/trace correlation. Raw paths, query strings, headers and bodies are excl
 the status already committed; an aborted transport is marked separately.
 Upgrades record handler lifetime rather than individual messages. Redirects and
 unmatched routes also pass through the same policies. Logging lives in <code>api/http.go</code>. See <a href="logging.html">logging</a> for output settings.</p>
+<h2 id="middleware-ownership">Middleware ownership<a class="heading-link" href="#middleware-ownership" aria-label="Link to Middleware ownership">#</a></h2>
+<p>Reusable HTTP middleware lives in <code>internal/platform/api/middleware</code>, with
+purpose-named files such as <code>auth.go</code>, <code>cache.go</code>, <code>ratelimit.go</code> and
+<code>multipart.go</code>. Add shared HTTP policies there; keep module-specific business
+checks in the owning module&#39;s <code>delivery/http</code>. Use the native Huma or standard
+<code>net/http</code> middleware function signature rather than introducing another interface.</p>
+<p>The API package owns server construction, trusted-proxy resolution and its private
+request pipeline. It may import <code>middleware</code>; middleware must not import its
+parent <code>api</code> package. <code>api.Authenticated</code> remains the group composition helper
+that combines <code>middleware.Bearer</code> with the OpenAPI security declaration.
+The server&#39;s <code>api.ClientIPKey</code> and <code>api.PeerIPKey</code> can be passed to
+<code>middleware.RateLimit</code>; trusted proxy configuration remains owned by the server.</p>
+<p>Import <code>github.com/wisalgroup/labena/internal/platform/api/middleware</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-comment">// Apply to sensitive public routes before other middleware that may reject.</span>
+signIn <span class="go-operator">:=</span> <span class="go-package">huma</span><span class="go-punctuation">.</span><span class="go-function">NewGroup</span><span class="go-bracket-0">(</span>public<span class="go-punctuation">,</span> <span class="go-string">&#34;/sign-in&#34;</span><span class="go-bracket-0">)</span>
+signIn<span class="go-punctuation">.</span><span class="go-function">UseMiddleware</span><span class="go-bracket-0">(</span><span class="go-package">middleware</span><span class="go-punctuation">.</span>NoStore<span class="go-bracket-0">)</span>
+
+<span class="go-comment">// App composition applies the broad rate limit.</span>
+<span class="go-package">public</span><span class="go-punctuation">.</span><span class="go-function">UseMiddleware</span><span class="go-bracket-0">(</span><span class="go-package">middleware</span><span class="go-punctuation">.</span><span class="go-function">RateLimit</span><span class="go-bracket-1">(</span>limiter<span class="go-punctuation">,</span> limit<span class="go-punctuation">,</span> <span class="go-package">api</span><span class="go-punctuation">.</span>ClientIPKey<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>These snippets show registration patterns; register middleware before the affected
+operations. <code>NoStore</code> sets <code>Cache-Control: no-store</code> before calling the next
+middleware, so downstream errors receive it too. <code>Bearer</code> includes the same
+policy even when used directly. Do not disable caching globally merely to cover
+sensitive routes: docs, public content and administrative endpoints own their policies.</p>
+<p>Principal data and transport-independent helpers live in <code>internal/platform/auth</code>:
+<code>Authenticator</code>, <code>Principal</code>, <code>FromContext</code>, <code>CurrentUserID</code> and
+<code>RequireCurrentUser</code>. Only trusted authentication code should call
+<code>auth.WithPrincipal</code>, after credential verification. It copies identity into a
+child context without dropping cancellation; it does not authenticate a request.
+Lookup rejects missing or incomplete principals. User loading and session/business
+rules remain with Identity services.</p>
 <h2 id="write-and-scope-middleware">Write and scope middleware<a class="heading-link" href="#write-and-scope-middleware" aria-label="Link to Write and scope middleware">#</a></h2>
 <p>A module can add bounded context fields:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-function">CatalogContext</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">next</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-type">huma</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-bracket-1">)</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
@@ -189,8 +221,8 @@ when an operation panics or aborts a stream.</p>
 <p><code>api.Authenticated</code> combines bearer enforcement and its OpenAPI security declaration.
 It fails closed with a nil authenticator, preserves operational authentication errors,
 and accepts credentials only from one Authorization header. A trusted principal
-lives in <code>context.Context</code>; handlers use <code>api.Principal</code>, <code>CurrentUserID</code> or
-<code>RequireCurrentUser</code>. A principal is not automatic permission to access another user&#39;s resource.</p>
+lives in <code>context.Context</code>; handlers use <code>auth.FromContext</code>, <code>auth.CurrentUserID</code> or
+<code>auth.RequireCurrentUser</code>. A principal is not automatic permission to access another user&#39;s resource.</p>
 <p>Broad limits use the direct connection address, hashed before it becomes a key.
 Forwarding headers cannot alter the budget. Identity also has explicit service-level
 challenge limits. Configure CORS through <code>HTTP_CORS_*</code> and broad limits through
@@ -220,7 +252,7 @@ inside a Huma group do not retroactively change the outer request access log.</p
 </nav>
 <footer><a data-markdown href="markdown/middleware.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/middleware.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#request-logging-is-built-in">Request logging is built in</a></li><li class="toc-level-2"><a href="#middleware-ownership">Middleware ownership</a></li><li class="toc-level-2"><a href="#write-and-scope-middleware">Write and scope middleware</a></li><li class="toc-level-2"><a href="#reject-a-request">Reject a request</a></li><li class="toc-level-2"><a href="#add-a-standard-http-policy">Add a standard HTTP policy</a></li><li class="toc-level-2"><a href="#understand-order">Understand order</a></li><li class="toc-level-2"><a href="#use-the-context-logger">Use the context logger</a></li><li class="toc-level-2"><a href="#test-rejection-and-propagation">Test rejection and propagation</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/middleware.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

@@ -5,7 +5,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/wisalgroup/labena/internal/modules/identity/service"
-	"github.com/wisalgroup/labena/internal/platform/api"
+	"github.com/wisalgroup/labena/internal/platform/api/middleware"
 )
 
 // Routes selects Identity's public capabilities. Both APIs are borrowed.
@@ -43,7 +43,7 @@ func RegisterRoutes(public, protected huma.API, routes Routes) {
 func identityAPI(router huma.API) huma.API {
 	group := huma.NewGroup(router)
 	group.UseSimpleModifier(func(op *huma.Operation) { op.Tags = []string{"identity"} })
-	group.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) { ctx.SetHeader("Cache-Control", "no-store"); next(ctx) })
+	group.UseMiddleware(middleware.NoStore)
 	return group
 }
 
@@ -86,7 +86,7 @@ func registerMedia(router huma.API, svc Assets) {
 	routes := huma.NewGroup(router)
 	routes.UseSimpleModifier(func(op *huma.Operation) { op.Tags = []string{"media"} })
 	huma.Register(routes, huma.Operation{OperationID: "media.upload", Method: "POST", Path: "/media", Summary: "Upload an asset (public by default)", DefaultStatus: 201,
-		MaxBodyBytes: uploadLimit + (64 << 10), Middlewares: huma.Middlewares{api.Multipart},
+		MaxBodyBytes: uploadLimit + (64 << 10), Middlewares: huma.Middlewares{middleware.Multipart},
 		RequestBody: &huma.RequestBody{Required: true, Content: map[string]*huma.MediaType{"multipart/form-data": {Schema: &huma.Schema{Type: "object", Required: []string{"file"}, AdditionalProperties: false, Properties: map[string]*huma.Schema{"file": {Type: "string", Format: "binary", Description: "Exactly one file, maximum 20 MiB"}, "visibility": {Type: "string", Enum: []any{"public", "private"}, Description: "Defaults to the selected disk visibility"}}}}}},
 	}, h.upload)
 	huma.Register(routes, huma.Operation{OperationID: "media.list", Method: "GET", Path: "/media", Summary: "List your assets"}, h.list)
@@ -112,7 +112,7 @@ func registerNotifications(router huma.API, notifier Notifications) {
 func notificationAPI(router huma.API) huma.API {
 	group := huma.NewGroup(router)
 	group.UseSimpleModifier(func(op *huma.Operation) { op.Tags = []string{"notifications"} })
-	group.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) { ctx.SetHeader("Cache-Control", "no-store"); next(ctx) })
+	group.UseMiddleware(middleware.NoStore)
 	return group
 }
 

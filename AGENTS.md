@@ -147,7 +147,11 @@ borrowed resources or close app-owned clients. `Register` performs no I/O or
 background work. Executables select processes explicitly; maintenance schedules
 stay centralized in app. CLI help intentionally constructs the application.
 
-The authenticated principal lives in `internal/platform/auth`. Identity owns
+The authenticated principal, authenticator contract and context/ownership helpers
+live in `internal/platform/auth`. Reusable HTTP middleware lives in
+`internal/platform/api/middleware`; module-specific policies stay in their
+`delivery/http`. Middleware never imports its parent `api` package. App and
+module composition choose scope and register policies before operations. Identity owns
 user-specific media, notification and push-subscription HTTP endpoints. Business
 entities may carry Bun mappings in `internal/modules/shared/entities`. Published
 business events and occurrence metadata live in `internal/modules/shared/events`;

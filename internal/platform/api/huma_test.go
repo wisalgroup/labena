@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/wisalgroup/labena/internal/platform/api"
+	"github.com/wisalgroup/labena/internal/platform/api/middleware"
 	"github.com/wisalgroup/labena/internal/platform/api/response"
 	"github.com/wisalgroup/labena/internal/platform/auth"
 	"github.com/wisalgroup/labena/pkg/apperror"
@@ -127,7 +128,7 @@ func TestHumaAdmissionPrecedesBodyParsing(t *testing.T) {
 			r := newAPI(t)
 			public := r
 			if kind == "rate limit" {
-				public.UseMiddleware(api.RateLimit(denyLimiter{}, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Second}, api.PeerIPKey))
+				public.UseMiddleware(middleware.RateLimit(denyLimiter{}, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Second}, api.PeerIPKey))
 			}
 			h := api.Authenticated(public, nil)
 			huma.Register(h, huma.Operation{Method: "POST", Path: "/private"}, func(context.Context, *struct{ Body typedBody }) (*struct{}, error) {
@@ -179,7 +180,7 @@ func TestHumaContextAndEmptyResponse(t *testing.T) {
 		if !errors.Is(ctx.Err(), context.Canceled) {
 			t.Fatal("request cancellation lost")
 		}
-		principal, err := api.Principal(ctx)
+		principal, err := auth.FromContext(ctx)
 		if err != nil || principal.UserID != identity.user || principal.SessionID != identity.session {
 			t.Fatal("principal lost", err)
 		}

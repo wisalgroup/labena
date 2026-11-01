@@ -42,7 +42,17 @@ integration packages connect them to application transports and registries. Keep
 this separation to avoid import cycles and permit independent use.
 
 The authenticated `Principal` belongs to `internal/platform/auth`, independently
-of tokens, transports and business entities. Identity owns sign-in, verification
+of tokens, transports and business entities. That package also owns the `Authenticator`
+contract and context helpers (`WithPrincipal`, `FromContext`, `CurrentUserID`,
+`RequireCurrentUser`). Only trusted authentication code stores a principal;
+lookup fails closed for missing or incomplete user/session identity.
+Reusable HTTP policies belong in `internal/platform/api/middleware`, including
+bearer validation, no-store, rate limiting and multipart bounds. Modules keep
+business-specific middleware in their own `delivery/http`. The API package owns
+server construction and group composition; middleware never imports its parent
+`api` package. Register policies at their intended scope before operations.
+
+Identity owns sign-in, verification
 and session persistence. Its HTTP delivery also owns user-specific media,
 notification and push-subscription endpoints, translating the principal into
 business owner/recipient references. Platform media integration retains generic

@@ -9,6 +9,7 @@ import (
 	"github.com/wisalgroup/labena/internal/modules/identity/service"
 	"github.com/wisalgroup/labena/internal/platform/api"
 	"github.com/wisalgroup/labena/internal/platform/api/response"
+	"github.com/wisalgroup/labena/internal/platform/auth"
 )
 
 type authHandler struct{ svc service.AuthService }
@@ -43,7 +44,7 @@ func (h *authHandler) refresh(ctx context.Context, req *RefreshRequest) (*respon
 }
 
 func (h *authHandler) list(ctx context.Context, req *api.PaginationInput) (*response.JSON[*SessionPage], error) {
-	principal, err := api.Principal(ctx)
+	principal, err := auth.FromContext(ctx)
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}
@@ -56,7 +57,7 @@ func (h *authHandler) list(ctx context.Context, req *api.PaginationInput) (*resp
 }
 
 func (h *authHandler) revokeAll(ctx context.Context, in *struct{}) (*response.Empty, error) {
-	userID, err := api.CurrentUserID(ctx)
+	userID, err := auth.CurrentUserID(ctx)
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}
@@ -67,7 +68,7 @@ func (h *authHandler) revokeAll(ctx context.Context, in *struct{}) (*response.Em
 }
 
 func (h *authHandler) revoke(ctx context.Context, req *SessionRequest) (*response.Empty, error) {
-	userID, err := api.CurrentUserID(ctx)
+	userID, err := auth.CurrentUserID(ctx)
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}
@@ -78,7 +79,7 @@ func (h *authHandler) revoke(ctx context.Context, req *SessionRequest) (*respons
 }
 
 func (h *authHandler) logout(ctx context.Context, in *struct{}) (*response.Empty, error) {
-	principal, err := api.Principal(ctx)
+	principal, err := auth.FromContext(ctx)
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}

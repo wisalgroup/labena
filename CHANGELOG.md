@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## v0.3.2 — 2026-11-01
+
+- Move reusable bearer, rate-limit and multipart HTTP policies into
+  `internal/platform/api/middleware`; share `NoStore` for sensitive routes.
+  Move the authenticator contract and principal context/ownership helpers into
+  `platform/auth`. Update imports and use `auth.FromContext` in place of
+  `api.Principal`; see the upgrade guide. Existing HTTP and security behavior
+  is preserved, with no schema or queued-payload changes.
+
+### Adoption and verification
+
+Source is the commit identified by the annotated `v0.3.2` tag; the required
+toolchain is Go 1.27.2. This patch preserves HTTP behavior but changes internal
+template import paths and helper names. Existing applications must follow the
+[middleware and auth migration table](docs/upgrading.md#http-middleware-and-authentication-helpers).
+No schema migrations, worker rollout ordering or queued-payload conversions
+are required.
+
+Formatting, vet, race-enabled Go tests (including architecture checks),
+command/example builds, and documentation generation/tests passed.
+PostgreSQL/Redis integration, container builds and live provider checks were not
+run; no new backend or deployment-target verification is claimed.
+
 ## v0.3.1 — 2026-11-01
 
 - Separate application error `Kind` from public `Code`; migrate classification

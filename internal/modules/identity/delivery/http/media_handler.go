@@ -8,8 +8,8 @@ import (
 	"gocloud.dev/blob"
 
 	"github.com/wisalgroup/labena/internal/modules/shared/entities"
-	"github.com/wisalgroup/labena/internal/platform/api"
 	"github.com/wisalgroup/labena/internal/platform/api/response"
+	"github.com/wisalgroup/labena/internal/platform/auth"
 	"github.com/wisalgroup/labena/internal/platform/media"
 	mediaintegration "github.com/wisalgroup/labena/internal/platform/media/integration"
 	"github.com/wisalgroup/labena/pkg/apperror"
@@ -155,7 +155,7 @@ func (h *mediaHandler) delete(ctx context.Context, in *AssetRequest) (*response.
 
 // Management routes authorize Identity users, never arbitrary request owners.
 func currentOwner(ctx context.Context) (media.Owner, error) {
-	id, err := api.CurrentUserID(ctx)
+	id, err := auth.CurrentUserID(ctx)
 	if err != nil {
 		return media.Owner{}, err
 	}

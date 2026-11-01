@@ -4,6 +4,30 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
+## HTTP middleware and authentication helpers
+
+Import reusable HTTP policies from `internal/platform/api/middleware` and
+principal helpers from `internal/platform/auth`:
+
+| Previous API | Replacement |
+| --- | --- |
+| `api.Bearer` | `middleware.Bearer` |
+| `api.RateLimit` | `middleware.RateLimit` |
+| `api.Multipart` | `middleware.Multipart` |
+| `api.Authenticator` | `auth.Authenticator` |
+| `api.Principal(ctx)` | `auth.FromContext(ctx)` |
+| `api.CurrentUserID(ctx)` | `auth.CurrentUserID(ctx)` |
+| `api.RequireCurrentUser(ctx, id)` | `auth.RequireCurrentUser(ctx, id)` |
+
+Replace repeated no-store Huma closures with `middleware.NoStore`.
+`api.Authenticated` remains the protected-group/OpenAPI composition helper;
+`api.ClientIPKey` and `api.PeerIPKey` retain their server-owned behavior.
+Bearer middleware still sets no-store on both success and rejection. Routes,
+statuses, authentication rules, rate-limit keys and multipart cleanup are unchanged.
+Custom trusted authentication adapters can use `auth.WithPrincipal` after
+verifying credentials; it is not an authentication bypass for request input.
+This source move requires no schema migration or queued-payload conversion.
+
 ## Error kinds, public codes and instances
 
 Classification is now `Kind`: replace `CodeNotFound` with `KindNotFound` (and

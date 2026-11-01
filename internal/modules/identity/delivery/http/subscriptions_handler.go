@@ -7,8 +7,8 @@ import (
 
 	"github.com/wisalgroup/labena/internal/modules/identity/domain"
 	"github.com/wisalgroup/labena/internal/modules/identity/service"
-	"github.com/wisalgroup/labena/internal/platform/api"
 	"github.com/wisalgroup/labena/internal/platform/api/response"
+	"github.com/wisalgroup/labena/internal/platform/auth"
 )
 
 type subscriptionHandler struct {
@@ -18,7 +18,7 @@ type subscriptionHandler struct {
 
 func (h *subscriptionHandler) subscribe(ctx context.Context, in *SubscribeRequest) (*response.JSON[SubscriptionResponse], error) {
 	input := in.Body
-	principal, err := api.Principal(ctx)
+	principal, err := auth.FromContext(ctx)
 	if err != nil {
 		return nil, response.Error(ctx, err)
 	}

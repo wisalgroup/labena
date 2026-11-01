@@ -9,6 +9,7 @@ import (
 
 	"github.com/wisalgroup/labena/internal/app/config"
 	"github.com/wisalgroup/labena/internal/platform/api"
+	"github.com/wisalgroup/labena/internal/platform/api/middleware"
 	"github.com/wisalgroup/labena/internal/platform/cli"
 	"github.com/wisalgroup/labena/internal/platform/lifecycle"
 	"github.com/wisalgroup/labena/internal/platform/logviewer"
@@ -80,7 +81,7 @@ func open(ctx context.Context, cfg config.Config, selected Processes) (_ *applic
 	// Identity's transaction and session lock, including during logout.
 	public := huma.NewGroup(a.httpRouter, api.BasePath)
 	if cfg.RateLimit.Enabled {
-		public.UseMiddleware(api.RateLimit(a.resources.RateLimiter, cfg.RateLimit.Limit(), api.ClientIPKey))
+		public.UseMiddleware(middleware.RateLimit(a.resources.RateLimiter, cfg.RateLimit.Limit(), api.ClientIPKey))
 	}
 	a.targets.HTTP = public
 	a.targets.AuthenticatedHTTP = api.Authenticated(public, authentication)

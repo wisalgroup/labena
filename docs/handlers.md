@@ -20,7 +20,7 @@ Identity keeps its handler private in
 
 ```go
 func (h *userHandler) updateProfile(ctx context.Context, req *UpdateProfileRequest) (*response.JSON[UserResponse], error) {
-    id, err := api.CurrentUserID(ctx)
+    id, err := auth.CurrentUserID(ctx)
     if err != nil {
         return nil, response.Error(ctx, err)
     }
@@ -32,7 +32,7 @@ func (h *userHandler) updateProfile(ctx context.Context, req *UpdateProfileReque
 }
 ```
 
-Imports are `context`, `github.com/wisalgroup/labena/internal/platform/api`, and
+Imports are `context`, `github.com/wisalgroup/labena/internal/platform/auth`, and
 `github.com/wisalgroup/labena/internal/platform/api/response`. The receiver holds Identity's existing
 `service.UserService`; `UpdateProfileRequest` and `UserResponse` belong to the same
 HTTP package. See [request mapping](requests.md#map-to-a-service-input) for `Input`.
@@ -86,15 +86,15 @@ handler:
 
 | Helper | Result |
 | --- | --- |
-| `api.Principal(ctx)` | Authenticated user and session identifiers |
-| `api.CurrentUserID(ctx)` | Account ID, without loading the account |
-| `api.RequireCurrentUser(ctx, id)` | Requires the supplied ID to match the caller; mismatch returns not found |
+| `auth.FromContext(ctx)` | Authenticated user and session identifiers |
+| `auth.CurrentUserID(ctx)` | Account ID, without loading the account |
+| `auth.RequireCurrentUser(ctx, id)` | Requires the supplied ID to match the caller; mismatch returns not found |
 
 For a self-service `/users/{id}` route, Identity checks ownership before reading:
 
 ```go
 id := uuid.MustParse(req.ID) // Huma already validated format:"uuid".
-if err := api.RequireCurrentUser(ctx, id); err != nil {
+if err := auth.RequireCurrentUser(ctx, id); err != nil {
     return nil, response.Error(ctx, err)
 }
 user, err := h.svc.Get(ctx, id)
@@ -154,7 +154,8 @@ A service returns `*pagination.Page[Product]`; the handler should expose its pub
 
 ### Receive an upload
 
-Use `RawBody multipart.Form` and `api.Multipart` on the operation. Set an explicit
+Use `RawBody multipart.Form` and `middleware.Multipart` from
+`internal/platform/api/middleware` on the operation. Set an explicit
 positive `MaxBodyBytes` for the **whole request**, not just the file contents.
 Authentication should run before multipart parsing.
 
@@ -214,7 +215,7 @@ protected := api.Authenticated(public, authenticator)
 // Register your operations on public or protected before serving.
 ```
 
-`authenticator` implements `api.Authenticator`. A nil authenticator fails closed on
+`authenticator` implements `auth.Authenticator`. A nil authenticator fails closed on
 protected routes. `server` is an `http.Handler`: pass it to `pkg/httpserver` or a
 standard HTTP server whose listener and graceful shutdown you own. Infrastructure
 handlers mount on `server.Mux`, but serve the server object itself.

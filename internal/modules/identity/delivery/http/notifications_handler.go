@@ -8,6 +8,7 @@ import (
 	"github.com/wisalgroup/labena/internal/modules/shared/entities"
 	"github.com/wisalgroup/labena/internal/platform/api"
 	"github.com/wisalgroup/labena/internal/platform/api/response"
+	"github.com/wisalgroup/labena/internal/platform/auth"
 	"github.com/wisalgroup/labena/internal/platform/notification"
 	"github.com/wisalgroup/labena/pkg/pagination"
 )
@@ -67,7 +68,7 @@ func (h *notificationHandler) markRead(ctx context.Context, in *NotificationRequ
 // Default database notification routes serve Identity users. Other models authorize their own
 // recipients before calling the Notifier; request data never selects this scope.
 func currentRecipient(ctx context.Context) (notification.Recipient, error) {
-	id, err := api.CurrentUserID(ctx)
+	id, err := auth.CurrentUserID(ctx)
 	if err != nil {
 		return notification.Recipient{}, err
 	}

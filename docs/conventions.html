@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
+<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -158,7 +158,16 @@ environment configuration package.</p>
 integration packages connect them to application transports and registries. Keep
 this separation to avoid import cycles and permit independent use.</p>
 <p>The authenticated <code>Principal</code> belongs to <code>internal/platform/auth</code>, independently
-of tokens, transports and business entities. Identity owns sign-in, verification
+of tokens, transports and business entities. That package also owns the <code>Authenticator</code>
+contract and context helpers (<code>WithPrincipal</code>, <code>FromContext</code>, <code>CurrentUserID</code>,
+<code>RequireCurrentUser</code>). Only trusted authentication code stores a principal;
+lookup fails closed for missing or incomplete user/session identity.
+Reusable HTTP policies belong in <code>internal/platform/api/middleware</code>, including
+bearer validation, no-store, rate limiting and multipart bounds. Modules keep
+business-specific middleware in their own <code>delivery/http</code>. The API package owns
+server construction and group composition; middleware never imports its parent
+<code>api</code> package. Register policies at their intended scope before operations.</p>
+<p>Identity owns sign-in, verification
 and session persistence. Its HTTP delivery also owns user-specific media,
 notification and push-subscription endpoints, translating the principal into
 business owner/recipient references. Platform media integration retains generic

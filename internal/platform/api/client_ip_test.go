@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/wisalgroup/labena/internal/platform/api/middleware"
 	"github.com/wisalgroup/labena/pkg/ratelimit"
 )
 
@@ -85,7 +87,7 @@ func TestClientIPRateLimitUsesAcceptedChain(t *testing.T) {
 		t.Fatal(err)
 	}
 	limiter := &admissionStub{decision: ratelimit.Decision{Allowed: true}}
-	server.UseMiddleware(RateLimit(limiter, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Minute}, ClientIPKey))
+	server.UseMiddleware(middleware.RateLimit(limiter, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Minute}, ClientIPKey))
 	huma.Register(server, huma.Operation{Method: "GET", Path: "/", DefaultStatus: 204}, func(context.Context, *struct{}) (*struct{}, error) { return nil, nil })
 	for _, chain := range []string{"198.51.100.1", "203.0.113.99, 198.51.100.1", "198.51.100.2"} {
 		r := httptest.NewRequest("GET", "/", nil)

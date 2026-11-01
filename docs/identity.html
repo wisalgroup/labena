@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
+<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -443,16 +443,16 @@ sessions; use explicit revocation to reconcile them.</p>
 Huma group using Identity&#39;s authenticator; middleware verifies the bearer token
 and current PostgreSQL account/session state on each request.</p>
 <p>Inside a typed handler, obtain the current user ID:</p>
-<pre><code class="language-go" data-highlighted="yes">userID<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
+<pre><code class="language-go" data-highlighted="yes">userID<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">auth</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-0">(</span>ctx<span class="go-bracket-0">)</span>
 <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
     <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
 <span class="go-bracket-0">}</span>
 </code></pre>
 <p>This <strong>handler fragment</strong> imports platform <code>api</code> and <code>api/response</code>; use <code>userID</code>
 for the authorized service operation. For a route containing an account ID, use
-<code>api.RequireCurrentUser(ctx, id)</code> before the read. It returns not found on a mismatch
+<code>auth.RequireCurrentUser(ctx, id)</code> before the read. It returns not found on a mismatch
 and grants no administrator rights.</p>
-<p><code>api.Principal(ctx)</code> returns <code>auth.Principal{UserID, SessionID}</code> after authentication.
+<p><code>auth.FromContext(ctx)</code> returns <code>auth.Principal{UserID, SessionID}</code> after authentication.
 The principal contract lives in <code>internal/platform/auth</code>; account/session behavior
 and persistence remain owned by Identity.
 It is the verified identity for the current operation, not the raw JWT claims or a

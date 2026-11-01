@@ -265,7 +265,7 @@ and current PostgreSQL account/session state on each request.
 Inside a typed handler, obtain the current user ID:
 
 ```go
-userID, err := api.CurrentUserID(ctx)
+userID, err := auth.CurrentUserID(ctx)
 if err != nil {
     return nil, response.Error(ctx, err)
 }
@@ -273,10 +273,10 @@ if err != nil {
 
 This **handler fragment** imports platform `api` and `api/response`; use `userID`
 for the authorized service operation. For a route containing an account ID, use
-`api.RequireCurrentUser(ctx, id)` before the read. It returns not found on a mismatch
+`auth.RequireCurrentUser(ctx, id)` before the read. It returns not found on a mismatch
 and grants no administrator rights.
 
-`api.Principal(ctx)` returns `auth.Principal{UserID, SessionID}` after authentication.
+`auth.FromContext(ctx)` returns `auth.Principal{UserID, SessionID}` after authentication.
 The principal contract lives in `internal/platform/auth`; account/session behavior
 and persistence remain owned by Identity.
 It is the verified identity for the current operation, not the raw JWT claims or a

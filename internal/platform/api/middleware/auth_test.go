@@ -1,4 +1,4 @@
-package api
+package middleware
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func TestBearerBoundary(t *testing.T) {
 			h := humago.New(r, huma.DefaultConfig("test", "1"))
 			h.UseMiddleware(Bearer(stub))
 			huma.Register(h, huma.Operation{Method: "GET", Path: "/private", DefaultStatus: 204}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
-				id, err := CurrentUserID(ctx)
+				id, err := auth.CurrentUserID(ctx)
 				if err != nil || id != stub.principal.UserID {
 					t.Error(err)
 				}
@@ -60,6 +60,9 @@ func TestBearerBoundary(t *testing.T) {
 			}
 			out := httptest.NewRecorder()
 			r.ServeHTTP(out, req)
+			if out.Header().Get("Cache-Control") != "no-store" {
+				t.Fatal("authentication response is cacheable")
+			}
 			if tc.want == 401 && out.Header().Get("WWW-Authenticate") != "Bearer" {
 				t.Fatal("missing authentication challenge")
 			}

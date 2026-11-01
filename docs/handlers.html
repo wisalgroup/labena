@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
+<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -103,7 +103,7 @@ example. The profile update below shows the same pattern with a real service.</p
 <p>Identity keeps its handler private in
 <code>internal/modules/identity/delivery/http/user_handler.go</code>. This is its profile-update flow:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">func</span> <span class="go-bracket-0">(</span>h <span class="go-operator">*</span><span class="go-type">userHandler</span><span class="go-bracket-0">)</span> <span class="go-function">updateProfile</span><span class="go-bracket-0">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">req</span> <span class="go-operator">*</span><span class="go-type">UpdateProfileRequest</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">(</span><span class="go-operator">*</span><span class="go-type">response</span><span class="go-punctuation">.</span><span class="go-number">JSON</span><span class="go-bracket-1">[</span><span class="go-type">UserResponse</span><span class="go-bracket-1">]</span><span class="go-punctuation">,</span> <span class="go-builtin-type">error</span><span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
-    id<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
+    id<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">auth</span><span class="go-punctuation">.</span><span class="go-function">CurrentUserID</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span><span class="go-bracket-1">)</span>
     <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-1">{</span>
         <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> err<span class="go-bracket-2">)</span>
     <span class="go-bracket-1">}</span>
@@ -114,7 +114,7 @@ example. The profile update below shows the same pattern with a real service.</p
     <span class="go-keyword">return</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-number">OK</span><span class="go-bracket-1">(</span><span class="go-function">newUserResponse</span><span class="go-bracket-2">(</span>user<span class="go-bracket-2">)</span><span class="go-bracket-1">)</span><span class="go-punctuation">,</span> <span class="go-keyword">nil</span>
 <span class="go-bracket-0">}</span>
 </code></pre>
-<p>Imports are <code>context</code>, <code>github.com/wisalgroup/labena/internal/platform/api</code>, and
+<p>Imports are <code>context</code>, <code>github.com/wisalgroup/labena/internal/platform/auth</code>, and
 <code>github.com/wisalgroup/labena/internal/platform/api/response</code>. The receiver holds Identity&#39;s existing
 <code>service.UserService</code>; <code>UpdateProfileRequest</code> and <code>UserResponse</code> belong to the same
 HTTP package. See <a href="requests.html#map-to-a-service-input">request mapping</a> for <code>Input</code>.</p>
@@ -184,22 +184,22 @@ handler:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>api.Principal(ctx)</code></td>
+<td><code>auth.FromContext(ctx)</code></td>
 <td>Authenticated user and session identifiers</td>
 </tr>
 <tr>
-<td><code>api.CurrentUserID(ctx)</code></td>
+<td><code>auth.CurrentUserID(ctx)</code></td>
 <td>Account ID, without loading the account</td>
 </tr>
 <tr>
-<td><code>api.RequireCurrentUser(ctx, id)</code></td>
+<td><code>auth.RequireCurrentUser(ctx, id)</code></td>
 <td>Requires the supplied ID to match the caller; mismatch returns not found</td>
 </tr>
 </tbody>
 </table>
 <p>For a self-service <code>/users/{id}</code> route, Identity checks ownership before reading:</p>
 <pre><code class="language-go" data-highlighted="yes">id <span class="go-operator">:=</span> <span class="go-package">uuid</span><span class="go-punctuation">.</span><span class="go-function">MustParse</span><span class="go-bracket-0">(</span><span class="go-package">req</span><span class="go-punctuation">.</span><span class="go-number">ID</span><span class="go-bracket-0">)</span> <span class="go-comment">// Huma already validated format:&#34;uuid&#34;.</span>
-<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">RequireCurrentUser</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+<span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">auth</span><span class="go-punctuation">.</span><span class="go-function">RequireCurrentUser</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
     <span class="go-keyword">return</span> <span class="go-keyword">nil</span><span class="go-punctuation">,</span> <span class="go-package">response</span><span class="go-punctuation">.</span><span class="go-function">Error</span><span class="go-bracket-1">(</span>ctx<span class="go-punctuation">,</span> err<span class="go-bracket-1">)</span>
 <span class="go-bracket-0">}</span>
 user<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> h<span class="go-punctuation">.</span>svc<span class="go-punctuation">.</span><span class="go-function">Get</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> id<span class="go-bracket-0">)</span>
@@ -242,7 +242,8 @@ only the returned items. The application type remains <code>pagination.Paginatio
 <code>ProductResponse</code> shape while preserving page metadata. See
 <a href="responses.html#return-a-page">page responses</a> and <a href="database-queries.html#return-a-page">database pagination</a>.</p>
 <h3 id="receive-an-upload">Receive an upload<a class="heading-link" href="#receive-an-upload" aria-label="Link to Receive an upload">#</a></h3>
-<p>Use <code>RawBody multipart.Form</code> and <code>api.Multipart</code> on the operation. Set an explicit
+<p>Use <code>RawBody multipart.Form</code> and <code>middleware.Multipart</code> from
+<code>internal/platform/api/middleware</code> on the operation. Set an explicit
 positive <code>MaxBodyBytes</code> for the <strong>whole request</strong>, not just the file contents.
 Authentication should run before multipart parsing.</p>
 <p>The handler must still validate permitted parts, open the selected file, and close
@@ -290,7 +291,7 @@ public <span class="go-operator">:=</span> <span class="go-package">huma</span><
 protected <span class="go-operator">:=</span> <span class="go-package">api</span><span class="go-punctuation">.</span><span class="go-function">Authenticated</span><span class="go-bracket-0">(</span>public<span class="go-punctuation">,</span> authenticator<span class="go-bracket-0">)</span>
 <span class="go-comment">// Register your operations on public or protected before serving.</span>
 </code></pre>
-<p><code>authenticator</code> implements <code>api.Authenticator</code>. A nil authenticator fails closed on
+<p><code>authenticator</code> implements <code>auth.Authenticator</code>. A nil authenticator fails closed on
 protected routes. <code>server</code> is an <code>http.Handler</code>: pass it to <code>pkg/httpserver</code> or a
 standard HTTP server whose listener and graceful shutdown you own. Infrastructure
 handlers mount on <code>server.Mux</code>, but serve the server object itself.</p>

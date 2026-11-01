@@ -11,6 +11,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 
+	"github.com/wisalgroup/labena/internal/platform/api/middleware"
 	"github.com/wisalgroup/labena/pkg/ratelimit"
 )
 
@@ -41,7 +42,7 @@ func TestRateLimitAdmission(t *testing.T) {
 			stub := &admissionStub{decision: tc.decision, err: tc.err}
 			router := http.NewServeMux()
 			h := humago.New(router, huma.DefaultConfig("test", "1"))
-			h.UseMiddleware(RateLimit(stub, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Minute}, PeerIPKey))
+			h.UseMiddleware(middleware.RateLimit(stub, ratelimit.Limit{Rate: 1, Burst: 1, Period: time.Minute}, PeerIPKey))
 			calls := 0
 			huma.Register(h, huma.Operation{Method: "GET", Path: "/", DefaultStatus: 204}, func(context.Context, *struct{}) (*struct{}, error) { calls++; return nil, nil })
 			for _, forwarded := range []string{"1.2.3.4", "5.6.7.8"} {

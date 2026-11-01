@@ -220,7 +220,7 @@ huma.Register(protected, huma.Operation{
     Path:          "/uploads",
     DefaultStatus: 201,
     MaxBodyBytes:  2 << 20,
-    Middlewares:   huma.Middlewares{api.Multipart},
+    Middlewares:   huma.Middlewares{middleware.Multipart},
     RequestBody: &huma.RequestBody{Required: true, Content: map[string]*huma.MediaType{
         "multipart/form-data": {Schema: &huma.Schema{
             Type: "object", Required: []string{"file"}, AdditionalProperties: false,
@@ -231,6 +231,9 @@ huma.Register(protected, huma.Operation{
     }},
 }, handler.upload)
 ```
+
+Import `middleware` from `github.com/wisalgroup/labena/internal/platform/api/middleware`.
+
 
 The schema describes the upload. The handler still checks the permitted parts:
 
