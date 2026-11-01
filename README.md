@@ -52,7 +52,7 @@ Install the released CLI:
 go install github.com/wisalgroup/labena/cmd/labena@latest
 ```
 
-Use `@v0.3.0` instead of `@latest` for reproducible team setup.
+Use `@v0.3.1` instead of `@latest` for reproducible team setup.
 Add Go's binary directory to your current shell if `labena` is not found:
 
 ```sh

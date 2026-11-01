@@ -4,6 +4,24 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
+## Error kinds, public codes and instances
+
+Classification is now `Kind`: replace `CodeNotFound` with `KindNotFound` (and
+likewise for the other constants), `New(code, detail)` with `New(kind, detail)`,
+and category comparisons on `Code()` with `Kind()`. `Code` remains the type
+of an optional public identifier; `Code()` returns that override or the kind's
+default string. Remove uses of the mutable code registry. Use `Define` for a
+complete domain definition or individual fluent overrides; see [examples](errors.md#customize-public-errors).
+
+Existing generic constructors keep their code/type/status defaults. Problem JSON
+adds `code` and a request-correlated UUID-URN `instance`; empty application detail
+and native Huma 4xx detail are omitted. Review strict response schemas and clients
+that assumed detail was always present. Custom code/type/title overrides are opt-in;
+review consumers before changing an existing public error identifier.
+Structured log `error_code` now holds the public code instead of the type URI.
+Update matching log filters. No database migration, worker ordering or queued
+payload conversion is required.
+
 ## Seeder registration forms
 
 Replace existing `registry.Register(name, fn)` calls with

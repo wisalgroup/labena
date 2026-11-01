@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=b4a06c61b47fc560" defer></script>
+<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,7 +89,7 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>HTTP APIs</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-an-error-kind">Choose an error kind</a></li><li class="toc-level-2"><a href="#define-errors-beside-their-owner">Define errors beside their owner</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#return-several-validation-messages">Return several validation messages</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#log-at-the-responsible-boundary">Log at the responsible boundary</a></li><li class="toc-level-2"><a href="#cancellation-and-uncertain-outcomes">Cancellation and uncertain outcomes</a></li><li class="toc-level-2"><a href="#panics-and-streaming-failures">Panics and streaming failures</a></li><li class="toc-level-2"><a href="#verify-error-behavior">Verify error behavior</a></li></ol></nav></details>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-an-error-kind">Choose an error kind</a></li><li class="toc-level-2"><a href="#define-errors-beside-their-owner">Define errors beside their owner</a></li><li class="toc-level-2"><a href="#customize-public-errors">Customize public errors</a></li><li class="toc-level-3"><a href="#defaults-and-partial-overrides">Defaults and partial overrides</a></li><li class="toc-level-3"><a href="#validation-and-internal-failures">Validation and internal failures</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#return-several-validation-messages">Return several validation messages</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#log-at-the-responsible-boundary">Log at the responsible boundary</a></li><li class="toc-level-2"><a href="#cancellation-and-uncertain-outcomes">Cancellation and uncertain outcomes</a></li><li class="toc-level-2"><a href="#panics-and-streaming-failures">Panics and streaming failures</a></li><li class="toc-level-2"><a href="#verify-error-behavior">Verify error behavior</a></li></ol></nav></details>
 <article><h1 id="error-handling">Error handling</h1>
 <p>Return errors from the operation that knows what failed. Preserve their identity
 through intermediate layers, then translate them once at the delivery boundary.
@@ -152,6 +152,131 @@ in that capability. Do not create a global application error catalog.</p>
 sentinels cannot be mutated accidentally. Its code and message are explicitly
 public. Never put submitted secrets, SQL text, credentials, or raw provider
 responses into an application message.</p>
+<h2 id="customize-public-errors">Customize public errors<a class="heading-link" href="#customize-public-errors" aria-label="Link to Customize public errors">#</a></h2>
+<p>Use <code>Kind</code> for transport classification and <code>Code</code> for a public identifier.
+The kind determines HTTP status; changing code, type or title never changes it.
+Generic constructors need only a safe detail, which can be empty:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">NotFound</span><span class="go-bracket-0">(</span><span class="go-string">&#34;&#34;</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">return</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">NotFound</span><span class="go-bracket-0">(</span><span class="go-string">&#34;The user does not exist.&#34;</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>For a reusable domain definition in <code>internal/modules/identity/domain/errors.go</code>:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">var</span> ErrUserNotFound <span class="go-operator">=</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">Define</span><span class="go-bracket-0">(</span><span class="go-type">apperror</span><span class="go-punctuation">.</span><span class="go-type">Definition</span><span class="go-bracket-1">{</span>
+    Kind<span class="go-punctuation">:</span>  <span class="go-package">apperror</span><span class="go-punctuation">.</span>KindNotFound<span class="go-punctuation">,</span>
+    Code<span class="go-punctuation">:</span>  <span class="go-string">&#34;USER_NOT_FOUND&#34;</span><span class="go-punctuation">,</span>
+    Type<span class="go-punctuation">:</span>  <span class="go-string">&#34;https://api.example.com/problems/user-not-found&#34;</span><span class="go-punctuation">,</span>
+    Title<span class="go-punctuation">:</span> <span class="go-string">&#34;User Not Found&#34;</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>The equivalent fluent definition is:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">var</span> ErrUserNotFound <span class="go-operator">=</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">NotFound</span><span class="go-bracket-0">(</span><span class="go-string">&#34;&#34;</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span>
+    <span class="go-function">WithCode</span><span class="go-bracket-0">(</span><span class="go-string">&#34;USER_NOT_FOUND&#34;</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span>
+    <span class="go-function">WithType</span><span class="go-bracket-0">(</span><span class="go-string">&#34;https://api.example.com/problems/user-not-found&#34;</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span>
+    <span class="go-function">WithTitle</span><span class="go-bracket-0">(</span><span class="go-string">&#34;User Not Found&#34;</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>These are alternatives; choose one definition. <code>Define</code> requires all four fields
+and a known kind. Incomplete definitions and invalid nonempty type URIs panic as
+static programmer mistakes. Fluent methods allow individual overrides in any order.
+Use stable developer-defined codes, titles and absolute type URIs, never secrets
+or occurrence identifiers. A URN such as <code>urn:myapp:error:user-not-found</code> also works.</p>
+<p>A service returns the shared sentinel or adds safe occurrence detail:</p>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">domain</span><span class="go-punctuation">.</span>ErrUserNotFound
+<span class="go-keyword">return</span> <span class="go-package">domain</span><span class="go-punctuation">.</span>ErrUserNotFound<span class="go-punctuation">.</span><span class="go-function">WithDetail</span><span class="go-bracket-0">(</span><span class="go-string">&#34;User 123 does not exist&#34;</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>The HTTP handler continues to return <code>response.Error(ctx, err)</code>. The second
+service return produces HTTP 404 with <code>application/problem+json</code>:</p>
+<pre><code class="language-json">{
+  &#34;type&#34;: &#34;https://api.example.com/problems/user-not-found&#34;,
+  &#34;title&#34;: &#34;User Not Found&#34;,
+  &#34;status&#34;: 404,
+  &#34;detail&#34;: &#34;User 123 does not exist&#34;,
+  &#34;instance&#34;: &#34;urn:uuid:8f3a4d62-8c73-4e9d-96a2-32bf970e765f&#34;,
+  &#34;code&#34;: &#34;USER_NOT_FOUND&#34;
+}
+</code></pre>
+<p>Returning the sentinel directly produces the same shape without <code>detail</code>.
+The UUID above is illustrative: the HTTP boundary uses the server-generated
+<code>X-Request-ID</code> UUID from context, or generates a UUID if no valid nonzero request
+UUID exists. Domain errors never store request instances.</p>
+<h3 id="defaults-and-partial-overrides">Defaults and partial overrides<a class="heading-link" href="#defaults-and-partial-overrides" aria-label="Link to Defaults and partial overrides">#</a></h3>
+<p>All examples below return status 404. Each also receives a fresh request instance.</p>
+<table>
+<thead>
+<tr>
+<th>Error expression</th>
+<th>code</th>
+<th>type</th>
+<th>title</th>
+<th>detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NotFound(&#34;&#34;)</code></td>
+<td><code>not_found</code></td>
+<td><code>urn:labena:error:not_found</code></td>
+<td>Not Found</td>
+<td>omitted</td>
+</tr>
+<tr>
+<td><code>NotFound(&#34;Missing user.&#34;)</code></td>
+<td><code>not_found</code></td>
+<td><code>urn:labena:error:not_found</code></td>
+<td>Not Found</td>
+<td>Missing user.</td>
+</tr>
+<tr>
+<td><code>NotFound(&#34;&#34;).WithCode(&#34;USER_NOT_FOUND&#34;)</code></td>
+<td><code>USER_NOT_FOUND</code></td>
+<td><code>urn:labena:error:not_found</code></td>
+<td>Not Found</td>
+<td>omitted</td>
+</tr>
+<tr>
+<td><code>NotFound(&#34;&#34;).WithType(&#34;urn:myapp:user-missing&#34;)</code></td>
+<td><code>not_found</code></td>
+<td><code>urn:myapp:user-missing</code></td>
+<td>Not Found</td>
+<td>omitted</td>
+</tr>
+<tr>
+<td><code>NotFound(&#34;&#34;).WithTitle(&#34;User Not Found&#34;)</code></td>
+<td><code>not_found</code></td>
+<td><code>urn:labena:error:not_found</code></td>
+<td>User Not Found</td>
+<td>omitted</td>
+</tr>
+</tbody>
+</table>
+<p>Expressions omit the <code>apperror.</code> prefix for readability. The default type derives
+from <strong>kind</strong>, not an overridden code. Empty <code>WithCode(&#34;&#34;)</code>, <code>WithType(&#34;&#34;)</code> and
+<code>WithTitle(&#34;&#34;)</code> restore their individual defaults. <code>WithDetail(&#34;&#34;)</code> omits detail.
+<code>WithProblemCode</code> is unnecessary: use the consistent <code>WithCode</code> name.</p>
+<p>All <code>With</code> methods return immutable copies and preserve <code>errors.Is</code> identity
+with the original. They are safe to call concurrently on a shared definition.
+<code>errors.As</code> finds the outermost decorated error; <code>Kind()</code> classifies it,
+<code>Code()</code> reads its public identifier, and <code>Detail()</code> reads its description.
+<code>Message()</code> remains an alias for detail for existing callers.</p>
+<h3 id="validation-and-internal-failures">Validation and internal failures<a class="heading-link" href="#validation-and-internal-failures" aria-label="Link to Validation and internal failures">#</a></h3>
+<pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">return</span> <span class="go-package">apperror</span><span class="go-punctuation">.</span><span class="go-function">Validation</span><span class="go-bracket-0">(</span><span class="go-string">&#34;&#34;</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span>
+    <span class="go-function">WithCode</span><span class="go-bracket-0">(</span><span class="go-string">&#34;INVALID_PROFILE&#34;</span><span class="go-bracket-0">)</span><span class="go-punctuation">.</span>
+    <span class="go-function">WithFields</span><span class="go-bracket-0">(</span><span class="go-keyword">map</span><span class="go-bracket-1">[</span><span class="go-builtin-type">string</span><span class="go-bracket-1">]</span><span class="go-bracket-1">[</span><span class="go-bracket-1">]</span><span class="go-builtin-type">string</span><span class="go-bracket-1">{</span><span class="go-string">&#34;email&#34;</span><span class="go-punctuation">:</span> <span class="go-bracket-2">{</span><span class="go-string">&#34;Enter a valid email.&#34;</span><span class="go-bracket-2">}</span><span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>This produces HTTP 422, code <code>INVALID_PROFILE</code>, type
+<code>urn:labena:error:validation_failed</code>, title <code>Unprocessable Entity</code>, no detail,
+and <code>errors: [{&#34;location&#34;:&#34;body.email&#34;,&#34;message&#34;:&#34;Enter a valid email.&#34;}]</code>.
+<code>WithFields</code> copies its map and slices; it panics for non-validation kinds.
+<code>InvalidFields(fields)</code> remains the shortcut with detail
+<code>The given data was invalid.</code>.</p>
+<p>Internal and unknown kinds, and ordinary Go errors, always produce safe HTTP 500
+responses with code <code>internal_error</code>, type <code>urn:labena:error:internal_error</code>,
+title <code>Internal Server Error</code>, and detail <code>An unexpected error occurred.</code>.
+Custom metadata is redacted. Preserve diagnostic causes with <code>%w</code>; never copy
+database or provider messages into public details.</p>
+<p>Native Huma status errors retain their status and headers. Their public code/type
+are derived from HTTP status, title is HTTP status text, and instance is generated
+at the same boundary. Native 4xx detail is omitted and validation diagnostics are
+sanitized; native 5xx detail is generic. Application definitions belong in their
+owner; use native errors for HTTP-specific behavior such as protocol headers.</p>
 <h2 id="preserve-error-identity">Preserve error identity<a class="heading-link" href="#preserve-error-identity" aria-label="Link to Preserve error identity">#</a></h2>
 <p>Wrap an operational failure with meaningful context:</p>
 <pre><code class="language-go" data-highlighted="yes"><span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-package">s</span><span class="go-punctuation">.</span>products<span class="go-punctuation">.</span><span class="go-function">Create</span><span class="go-bracket-0">(</span>ctx<span class="go-punctuation">,</span> product<span class="go-bracket-0">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
@@ -166,8 +291,8 @@ the underlying error available. Callers inspect it with <code>errors.Is</code> o
 
 <span class="go-keyword">var</span> failure <span class="go-operator">*</span><span class="go-type">apperror</span><span class="go-punctuation">.</span><span class="go-type">Error</span>
 <span class="go-keyword">if</span> <span class="go-package">errors</span><span class="go-punctuation">.</span><span class="go-function">As</span><span class="go-bracket-0">(</span>err<span class="go-punctuation">,</span> <span class="go-operator">&amp;</span>failure<span class="go-bracket-0">)</span> <span class="go-bracket-0">{</span>
-    code <span class="go-operator">:=</span> failure<span class="go-punctuation">.</span><span class="go-function">Code</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
-    _ <span class="go-operator">=</span> code <span class="go-comment">// Classify without matching human-readable strings.</span>
+    kind <span class="go-operator">:=</span> failure<span class="go-punctuation">.</span><span class="go-function">Kind</span><span class="go-bracket-1">(</span><span class="go-bracket-1">)</span>
+    _ <span class="go-operator">=</span> kind <span class="go-comment">// Classify without matching human-readable strings.</span>
 <span class="go-bracket-0">}</span>
 </code></pre>
 <p>Do not wrap an operational error by copying its text into <code>apperror.Validation</code>.
@@ -284,7 +409,7 @@ may live beside their owners. Continue with <a href="responses.html">responses</
 </nav>
 <footer><a data-markdown href="markdown/errors.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-an-error-kind">Choose an error kind</a></li><li class="toc-level-2"><a href="#define-errors-beside-their-owner">Define errors beside their owner</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#return-several-validation-messages">Return several validation messages</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#log-at-the-responsible-boundary">Log at the responsible boundary</a></li><li class="toc-level-2"><a href="#cancellation-and-uncertain-outcomes">Cancellation and uncertain outcomes</a></li><li class="toc-level-2"><a href="#panics-and-streaming-failures">Panics and streaming failures</a></li><li class="toc-level-2"><a href="#verify-error-behavior">Verify error behavior</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/errors.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#choose-an-error-kind">Choose an error kind</a></li><li class="toc-level-2"><a href="#define-errors-beside-their-owner">Define errors beside their owner</a></li><li class="toc-level-2"><a href="#customize-public-errors">Customize public errors</a></li><li class="toc-level-3"><a href="#defaults-and-partial-overrides">Defaults and partial overrides</a></li><li class="toc-level-3"><a href="#validation-and-internal-failures">Validation and internal failures</a></li><li class="toc-level-2"><a href="#preserve-error-identity">Preserve error identity</a></li><li class="toc-level-2"><a href="#return-several-validation-messages">Return several validation messages</a></li><li class="toc-level-2"><a href="#translate-at-the-boundary">Translate at the boundary</a></li><li class="toc-level-2"><a href="#log-at-the-responsible-boundary">Log at the responsible boundary</a></li><li class="toc-level-2"><a href="#cancellation-and-uncertain-outcomes">Cancellation and uncertain outcomes</a></li><li class="toc-level-2"><a href="#panics-and-streaming-failures">Panics and streaming failures</a></li><li class="toc-level-2"><a href="#verify-error-behavior">Verify error behavior</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/errors.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

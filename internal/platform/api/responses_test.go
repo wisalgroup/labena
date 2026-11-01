@@ -111,8 +111,11 @@ func TestApplicationValidationMatchesHumaDetails(t *testing.T) {
 		if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 			t.Fatal(err)
 		}
-		if out.Code != 422 || body.Status != 422 || body.Type != "urn:labena:error:validation_failed" || len(body.Errors) < 2 {
+		if out.Code != 422 || body.Status != 422 || body.Type != "urn:labena:error:validation_failed" || body.Code != "validation_failed" || len(body.Errors) < 2 {
 			t.Fatal(out.Code, out.Body.String())
+		}
+		if body.Code == "" || body.Type != "urn:labena:error:"+body.Code {
+			t.Fatal("missing or inconsistent problem code", out.Body.String())
 		}
 		assertResponseHeaders(t, out, "v1")
 		assertNoBodyMetadata(t, out)
@@ -158,6 +161,9 @@ func TestProblemHeadersAcrossFailurePaths(t *testing.T) {
 		var body response.Problem
 		if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil || out.Code != status || body.Status != status {
 			t.Fatal(path, err, out.Code, out.Body.String())
+		}
+		if body.Code == "" || body.Type != "urn:labena:error:"+body.Code {
+			t.Fatal("missing or inconsistent problem code", out.Body.String())
 		}
 		assertResponseHeaders(t, out, "v1")
 		assertNoBodyMetadata(t, out)
@@ -290,4 +296,92 @@ func resolveResponseSchema(server *api.Server, schema *huma.Schema) *huma.Schema
 		return server.OpenAPI().Components.Schemas.Map()[strings.TrimPrefix(schema.Ref, "#/components/schemas/")]
 	}
 	return schema
+}
+
+func TestProblemTypeAndCodeAcrossDeliveryPaths(t *testing.T) {
+	for _, tc := range []struct {
+		name              string
+		err               error
+		status            int
+		code, problemType string
+	}{
+		{"code only", apperror.NotFound("").WithCode("USER_NOT_FOUND"), 404, "USER_NOT_FOUND", "urn:labena:error:not_found"},
+		{"definition", apperror.Define(apperror.Definition{Kind: apperror.KindNotFound, Code: "USER_NOT_FOUND", Type: "https://example.com/problems/user-not-found", Title: "User Not Found"}).WithDetail("User 123 does not exist"), 404, "USER_NOT_FOUND", "https://example.com/problems/user-not-found"},
+		{"default", apperror.NotFound("Missing."), 404, "not_found", "urn:labena:error:not_found"},
+		{"specific", fmt.Errorf("private context: %w", apperror.NotFound("Missing.").WithType("urn:example:error:missing-product")), 404, "not_found", "urn:example:error:missing-product"},
+		{"internal", apperror.Internal("secret").WithType("urn:example:secret").WithCode("SECRET").WithTitle("secret"), 500, "internal_error", "urn:labena:error:internal_error"},
+		{"unknown", apperror.New("unknown", "secret").WithType("urn:example:secret").WithCode("SECRET").WithTitle("secret"), 500, "internal_error", "urn:labena:error:internal_error"},
+		{"unsupported upgrade", apperror.New("upgrade_required", "secret"), 500, "internal_error", "urn:labena:error:internal_error"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := newAPI(t)
+			huma.Register(server, huma.Operation{Method: "GET", Path: "/handler"}, func(ctx context.Context, _ *struct{}) (*response.Empty, error) {
+				return nil, response.Error(ctx, tc.err)
+			})
+			group := huma.NewGroup(server, "/middleware")
+			group.UseMiddleware(func(ctx huma.Context, _ func(huma.Context)) { response.WriteError(ctx, tc.err) })
+			huma.Register(group, huma.Operation{Method: "GET", Path: "/error"}, func(context.Context, *struct{}) (*response.Empty, error) {
+				t.Fatal("denied handler ran")
+				return nil, nil
+			})
+			server.Mux.HandleFunc("/http", func(w http.ResponseWriter, r *http.Request) { response.WriteHTTPError(r.Context(), w, tc.err) })
+			for _, path := range []string{"/handler", "/middleware/error", "/http"} {
+				out := httptest.NewRecorder()
+				server.ServeHTTP(out, httptest.NewRequest("GET", path, nil))
+				var problem response.Problem
+				if err := json.Unmarshal(out.Body.Bytes(), &problem); err != nil {
+					t.Fatal(err)
+				}
+				if problem.Instance != "urn:uuid:"+out.Header().Get("X-Request-ID") {
+					t.Fatal("instance lost request correlation", path, out.Body.String())
+				}
+				if tc.name == "definition" && (problem.Title != "User Not Found" || problem.Detail != "User 123 does not exist") {
+					t.Fatal("definition metadata lost", out.Body.String())
+				}
+				if tc.name == "code only" && (strings.Contains(out.Body.String(), "\"detail\"") || problem.Title != "Not Found") {
+					t.Fatal("incorrect defaults", out.Body.String())
+				}
+				if out.Code != tc.status || problem.Code != tc.code || problem.Type != tc.problemType || strings.Contains(out.Body.String(), "secret") {
+					t.Fatal(path, out.Code, out.Body.String())
+				}
+			}
+			schema := server.OpenAPI().Components.Schemas.Map()["Problem"]
+			if schema == nil || schema.Properties["code"] == nil || !slices.Contains(schema.Required, "code") {
+				t.Fatal("OpenAPI omits required code")
+			}
+		})
+	}
+}
+
+func TestProblemInstanceWithoutRequestMiddleware(t *testing.T) {
+	seen := map[string]bool{}
+	for _, requestID := range []string{"", "invalid", uuid.Nil.String()} {
+		out := httptest.NewRecorder()
+		response.WriteHTTPError(response.WithRequestID(context.Background(), requestID), out, apperror.NotFound(""))
+		var p response.Problem
+		if err := json.Unmarshal(out.Body.Bytes(), &p); err != nil {
+			t.Fatal(err)
+		}
+		id, err := uuid.Parse(p.Instance)
+		if err != nil || id == uuid.Nil || seen[p.Instance] {
+			t.Fatal("invalid occurrence identity", p.Instance)
+		}
+		seen[p.Instance] = true
+	}
+}
+
+func TestNativeProblemInstance(t *testing.T) {
+	server := newAPI(t)
+	huma.Register(server, huma.Operation{Method: "GET", Path: "/native"}, func(context.Context, *struct{}) (*response.Empty, error) {
+		return nil, huma.Error404NotFound("private diagnostics")
+	})
+	out := httptest.NewRecorder()
+	server.ServeHTTP(out, httptest.NewRequest("GET", "/native", nil))
+	var p response.Problem
+	if err := json.Unmarshal(out.Body.Bytes(), &p); err != nil {
+		t.Fatal(err)
+	}
+	if p.Instance != "urn:uuid:"+out.Header().Get("X-Request-ID") || p.Detail != "" || p.Title != "Not Found" {
+		t.Fatal(out.Body.String())
+	}
 }

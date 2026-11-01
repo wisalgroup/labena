@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=b4a06c61b47fc560" defer></script>
+<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -230,10 +230,10 @@ and return without calling <code>next</code>. Native Huma status errors and thei
 remain supported when returned from typed handlers.
 Standard <code>net/http</code> handlers can use <code>response.WriteHTTPError(ctx, w, err)</code> before
 committing their response. These writers share the same service-error mapping,
-safe logging. The API server supplies the response headers and installs Huma&#39;s
+and safe logging. The API server supplies the response headers and installs Huma&#39;s
 error-sanitization hook automatically; ordinary handlers need no extra setup.</p>
 <p>Both application and Huma validation errors use <code>application/problem+json</code> with
-flat RFC 9457 fields and optional operation-specific <code>meta</code>. There is no outer
+flat RFC 9457 fields, a stable <code>code</code>, and optional operation-specific <code>meta</code>. There is no outer
 <code>error</code> or <code>data</code> field on a problem. OpenAPI describes this body without
 <code>request_id</code> or <code>api_version</code>, and Huma&#39;s global error hooks remain unchanged.</p>
 <h2 id="multiple-validation-messages">Multiple validation messages<a class="heading-link" href="#multiple-validation-messages" aria-label="Link to Multiple validation messages">#</a></h2>
@@ -247,9 +247,11 @@ flat RFC 9457 fields and optional operation-specific <code>meta</code>. There is
 <p>The handler returns <code>nil, response.Error(ctx, err)</code>. Its response is:</p>
 <pre><code class="language-json">{
   &#34;type&#34;: &#34;urn:labena:error:validation_failed&#34;,
+  &#34;code&#34;: &#34;validation_failed&#34;,
   &#34;title&#34;: &#34;Unprocessable Entity&#34;,
   &#34;status&#34;: 422,
   &#34;detail&#34;: &#34;The given data was invalid.&#34;,
+  &#34;instance&#34;: &#34;urn:uuid:8f3a4d62-8c73-4e9d-96a2-32bf970e765f&#34;,
   &#34;errors&#34;: [
     {&#34;message&#34;: &#34;Use your work email.&#34;, &#34;location&#34;: &#34;body.email&#34;},
     {&#34;message&#34;: &#34;This address is not eligible.&#34;, &#34;location&#34;: &#34;body.email&#34;},
@@ -264,7 +266,15 @@ such as <code>query.page</code>, <code>path.id</code>, <code>header.X-Client</co
 Keep transport-specific paths at the HTTP boundary when possible. An empty key
 refers to the whole body. Use one <code>InvalidFields</code> to aggregate field messages;
 <code>errors.Join</code> is not a validation collection API.</p>
-<p>Clients branch on <code>type</code> and HTTP status, not human-readable messages. Both native
+<p>The internal <code>Kind</code> determines application HTTP status. <code>code</code> is a public
+identifier and defaults to the kind&#39;s identifier. Default <code>type</code> is
+<code>urn:labena:error:</code> plus the kind; it is independent of custom codes.
+Optional <code>WithCode</code>, <code>WithType</code>, <code>WithTitle</code> and <code>WithDetail</code> override only
+their respective fields. Empty detail is omitted. Every problem has an <code>instance</code>
+UUID URN correlated with the server request ID, with a generated fallback outside
+request middleware. See <a href="errors.html#customize-public-errors">definitions and examples</a>.
+Clients may match stable code/type identifiers rather than human-readable text.
+Both native
 and application validation expose an <code>errors</code> array with <code>message</code> and <code>location</code>.
 Submitted values and parser internals are omitted. Huma schema diagnostics are
 redacted; application messages are deliberately public and preserved. Never put

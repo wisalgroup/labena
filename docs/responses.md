@@ -142,11 +142,11 @@ and return without calling `next`. Native Huma status errors and their headers
 remain supported when returned from typed handlers.
 Standard `net/http` handlers can use `response.WriteHTTPError(ctx, w, err)` before
 committing their response. These writers share the same service-error mapping,
-safe logging. The API server supplies the response headers and installs Huma's
+and safe logging. The API server supplies the response headers and installs Huma's
 error-sanitization hook automatically; ordinary handlers need no extra setup.
 
 Both application and Huma validation errors use `application/problem+json` with
-flat RFC 9457 fields and optional operation-specific `meta`. There is no outer
+flat RFC 9457 fields, a stable `code`, and optional operation-specific `meta`. There is no outer
 `error` or `data` field on a problem. OpenAPI describes this body without
 `request_id` or `api_version`, and Huma's global error hooks remain unchanged.
 
@@ -167,9 +167,11 @@ The handler returns `nil, response.Error(ctx, err)`. Its response is:
 ```json
 {
   "type": "urn:labena:error:validation_failed",
+  "code": "validation_failed",
   "title": "Unprocessable Entity",
   "status": 422,
   "detail": "The given data was invalid.",
+  "instance": "urn:uuid:8f3a4d62-8c73-4e9d-96a2-32bf970e765f",
   "errors": [
     {"message": "Use your work email.", "location": "body.email"},
     {"message": "This address is not eligible.", "location": "body.email"},
@@ -186,7 +188,15 @@ Keep transport-specific paths at the HTTP boundary when possible. An empty key
 refers to the whole body. Use one `InvalidFields` to aggregate field messages;
 `errors.Join` is not a validation collection API.
 
-Clients branch on `type` and HTTP status, not human-readable messages. Both native
+The internal `Kind` determines application HTTP status. `code` is a public
+identifier and defaults to the kind's identifier. Default `type` is
+`urn:labena:error:` plus the kind; it is independent of custom codes.
+Optional `WithCode`, `WithType`, `WithTitle` and `WithDetail` override only
+their respective fields. Empty detail is omitted. Every problem has an `instance`
+UUID URN correlated with the server request ID, with a generated fallback outside
+request middleware. See [definitions and examples](errors.md#customize-public-errors).
+Clients may match stable code/type identifiers rather than human-readable text.
+Both native
 and application validation expose an `errors` array with `message` and `location`.
 Submitted values and parser internals are omitted. Huma schema diagnostics are
 redacted; application messages are deliberately public and preserved. Never put

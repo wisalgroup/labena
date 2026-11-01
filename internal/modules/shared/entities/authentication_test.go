@@ -67,7 +67,7 @@ func TestAuthenticationRecords(t *testing.T) {
 			if !errors.Is(err, tc.want) || !errors.As(err, &app) {
 				t.Fatalf("expected sentinel %v, got %v", tc.want, err)
 			}
-			if app.Code() != tc.want.Code() {
+			if app.Kind() != tc.want.Kind() {
 				t.Fatal("lost error classification")
 			}
 		})

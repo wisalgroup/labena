@@ -23,3 +23,10 @@ func TestMediaConfiguration(t *testing.T) {
 		}
 	}
 }
+
+func TestMediaDefaultRoute(t *testing.T) {
+	options, err := (MediaConfig{}).LibraryConfig()
+	if err != nil || options.BaseURL != "/api/v1/media" {
+		t.Fatalf("base URL = %q, error = %v", options.BaseURL, err)
+	}
+}

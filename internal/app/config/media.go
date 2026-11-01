@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/base64"
 	"errors"
+
+	"github.com/wisalgroup/labena/internal/platform/api"
 	"github.com/wisalgroup/labena/internal/platform/media"
 )
 
@@ -14,6 +16,9 @@ type MediaConfig struct {
 
 func (c MediaConfig) LibraryConfig() (media.Config, error) {
 	o := media.Config{BaseURL: c.BaseURL}
+	if o.BaseURL == "" {
+		o.BaseURL = api.BasePath + "/media"
+	}
 	if c.SigningKey != "" {
 		key, err := base64.StdEncoding.DecodeString(c.SigningKey)
 		if err != nil || len(key) != 32 {

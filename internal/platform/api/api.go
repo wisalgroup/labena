@@ -16,10 +16,16 @@ import (
 	"github.com/wisalgroup/labena/internal/platform/api/response"
 )
 
+// Version identifies the business API namespace.
+const Version = "v1"
+
+// BasePath is the business API route prefix.
+const BasePath = "/api/" + Version
+
 const (
 	defaultTitle               = "Application API"
 	defaultVersion             = "dev"
-	defaultAPIVersion          = "v1"
+	defaultAPIVersion          = Version
 	invalidTrustedProxyMessage = "api: invalid trusted proxy CIDR"
 	jsonMediaType              = "application/json"
 	jsonFormatName             = "json"

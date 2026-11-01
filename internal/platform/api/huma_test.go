@@ -82,11 +82,11 @@ func TestHumaValidationAndProblemDetails(t *testing.T) {
 				t.Fatal("missing request ID")
 			}
 			if tc.code != "" {
-				var body huma.ErrorModel
+				var body response.Problem
 				if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 					t.Fatal(err)
 				}
-				if body.Type != "urn:labena:error:"+tc.code || body.Status != tc.status {
+				if body.Type != "urn:labena:error:"+tc.code || body.Status != tc.status || body.Code != tc.code {
 					t.Fatal(out.Body.String())
 				}
 				if tc.status == 422 && len(body.Errors) == 0 {
@@ -321,7 +321,7 @@ func TestServiceErrorConversionPreservesCauseAndSafeDetails(t *testing.T) {
 	})
 	out := httptest.NewRecorder()
 	server.ServeHTTP(out, httptest.NewRequest("GET", "/conflict", nil))
-	var body huma.ErrorModel
+	var body response.Problem
 	if err := json.Unmarshal(out.Body.Bytes(), &body); err != nil {
 		t.Fatal(err)
 	}

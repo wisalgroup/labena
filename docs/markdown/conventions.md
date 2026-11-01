@@ -402,12 +402,18 @@ Register operations directly with `huma.Register`. Huma middleware uses
 `response.WriteError`; native Huma status errors can be returned directly.
 Application JSON responses use `response.JSON[T]` and its status constructors.
 The typed result lives in `data`, alongside optional operation-specific `meta`.
-Errors retain flat Huma problem details, an `errors` list and optional `meta`.
+Errors retain flat Huma problem details, a public `code`, an `errors` list and
+optional `meta`. `apperror.Kind` determines status and default code/type.
+Owner definitions or immutable fluent methods may customize code, absolute type
+URI, title and detail without changing classification. Empty detail is omitted.
+The HTTP boundary adds a UUID-URN instance from the server request ID, generating
+a UUID if necessary. Keep metadata static except safe occurrence details.
+Preserve redaction of internal and unknown failures. Existing public type changes require compatibility review.
 Use `apperror.InvalidFields` for multiple
 application validation messages. Bodyless responses use `response.Empty`;
 custom outputs and streams retain native Huma types. Declare success statuses on
 the operation too, so OpenAPI matches runtime behavior. Server-generated request
-IDs and API versions are returned only in `X-Request-ID` and `X-API-Version`
+IDs and API versions are returned in `X-Request-ID` and `X-API-Version`
 headers, including for errors, empty responses and streams. Request IDs remain
 available in request context and logs; clients capture the header for diagnostics.
 Infrastructure handlers retain standard HTTP semantics.

@@ -2,12 +2,43 @@
 
 ## Unreleased
 
+## v0.3.1 — 2026-11-01
+
+- Separate application error `Kind` from public `Code`; migrate classification
+  constants/comparisons to `KindX` and `Kind()`. Add complete `Definition`/`Define`
+  and immutable `WithCode`, `WithTitle`, `WithDetail`, `WithFields` methods.
+  Problem responses gain request-correlated UUID-URN instances and omit empty
+  details. See the upgrade guide for source and response compatibility steps.
+
+- Include a stable `code` in application and Huma problem responses. Existing
+  default `type` identifiers and status mappings are preserved. Add immutable
+  `apperror.Error.WithType` for optional public problem-type URIs, preserving
+  sentinel identity; internal and unknown errors remain redacted. Message-only
+  constructor calls remain valid. The structured log `error_code` now contains the short code
+  rather than the type URI; update log queries that matched the old value.
+
 - Add the platform `seeders.Seeder` contract with `Name` and `Seed`, registered
   through `Registry.Register`. Rename the previous name/function registration
   method to `RegisterFunc`; existing callers must update that method name.
   Both forms share validation and execution. Document module-owned `seeders/`
   implementations with constructor-injected services. No schema or queued-payload
   changes are required.
+
+### Adoption and verification
+
+Source is the commit identified by the annotated `v0.3.1` tag; the required
+toolchain is Go 1.27.2. This owner-requested patch version is an explicit exception
+to the normal patch compatibility policy: error classification APIs and seeder
+registration contain source breaks, and problem response fields change. Follow
+the [adoption steps](docs/upgrading.md#error-kinds-public-codes-and-instances)
+and the seeder registration section before updating an existing application.
+No new schema migrations, queued-payload conversions or worker ordering changes
+are required by these fixes.
+
+Verification covers formatting, vet, race-enabled Go tests, command/example
+builds, and documentation generation/tests. PostgreSQL/Redis integration,
+container builds and live provider checks were not run for this patch; no new
+backend or deployment-target verification is claimed.
 
 ## v0.3.0 — 2026-10-25
 

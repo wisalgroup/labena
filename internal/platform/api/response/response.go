@@ -50,10 +50,11 @@ type Empty struct{}
 
 func NoContent() *Empty { return &Empty{} }
 
-// Problem retains Huma's RFC 9457 fields and exhaustive errors list, with optional
-// operation-specific metadata. There is no surrounding envelope.
+// Problem retains Huma's RFC 9457 fields and exhaustive errors list, with a
+// stable classification code and optional operation-specific metadata. There is no surrounding envelope.
 type Problem struct {
 	huma.ErrorModel
+	Code string         `json:"code" doc:"The application-specific error code"`
 	Meta map[string]any `json:"meta,omitempty" doc:"Optional operation-specific metadata"`
 }
 

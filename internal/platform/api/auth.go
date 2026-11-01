@@ -42,7 +42,7 @@ func Bearer(authenticator Authenticator) func(huma.Context, func(huma.Context)) 
 		principal, err := authenticator.Authenticate(c.Context(), parts[1])
 		if err != nil {
 			var public *apperror.Error
-			if errors.As(err, &public) && public != nil && public.Code() == apperror.CodeUnauthenticated {
+			if errors.As(err, &public) && public != nil && public.Kind() == apperror.KindUnauthenticated {
 				c.SetHeader("WWW-Authenticate", "Bearer")
 			}
 			response.WriteError(c, err)

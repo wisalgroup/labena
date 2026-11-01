@@ -78,7 +78,7 @@ func open(ctx context.Context, cfg config.Config, selected Processes) (_ *applic
 	// Security wiring belongs to this composition. Disabled authentication still
 	// creates a protected group that fails closed. Push registration goes through
 	// Identity's transaction and session lock, including during logout.
-	public := huma.NewGroup(a.httpRouter, "/api/v1")
+	public := huma.NewGroup(a.httpRouter, api.BasePath)
 	if cfg.RateLimit.Enabled {
 		public.UseMiddleware(api.RateLimit(a.resources.RateLimiter, cfg.RateLimit.Limit(), api.ClientIPKey))
 	}

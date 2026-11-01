@@ -181,6 +181,10 @@ registration never executes seed work.
   use `errors.Is/As` for inspection. Preserve cancellation and domain classification.
   Use owner errors and `pkg/apperror` for safe failures, and existing HTTP response
   translation rather than leaking driver errors or building another error catalog.
+  Keep error kinds immutable and use them for transport classification. Optional
+  public code/type/title overrides never change status; fluent methods return copies.
+  Types are static absolute URIs. Generate problem instances at the HTTP boundary
+  and preserve internal/unknown-error redaction.
 - Keep transactions in their established owner. Repositories join the context's
   executor and the same pool; preserve Identity's documented security transaction
   exceptions. External effects do not become atomic with SQL. Respect

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/wisalgroup/labena/internal/platform/auth"
+	"github.com/wisalgroup/labena/pkg/apperror"
 )
 
 type authenticatorStub struct {
@@ -34,6 +35,7 @@ func TestBearerBoundary(t *testing.T) {
 		{name: "missing", want: 401}, {name: "wrong scheme", header: "Basic secret", want: 401},
 		{name: "duplicate", header: "Bearer token", duplicate: true, want: 401},
 		{name: "success", header: "Bearer token", want: 204, calls: 1},
+		{name: "custom unauthenticated", header: "Bearer token", err: apperror.Unauthenticated("").WithCode("TOKEN_EXPIRED"), want: 401, calls: 1},
 		{name: "outage", header: "Bearer token", err: errors.New("private SQL"), want: 500, calls: 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -58,6 +60,9 @@ func TestBearerBoundary(t *testing.T) {
 			}
 			out := httptest.NewRecorder()
 			r.ServeHTTP(out, req)
+			if tc.want == 401 && out.Header().Get("WWW-Authenticate") != "Bearer" {
+				t.Fatal("missing authentication challenge")
+			}
 			if out.Code != tc.want || stub.calls != tc.calls {
 				t.Fatal(out.Code, stub.calls, out.Body.String())
 			}

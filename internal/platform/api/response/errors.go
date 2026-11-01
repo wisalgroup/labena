@@ -9,12 +9,27 @@ import (
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/wisalgroup/labena/pkg/apperror"
 	"github.com/wisalgroup/labena/pkg/logging"
 )
+
+// ErrorTypePrefix identifies the default Labena problem types.
+const ErrorTypePrefix = "urn:labena:error:"
+
+var appErrorKindMap = map[apperror.Kind]int{
+	apperror.KindInvalidInput:    400,
+	apperror.KindUnauthenticated: 401,
+	apperror.KindForbidden:       403,
+	apperror.KindNotFound:        404,
+	apperror.KindConflict:        409,
+	apperror.KindValidation:      422,
+	apperror.KindRateLimited:     429,
+	apperror.KindUnavailable:     503,
+}
 
 type failure struct {
 	*Problem
@@ -28,16 +43,27 @@ func errorDetails(err error) *Problem {
 	var app *apperror.Error
 	var size *http.MaxBytesError
 	var fields map[string][]string
+	var problemType, title string
 	if errors.As(err, &size) {
 		status, code, detail = 413, "request_too_large", "The request body is too large."
 	} else if errors.As(err, &app) && app != nil {
-		statuses := map[apperror.Code]int{apperror.CodeInvalidInput: 400, apperror.CodeValidation: 422, apperror.CodeUnauthenticated: 401, apperror.CodeForbidden: 403, apperror.CodeNotFound: 404, apperror.CodeConflict: 409, apperror.CodeRateLimited: 429, apperror.CodeUnavailable: 503}
-		if s, ok := statuses[app.Code()]; ok {
-			status, code, detail = s, string(app.Code()), app.Message()
+		if s, ok := appErrorKindMap[app.Kind()]; ok {
+			status, code, detail = s, string(app.Code()), app.Detail()
 			fields = app.Fields()
+			problemType = app.Type()
+			if problemType == "" {
+				problemType = ErrorTypePrefix + string(app.Kind())
+			}
+			title = app.Title()
 		}
 	}
-	p := &Problem{ErrorModel: huma.ErrorModel{Type: "urn:labena:error:" + code, Title: http.StatusText(status), Status: status, Detail: detail}}
+	if problemType == "" {
+		problemType = ErrorTypePrefix + code
+	}
+	if title == "" {
+		title = http.StatusText(status)
+	}
+	p := &Problem{ErrorModel: huma.ErrorModel{Type: problemType, Title: title, Status: status, Detail: detail}, Code: code}
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
@@ -80,20 +106,33 @@ func Error(ctx context.Context, err error) error {
 		return err
 	}
 	LogError(ctx, err)
-	return &failure{Problem: errorDetails(err), cause: err}
+	return &failure{Problem: withInstance(ctx, errorDetails(err)), cause: err}
 }
 
 // WriteError rejects a request from Huma middleware. Return without invoking next.
 func WriteError(ctx huma.Context, err error) {
 	LogError(ctx.Context(), err)
-	writeProblem(ctx.BodyWriter(), ctx.SetHeader, ctx.SetStatus, errorDetails(err))
+	writeProblem(ctx.BodyWriter(), ctx.SetHeader, ctx.SetStatus, withInstance(ctx.Context(), errorDetails(err)))
 }
 
 // WriteHTTPError writes a service failure from a standard net/http handler.
 // Call before committing headers or body bytes, then return from the handler.
 func WriteHTTPError(ctx context.Context, w http.ResponseWriter, err error) {
 	LogError(ctx, err)
-	writeProblem(w, w.Header().Set, w.WriteHeader, errorDetails(err))
+	writeProblem(w, w.Header().Set, w.WriteHeader, withInstance(ctx, errorDetails(err)))
+}
+
+func withInstance(ctx context.Context, p *Problem) *Problem {
+	p.Instance = problemInstance(ctx)
+	return p
+}
+
+func problemInstance(ctx context.Context) string {
+	id, err := uuid.Parse(RequestID(ctx))
+	if err != nil || id == uuid.Nil {
+		id = uuid.New()
+	}
+	return id.URN()
 }
 
 func writeProblem(w interface{ Write([]byte) (int, error) }, header func(string, string), status func(int), p *Problem) {
@@ -105,26 +144,21 @@ func writeProblem(w interface{ Write([]byte) (int, error) }, header func(string,
 // Transform integrates safe problem details with Huma without changing its global
 // hooks. Huma owns validation; only redact transport diagnostics here: no submitted
 // values or parser internals leave the HTTP boundary, including missing fields.
-func Transform(_ huma.Context, _ string, value any) (any, error) {
+func Transform(ctx huma.Context, _ string, value any) (any, error) {
 	source, ok := value.(*huma.ErrorModel)
 	if !ok {
 		return value, nil
 	}
 	p := *source
-	names := map[int]string{400: "invalid_input", 401: "unauthenticated", 403: "forbidden", 404: "not_found", 409: "conflict", 406: "not_acceptable", 408: "request_timeout", 413: "request_too_large", 415: "unsupported_media_type", 422: "validation_failed", 429: "rate_limited", 503: "unavailable"}
-	code := names[p.Status]
-	if code == "" {
-		code = "http_error"
-		if p.Status >= 500 {
-			code = "internal_error"
-		}
-	}
-	p.Type = "urn:labena:error:" + code
+	code := codeForStatus(p.Status)
+	p.Type = ErrorTypePrefix + code
 	p.Title = http.StatusText(p.Status)
-	p.Detail = p.Title
+	p.Detail = ""
+	p.Instance = problemInstance(ctx.Context())
 	p.Errors = nil
 	if p.Status >= 500 {
-		return &Problem{ErrorModel: p}, nil
+		p.Detail = "An unexpected error occurred."
+		return &Problem{ErrorModel: p, Code: code}, nil
 	}
 	for _, e := range source.Errors {
 		if e == nil {
@@ -136,7 +170,42 @@ func Transform(_ huma.Context, _ string, value any) (any, error) {
 		}
 		p.Errors = append(p.Errors, &huma.ErrorDetail{Location: e.Location, Message: message})
 	}
-	return &Problem{ErrorModel: p}, nil
+	return &Problem{ErrorModel: p, Code: code}, nil
+}
+
+// codeForStatus classifies native HTTP failures without inferring a business cause.
+func codeForStatus(status int) string {
+	switch status {
+	case http.StatusBadRequest:
+		return string(apperror.KindInvalidInput)
+	case http.StatusUnauthorized:
+		return string(apperror.KindUnauthenticated)
+	case http.StatusForbidden:
+		return string(apperror.KindForbidden)
+	case http.StatusNotFound:
+		return string(apperror.KindNotFound)
+	case http.StatusConflict:
+		return string(apperror.KindConflict)
+	case http.StatusUnprocessableEntity:
+		return string(apperror.KindValidation)
+	case http.StatusTooManyRequests:
+		return string(apperror.KindRateLimited)
+	case http.StatusServiceUnavailable:
+		return string(apperror.KindUnavailable)
+	case http.StatusNotAcceptable:
+		return "not_acceptable"
+	case http.StatusRequestTimeout:
+		return "request_timeout"
+	case http.StatusRequestEntityTooLarge:
+		return "request_too_large"
+	case http.StatusUnsupportedMediaType:
+		return "unsupported_media_type"
+	default:
+		if status >= http.StatusInternalServerError {
+			return string(apperror.KindInternal)
+		}
+		return "http_error"
+	}
 }
 
 // LogError records a safe operational failure, including errors after a stream
@@ -150,5 +219,5 @@ func LogError(ctx context.Context, err error) {
 		return
 	}
 	trace.SpanFromContext(ctx).SetStatus(codes.Error, "HTTP operation failed")
-	logging.FromContext(ctx).ErrorContext(ctx, "HTTP operation failed", "error_category", logging.ErrorCategory(err), "error_code", p.Type)
+	logging.FromContext(ctx).ErrorContext(ctx, "HTTP operation failed", "error_category", logging.ErrorCategory(err), "error_code", p.Code)
 }

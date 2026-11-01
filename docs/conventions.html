@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=b4a06c61b47fc560" defer></script>
+<script src="search-index.js?v=60a3d5c552c426a1" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -605,12 +605,18 @@ Register operations directly with <code>huma.Register</code>. Huma middleware us
 <code>response.WriteError</code>; native Huma status errors can be returned directly.
 Application JSON responses use <code>response.JSON[T]</code> and its status constructors.
 The typed result lives in <code>data</code>, alongside optional operation-specific <code>meta</code>.
-Errors retain flat Huma problem details, an <code>errors</code> list and optional <code>meta</code>.
+Errors retain flat Huma problem details, a public <code>code</code>, an <code>errors</code> list and
+optional <code>meta</code>. <code>apperror.Kind</code> determines status and default code/type.
+Owner definitions or immutable fluent methods may customize code, absolute type
+URI, title and detail without changing classification. Empty detail is omitted.
+The HTTP boundary adds a UUID-URN instance from the server request ID, generating
+a UUID if necessary. Keep metadata static except safe occurrence details.
+Preserve redaction of internal and unknown failures. Existing public type changes require compatibility review.
 Use <code>apperror.InvalidFields</code> for multiple
 application validation messages. Bodyless responses use <code>response.Empty</code>;
 custom outputs and streams retain native Huma types. Declare success statuses on
 the operation too, so OpenAPI matches runtime behavior. Server-generated request
-IDs and API versions are returned only in <code>X-Request-ID</code> and <code>X-API-Version</code>
+IDs and API versions are returned in <code>X-Request-ID</code> and <code>X-API-Version</code>
 headers, including for errors, empty responses and streams. Request IDs remain
 available in request context and logs; clients capture the header for diagnostics.
 Infrastructure handlers retain standard HTTP semantics.
