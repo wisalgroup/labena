@@ -1,88 +1,156 @@
-# WebSocket integration
+# HTTP/2 and WebSockets
 
-The HTTP server supports connection upgrades and tracks hijacked connections during shutdown. The application has no WebSocket endpoint, hub or room registry. This guide describes the transport lifecycle hooks available when adding your own protocol.
+Labena serves HTTP/1.1 and TLS-negotiated HTTP/2 directly through Go's HTTP
+server. WebSocket sessions use the framework's `internal/platform/websocket`
+integration, backed by `github.com/coder/websocket`. No reverse proxy is required.
+HTTP/3, cleartext HTTP/2 and HTTP/2 WebSocket extended CONNECT are not implemented.
 
-Choose a protocol implementation for your application and mount its handler on the server mux. This page describes the existing integration boundary without adding a dependency.
+## Enable HTTPS and HTTP/2
 
-## Understand the available boundary
-
-| Provided by the framework | Supplied by your application/integration |
-| --- | --- |
-| Standard HTTP handler mount and upgrade-compatible response handling | WebSocket protocol implementation and handshake |
-| Request correlation and handler-lifetime logging | Authentication, origin checks, and message authorization |
-| Tracking/closing hijacked connections during shutdown | Protocol close frames, heartbeats, backpressure, and reconnection |
-| Application lifecycle ownership | Cross-replica broadcast, room state, history, and replay |
-
-There is no built-in chat or realtime notification channel. Push notification
-support is a separate [Expo capability](push.html); it does not provide an active
-WebSocket connection or message-history protocol.
-
-## Register a handler
-
-Protocol upgrades are a platform transport integration, outside the typed business
-API. Install an explicitly constructed `http.Handler` from platform HTTP setup,
-where the native router is owned:
-
-```go
-server.Mux.Handle("GET /ws", socketHandler)
-```
-
-Here `server` is the platform's `*api.Server` and `socketHandler` is a standard
-`http.Handler` implementing the handshake and session protocol. This illustrative
-mount is not implemented by the boilerplate. It does not belong on
-`dependencies.Targets.HTTP`, which is a Huma API. Keep native adapter details in
-platform setup; modules and services retain standard contexts and business inputs.
-
-## Keep the session inside the handler
-
-The handler should remain active for the session lifetime. If it starts read/write goroutines, stop and join them before returning. Returning immediately while detached goroutines use app dependencies defeats the server's handler-drain ownership.
-
-Pass `r.Context()` into application operations. A protocol read must also stop when its connection closes; context cancellation alone does not necessarily interrupt a library's blocking read.
-
-Bound incoming message size, outbound queues, and write deadlines in the chosen implementation. Decide whether a slow consumer is disconnected or messages are dropped. Authenticate and check browser origins before upgrading, then authorize individual operations as needed.
-
-## Configure the listener
-
-WebSocket handlers share the application server's address and HTTP settings:
+Plain HTTP/1.1 remains the default. To enable HTTPS with HTTP/2:
 
 ```dotenv
-HTTP_ADDRESS=:8080
-HTTP_READ_HEADER_TIMEOUT=5s
-HTTP_SHUTDOWN_TIMEOUT=10s
+HTTP_ADDRESS=:8443
+HTTP_TLS_CERT_FILE=/run/secrets/server.crt
+HTTP_TLS_KEY_FILE=/run/secrets/server.key
+HTTP_HTTP2_ENABLED=true
 ```
 
-HTTP limits govern the handshake and normal requests; protocol-level message limits and heartbeat behavior belong to the WebSocket implementation. Configure post-upgrade connection deadlines deliberately and verify how your library handles inherited deadlines.
+Supply both TLS files. The server loads them before binding or signaling readiness;
+missing, unreadable or invalid credentials fail startup. TLS uses a minimum of
+TLS 1.2. HTTP/2 requires TLS, and HTTP/1.1 remains available on the same listener.
+With TLS configured but `HTTP_HTTP2_ENABLED=false`, the listener serves HTTPS
+using HTTP/1.1 only. Certificate issuance and renewal are deployment responsibilities;
+restart with the replacement files to rotate certificates. There is no automatic
+certificate reload or separate HTTP-to-HTTPS redirect listener.
 
-Reverse proxies need upgrade forwarding and suitable connection timeouts.
+Clients negotiate HTTP/2 using ALPN. For example, an HTTP/2-capable curl can verify
+the public endpoint with `curl --http2 -v https://api.example.com:8443/healthz`.
+Use a certificate trusted by the client; changing only the URL to HTTPS does not
+enable TLS on the server.
 
-## Shutdown behavior
+## Register a WebSocket handler
 
-When HTTP shutdown begins, the server stops admission and closes tracked upgraded connections. It then joins active handlers before their dependencies can be released.
+Construct a handler and mount it on the platform API server's native mux, in app
+composition after constructing authentication:
 
-This closes the transport connection; it does not automatically send a WebSocket close frame. If the product needs protocol-level farewell messages or session draining, implement and coordinate that behavior in the application. Keep it bounded within the app's shutdown budget.
+```go
+socket, err := websocket.New(websocket.Config{
+    AllowedOrigins: []string{"https://app.example.com"},
+}, func(ctx context.Context, conn *websocket.Conn) error {
+    principal, err := auth.FromContext(ctx)
+    if err != nil {
+        return err
+    }
+    _ = principal // Pass trusted identity to the service handling each message.
 
-Ordinary request contexts are preserved during HTTP drain, then canceled. Do not rely only on immediate context cancellation to notice WebSocket shutdown; socket closure is the direct signal at shutdown start.
+    for {
+        kind, message, err := conn.Read(ctx)
+        if err != nil {
+            return err
+        }
+        // Illustrative echo. Real handlers decode, authorize and call services.
+        if err := conn.Write(ctx, kind, message); err != nil {
+            return err
+        }
+    }
+})
+if err != nil {
+    return err
+}
+server.Mux.Handle("GET /ws", middleware.BearerHTTP(authentication)(socket))
+```
 
-## Logging and scaling
+Import `context`, `internal/platform/auth`, `internal/platform/websocket`, and
+`internal/platform/api/middleware` under your application module path.
+Here `server` is the existing `*api.Server`, and `authentication` implements
+`auth.Authenticator`. This is an integration pattern, not a route automatically
+installed by the template. The framework does not ship an application message protocol.
 
-The built-in HTTP request log covers the handler lifetime, not individual frames. Add context logging for relevant session outcomes and errors without recording sensitive message bodies. Correlation and connection identifiers belong in logs rather than unbounded metric labels.
+`BearerHTTP` applies the same credential validation and error responses as Huma
+bearer middleware. A nil authenticator fails closed. Native mux routes do not
+inherit Huma group authentication or rate limiting. Apply relevant policies
+explicitly. Authentication at connection time does not authorize every message
+or automatically revalidate a session after logout; message handlers own those checks.
 
-A process-local connection registry and GoChannel bus reach only that process. With multiple replicas, add an explicit cross-process broadcast design; the current bus cannot deliver to every replica. Match routing and retention to the product rather than treating queue workers as a broadcast hub.
+WebSockets use the HTTP/1.1 upgrade path, even when HTTP/2 is enabled on that
+listener. Use `ws://` for local plaintext connections and `wss://` for TLS.
+Normal HTTP request deadlines are cleared by Go when the connection is hijacked;
+the socket's own limits take over.
 
-Reconnect, replay, ordering, presence, and offline delivery remain application contracts. Define them before exposing those guarantees to clients.
+### Browser authentication
 
-## Verify a protocol integration
+Browser `WebSocket` APIs cannot set an Authorization header. `BearerHTTP` works
+with clients that can set it; it does not accept credentials in query parameters.
+For browsers, supply an explicit trusted session or short-lived ticket adapter
+that authenticates before upgrade and stores the principal with `auth.WithPrincipal`.
+Ticket issuance, expiry, replay prevention and per-message authorization belong to
+the application. The framework does not silently enable cookie or query-token auth.
 
-Use a real local HTTP server and a protocol client for tests that depend on
-upgrades; a response recorder cannot establish socket behavior. Exercise:
+## Limits and origins
 
-- Authentication/origin rejection before upgrade.
-- A permitted session exchanging messages without unbounded buffers.
-- A slow or disconnected client and a blocked protocol read.
-- Application shutdown with an active session and joined goroutines.
-- Reconnect behavior and any promised replay/ordering rules.
+`websocket.Config` is supplied per endpoint; zero values select these defaults:
 
-Only advertise the semantics implemented by your chosen integration. The existing
-HTTP shutdown support is a lifecycle building block, not proof of chat delivery
-or multi-replica consistency. Continue with [HTTP handlers](handlers.md),
-[application lifecycle](application-lifecycle.md), and [events](events.md).
+| Setting | Default | Behavior |
+| --- | --- | --- |
+| `AllowedOrigins` | none added | Permit same-origin and non-browser clients without Origin |
+| `MaxMessageBytes` | 64 KiB | Bound each inbound and outbound message |
+| `WriteTimeout` | 10s | Bound message writes |
+| `PingInterval` | 30s | Send periodic ping frames |
+| `PingTimeout` | 10s | Disconnect peers that do not answer |
+
+Additional origins must be exact HTTP(S) origins including any port, without
+paths or wildcards. Checks compare scheme and host; malformed, opaque and duplicate
+Origin headers are rejected. Allowed origins are copied at construction.
+Origin checking is independent of CORS and is not authentication. Behind a TLS
+terminating proxy, configure the public browser origin explicitly; the socket
+handler does not reinterpret forwarded protocol headers.
+
+Read continuously so ping, pong and close frames can be processed. One goroutine
+may read; concurrent writes are serialized and time-bounded. There is no unbounded
+outbound queue. Oversized writes return `websocket.ErrMessageTooLarge`; oversized
+incoming messages close with protocol code 1009. A session handler can explicitly
+close with, for example, `conn.Close(websocket.StatusPolicyViolation, "Session ended.")`.
+Use short, static public close reasons, never provider errors or secrets.
+
+## Session lifetime and shutdown
+
+The callback owns its session work and must honor its context. Stop and join
+application goroutines before returning; do not retain the connection afterward.
+The framework owns and joins its heartbeat goroutine. A missing heartbeat response
+cancels the session and closes its socket.
+
+Returning nil sends a normal close; unexpected callback errors are safely logged
+and receive a generic internal-error close. The protocol library bounds close handshakes to five seconds for writing
+and five seconds for receiving the peer close. HTTP shutdown closes tracked upgraded TCP connections, including
+TLS connections, and joins handlers before dependencies are released. This forced
+transport shutdown does not promise a WebSocket going-away frame. Clients must
+handle abrupt disconnects and reconnect according to application policy.
+
+There is no automatic room registry, cross-replica broadcast, replay, presence or
+offline delivery. Expo push is a separate capability. Bound any application queues
+and define delivery guarantees before implementing a broadcast layer.
+
+## Run the local example
+
+`examples/websocket` supplies an unauthenticated echo socket at `/ws` and a
+`/protocol` endpoint reporting the negotiated HTTP protocol. It always binds to
+loopback, using the configured HTTP port, and opens no database or Redis clients:
+
+```sh
+APP_ENV_FILE='' go run ./examples/websocket
+```
+
+For TLS, supply the certificate/key settings and enable HTTP/2 as above. The
+example retains those settings. Connect a WebSocket client to
+`ws://127.0.0.1:8080/ws`, or `wss://` with a certificate valid for the selected
+address. The public application does not mount this demonstration route.
+
+## Verification
+
+Tests use real clients and listeners for HTTP/1.1/HTTP/2 TLS negotiation, graceful
+HTTP/2 drain, ws/wss message exchange, principal propagation, origin/auth rejection,
+oversized messages, heartbeat timeout, slow readers and shutdown with active
+connections. Request-recorder-only tests cannot establish socket correctness.
+Continue with [middleware](middleware.md), [HTTP handlers](handlers.md) and
+[application lifecycle](application-lifecycle.md).

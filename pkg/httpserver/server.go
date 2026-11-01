@@ -4,14 +4,25 @@ package httpserver
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 )
 
+// Config selects listener protocols and bounds request/shutdown work.
+// Empty TLS paths serve plaintext HTTP/1.1. TLS files are loaded once in Run;
+// rotate certificates by restarting the server with the replacement files.
 type Config struct {
+	// TLSCertFile and TLSKeyFile must be supplied together to enable HTTPS.
+	TLSCertFile string
+	TLSKeyFile  string
+	// HTTP2 enables TLS-negotiated HTTP/2 alongside HTTP/1.1. It requires TLS.
+	// Cleartext HTTP/2 and HTTP/3 are not supported.
+	HTTP2             bool
 	Address           string
 	ReadHeaderTimeout time.Duration
 	ReadTimeout       time.Duration
@@ -34,7 +45,14 @@ type Server struct {
 	addr    net.Addr
 }
 
+// New validates settings without I/O. Run loads TLS credentials before binding.
 func New(cfg Config, handler http.Handler) (*Server, error) {
+	if (cfg.TLSCertFile == "") != (cfg.TLSKeyFile == "") {
+		return nil, errors.New("httpserver: TLS certificate and key must be configured together")
+	}
+	if cfg.HTTP2 && cfg.TLSCertFile == "" {
+		return nil, errors.New("httpserver: HTTP/2 requires TLS")
+	}
 	if handler == nil {
 		return nil, errors.New("httpserver: nil handler")
 	}
@@ -76,6 +94,14 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 	s.used = true
 	s.mu.Unlock()
+	var tlsConfig *tls.Config
+	if s.cfg.TLSCertFile != "" {
+		certificate, err := tls.LoadX509KeyPair(s.cfg.TLSCertFile, s.cfg.TLSKeyFile)
+		if err != nil {
+			return fmt.Errorf("httpserver: load TLS credentials: %w", err)
+		}
+		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
+	}
 	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", s.cfg.Address)
 	if err != nil {
 		return err
@@ -101,7 +127,11 @@ func (s *Server) Run(ctx context.Context) error {
 		defer active.Done()
 		s.handler.ServeHTTP(w, r)
 	})
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetHTTP2(s.cfg.HTTP2)
 	server := &http.Server{
+		TLSConfig: tlsConfig, Protocols: protocols,
 		Handler: handler, ReadHeaderTimeout: s.cfg.ReadHeaderTimeout,
 		ReadTimeout: s.cfg.ReadTimeout, WriteTimeout: s.cfg.WriteTimeout,
 		IdleTimeout: s.cfg.IdleTimeout, MaxHeaderBytes: s.cfg.MaxHeaderBytes,
@@ -116,7 +146,13 @@ func (s *Server) Run(ctx context.Context) error {
 	s.addr = listener.Addr()
 	s.mu.Unlock()
 	finished := make(chan error, 1)
-	go func() { finished <- server.Serve(listener) }()
+	go func() {
+		if tlsConfig != nil {
+			finished <- server.ServeTLS(listener, "", "")
+			return
+		}
+		finished <- server.Serve(listener)
+	}()
 	close(s.ready)
 	var serveErr error
 	select {

@@ -23,6 +23,11 @@ purpose-named files such as `auth.go`, `cache.go`, `ratelimit.go` and
 checks in the owning module's `delivery/http`. Use the native Huma or standard
 `net/http` middleware function signature rather than introducing another interface.
 
+`middleware.BearerHTTP(authenticator)` is the standard `net/http` counterpart
+to Huma's `Bearer`, for native routes such as WebSocket handshakes. Both share
+credential validation, principal storage and rejection behavior. Native routes
+do not automatically inherit middleware from Huma groups.
+
 The API package owns server construction, trusted-proxy resolution and its private
 request pipeline. It may import `middleware`; middleware must not import its
 parent `api` package. `api.Authenticated` remains the group composition helper

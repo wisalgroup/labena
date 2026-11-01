@@ -1,6 +1,6 @@
 module github.com/wisalgroup/labena
 
-go 1.27.2
+go 1.27.3
 
 require (
 	cloud.google.com/go/auth v0.20.0
@@ -14,6 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.102.2
 	github.com/caarlos0/env/v11 v11.3.1
+	github.com/coder/websocket v1.8.15
 	github.com/danielgtaylor/huma/v2 v2.39.1
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/go-redis/redis_rate/v10 v10.0.1

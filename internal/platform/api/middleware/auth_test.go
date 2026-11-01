@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,37 +39,44 @@ func TestBearerBoundary(t *testing.T) {
 		{name: "custom unauthenticated", header: "Bearer token", err: apperror.Unauthenticated("").WithCode("TOKEN_EXPIRED"), want: 401, calls: 1},
 		{name: "outage", header: "Bearer token", err: errors.New("private SQL"), want: 500, calls: 1},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			stub := &authenticatorStub{err: tc.err, principal: auth.Principal{UserID: uuid.New(), SessionID: uuid.New()}}
-			r := http.NewServeMux()
-			h := humago.New(r, huma.DefaultConfig("test", "1"))
-			h.UseMiddleware(Bearer(stub))
-			huma.Register(h, huma.Operation{Method: "GET", Path: "/private", DefaultStatus: 204}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
-				id, err := auth.CurrentUserID(ctx)
-				if err != nil || id != stub.principal.UserID {
-					t.Error(err)
+		for _, native := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/native=%t", tc.name, native), func(t *testing.T) {
+				stub := &authenticatorStub{err: tc.err, principal: auth.Principal{UserID: uuid.New(), SessionID: uuid.New()}}
+				r := http.NewServeMux()
+				h := humago.New(r, huma.DefaultConfig("test", "1"))
+				var handler http.Handler = r
+				if native {
+					handler = BearerHTTP(stub)(r)
+				} else {
+					h.UseMiddleware(Bearer(stub))
 				}
-				return nil, nil
+				huma.Register(h, huma.Operation{Method: "GET", Path: "/private", DefaultStatus: 204}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
+					id, err := auth.CurrentUserID(ctx)
+					if err != nil || id != stub.principal.UserID {
+						t.Error(err)
+					}
+					return nil, nil
+				})
+				req := httptest.NewRequest("GET", "/private?access_token=forged", nil)
+				req.Header.Set("X-User-ID", uuid.NewString())
+				if tc.header != "" {
+					req.Header.Set("Authorization", tc.header)
+				}
+				if tc.duplicate {
+					req.Header.Add("Authorization", tc.header)
+				}
+				out := httptest.NewRecorder()
+				handler.ServeHTTP(out, req)
+				if out.Header().Get("Cache-Control") != "no-store" {
+					t.Fatal("authentication response is cacheable")
+				}
+				if tc.want == 401 && out.Header().Get("WWW-Authenticate") != "Bearer" {
+					t.Fatal("missing authentication challenge")
+				}
+				if out.Code != tc.want || stub.calls != tc.calls {
+					t.Fatal(out.Code, stub.calls, out.Body.String())
+				}
 			})
-			req := httptest.NewRequest("GET", "/private?access_token=forged", nil)
-			req.Header.Set("X-User-ID", uuid.NewString())
-			if tc.header != "" {
-				req.Header.Set("Authorization", tc.header)
-			}
-			if tc.duplicate {
-				req.Header.Add("Authorization", tc.header)
-			}
-			out := httptest.NewRecorder()
-			r.ServeHTTP(out, req)
-			if out.Header().Get("Cache-Control") != "no-store" {
-				t.Fatal("authentication response is cacheable")
-			}
-			if tc.want == 401 && out.Header().Get("WWW-Authenticate") != "Bearer" {
-				t.Fatal("missing authentication challenge")
-			}
-			if out.Code != tc.want || stub.calls != tc.calls {
-				t.Fatal(out.Code, stub.calls, out.Body.String())
-			}
-		})
+		}
 	}
 }

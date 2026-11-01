@@ -1,6 +1,6 @@
 # Shared application image for development and release verification.
 # Update this digest together with go.mod; no live OS package installation.
-FROM golang:1.27.2-alpine@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS build
+FROM golang:1.27.3-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS build
 ENV GOTOOLCHAIN=local CGO_ENABLED=0
 ARG VERSION=dev
 ARG REVISION=unknown

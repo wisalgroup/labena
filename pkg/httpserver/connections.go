@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"crypto/tls"
 	"net"
 	"sync"
 )
@@ -41,7 +42,12 @@ func (c *trackedConn) Close() error {
 }
 
 func (g *upgradedConnections) hijack(conn net.Conn) {
-	c := conn.(*trackedConn) // every accepted connection is wrapped by trackedListener
+	// ServeTLS wraps our tracked connection. Close the underlying transport on
+	// shutdown just as for plaintext upgrades; protocol close frames are handler-owned.
+	if secure, ok := conn.(*tls.Conn); ok {
+		conn = secure.NetConn()
+	}
+	c := conn.(*trackedConn) // every accepted underlying connection is tracked
 	g.mu.Lock()
 	stopping := g.stopping
 	if !stopping && !c.closed {

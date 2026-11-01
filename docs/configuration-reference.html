@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
+<script src="search-index.js?v=a6aa63a8c330224d" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -334,6 +334,18 @@ and pings configured connections; migrations only run on explicit command. See
 <td><code>:8080</code></td>
 </tr>
 <tr>
+<td><code>HTTP_TLS_CERT_FILE</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>HTTP_TLS_KEY_FILE</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>HTTP_HTTP2_ENABLED</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
 <td><code>HTTP_READ_HEADER_TIMEOUT</code></td>
 <td><code>5s</code></td>
 </tr>
@@ -389,6 +401,11 @@ and pings configured connections; migrations only run on explicit command. See
 </table>
 <p><code>HTTP_DOCS_ENABLED=true</code> serves <code>/docs</code> and <code>/openapi.json</code> from the registered
 operations. Disable it to hide both endpoints. No file generation is required.</p>
+<p>Native HTTPS requires both <code>HTTP_TLS_CERT_FILE</code> and <code>HTTP_TLS_KEY_FILE</code>.
+Set <code>HTTP_HTTP2_ENABLED=true</code> to negotiate HTTP/2 over TLS alongside HTTP/1.1.
+HTTP/2 without TLS is rejected. Credentials are loaded before the listener is
+bound; restart to load renewed files. Plain HTTP/1.1 remains the default.
+See <a href="websockets.html">HTTP/2 and WebSockets</a> for setup and socket integration.</p>
 <p>There is one application listener. <code>HTTP_READINESS_DEPENDENCIES=true</code> probes the
 configured database, queue Redis and limiter Redis under one shared deadline.
 Cache, SMTP and telemetry are excluded; <code>/healthz</code> never probes dependencies.

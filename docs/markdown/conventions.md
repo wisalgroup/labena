@@ -52,6 +52,15 @@ business-specific middleware in their own `delivery/http`. The API package owns
 server construction and group composition; middleware never imports its parent
 `api` package. Register policies at their intended scope before operations.
 
+The native listener in `pkg/httpserver` owns TLS setup, HTTP/1.1 and optional
+TLS-negotiated HTTP/2, and shutdown of upgraded connections. Environment settings
+are translated by app configuration. `internal/platform/websocket` owns bounded
+socket I/O, origin checks and heartbeat lifetime; app mounts endpoints explicitly.
+Native protected routes use `middleware.BearerHTTP` or another explicit trusted
+authentication adapter. Session handlers retain business authorization and join
+their work before returning. WebSockets use HTTP/1.1 upgrades, including on TLS
+listeners that also offer HTTP/2.
+
 Identity owns sign-in, verification
 and session persistence. Its HTTP delivery also owns user-specific media,
 notification and push-subscription endpoints, translating the principal into

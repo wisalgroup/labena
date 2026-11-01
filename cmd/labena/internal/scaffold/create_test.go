@@ -20,7 +20,7 @@ func fixture(t *testing.T) string {
 	t.Helper()
 	directory := t.TempDir()
 	files := map[string]string{
-		"go.mod":                       "module " + templateModule + "\n\ngo 1.27.2\n",
+		"go.mod":                       "module " + templateModule + "\n\ngo 1.27.3\n",
 		"cmd/labena/template.json":     `{"schema":1}`,
 		"cmd/app/main.go":              "package main\nimport _ \"" + templateModule + "/internal/app/config\"\nfunc main() {}\n",
 		"internal/app/config/app.go":   "package config\ntype AppConfig struct { AppName string `env:\"APP_NAME\" envDefault:\"labena\"` }\n",

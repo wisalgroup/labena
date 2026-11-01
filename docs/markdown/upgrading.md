@@ -4,6 +4,28 @@
 owns the customized application, its deployments and its updates. Read the
 [support policy](../SUPPORT.md) for release coverage and compatibility.
 
+## Native HTTP/2 and WebSocket sessions
+
+Use Go 1.27.3 or newer in the supported Go line and rebuild deployed binaries/images.
+This fixes the prior Go 1.27.2 certificate-verification advisory
+[GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809); the pinned container toolchain
+has been updated as well.
+
+HTTP/1.1 defaults are unchanged. To enable native HTTPS, set both
+`HTTP_TLS_CERT_FILE` and `HTTP_TLS_KEY_FILE`; add `HTTP_HTTP2_ENABLED=true` for
+TLS-negotiated HTTP/2 on that listener. Certificates are loaded at startup and
+require a restart for renewal. Update clients, published ports and health probes
+to use HTTPS when switching an existing listener to TLS. HTTP/1.1 remains
+available, including for WebSocket upgrades.
+
+Socket endpoints are opt-in: construct `platform/websocket.New` and mount it on
+the native mux with authentication. `middleware.BearerHTTP` reuses the existing
+authenticator for clients supporting Authorization headers. Browser clients need
+an explicit authenticated session/ticket adapter. No automatic route, message
+contract, database migration, worker ordering or queued-payload change is introduced.
+The integration adds the pinned `github.com/coder/websocket` protocol dependency;
+TLS and HTTP/2 use the Go standard library. See the [setup guide](websockets.md).
+
 ## HTTP middleware and authentication helpers
 
 Import reusable HTTP policies from `internal/platform/api/middleware` and

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build pinned upstream sources: the community registry images are unavailable.
 # MinIO and mc are AGPL-3.0; source revisions and licenses ship with this image.
-FROM golang:1.27.2-alpine AS build
+FROM golang:1.27.3-alpine AS build
 ARG MINIO_VERSION=v0.0.0-20260212201848-7aac2a2c5b7c
 ARG MC_VERSION=v0.0.0-20251106162529-77f82e18b540
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
+<script src="search-index.js?v=a6aa63a8c330224d" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -89,85 +89,160 @@
 </div>
 <main id="content" tabindex="-1">
 <nav class="breadcrumb" aria-label="Breadcrumb"><a href="overview.html">Docs</a><span aria-hidden="true">/</span><span>HTTP APIs</span></nav>
-<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#understand-the-available-boundary">Understand the available boundary</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#keep-the-session-inside-the-handler">Keep the session inside the handler</a></li><li class="toc-level-2"><a href="#configure-the-listener">Configure the listener</a></li><li class="toc-level-2"><a href="#shutdown-behavior">Shutdown behavior</a></li><li class="toc-level-2"><a href="#logging-and-scaling">Logging and scaling</a></li><li class="toc-level-2"><a href="#verify-a-protocol-integration">Verify a protocol integration</a></li></ol></nav></details>
-<article><h1 id="websocket-integration">WebSocket integration</h1>
-<p>The HTTP server supports connection upgrades and tracks hijacked connections during shutdown. The application has no WebSocket endpoint, hub or room registry. This guide describes the transport lifecycle hooks available when adding your own protocol.</p>
-<p>Choose a protocol implementation for your application and mount its handler on the server mux. This page describes the existing integration boundary without adding a dependency.</p>
-<h2 id="understand-the-available-boundary">Understand the available boundary<a class="heading-link" href="#understand-the-available-boundary" aria-label="Link to Understand the available boundary">#</a></h2>
+<details class="mobile-outline"><summary>On this page</summary><nav aria-label="Page sections"><ol><li class="toc-level-2"><a href="#enable-https-and-http2">Enable HTTPS and HTTP/2</a></li><li class="toc-level-2"><a href="#register-a-websocket-handler">Register a WebSocket handler</a></li><li class="toc-level-3"><a href="#browser-authentication">Browser authentication</a></li><li class="toc-level-2"><a href="#limits-and-origins">Limits and origins</a></li><li class="toc-level-2"><a href="#session-lifetime-and-shutdown">Session lifetime and shutdown</a></li><li class="toc-level-2"><a href="#run-the-local-example">Run the local example</a></li><li class="toc-level-2"><a href="#verification">Verification</a></li></ol></nav></details>
+<article><h1 id="http2-and-websockets">HTTP/2 and WebSockets</h1>
+<p>Labena serves HTTP/1.1 and TLS-negotiated HTTP/2 directly through Go&#39;s HTTP
+server. WebSocket sessions use the framework&#39;s <code>internal/platform/websocket</code>
+integration, backed by <code>github.com/coder/websocket</code>. No reverse proxy is required.
+HTTP/3, cleartext HTTP/2 and HTTP/2 WebSocket extended CONNECT are not implemented.</p>
+<h2 id="enable-https-and-http2">Enable HTTPS and HTTP/2<a class="heading-link" href="#enable-https-and-http2" aria-label="Link to Enable HTTPS and HTTP/2">#</a></h2>
+<p>Plain HTTP/1.1 remains the default. To enable HTTPS with HTTP/2:</p>
+<pre><code class="language-dotenv">HTTP_ADDRESS=:8443
+HTTP_TLS_CERT_FILE=/run/secrets/server.crt
+HTTP_TLS_KEY_FILE=/run/secrets/server.key
+HTTP_HTTP2_ENABLED=true
+</code></pre>
+<p>Supply both TLS files. The server loads them before binding or signaling readiness;
+missing, unreadable or invalid credentials fail startup. TLS uses a minimum of
+TLS 1.2. HTTP/2 requires TLS, and HTTP/1.1 remains available on the same listener.
+With TLS configured but <code>HTTP_HTTP2_ENABLED=false</code>, the listener serves HTTPS
+using HTTP/1.1 only. Certificate issuance and renewal are deployment responsibilities;
+restart with the replacement files to rotate certificates. There is no automatic
+certificate reload or separate HTTP-to-HTTPS redirect listener.</p>
+<p>Clients negotiate HTTP/2 using ALPN. For example, an HTTP/2-capable curl can verify
+the public endpoint with <code>curl --http2 -v https://api.example.com:8443/healthz</code>.
+Use a certificate trusted by the client; changing only the URL to HTTPS does not
+enable TLS on the server.</p>
+<h2 id="register-a-websocket-handler">Register a WebSocket handler<a class="heading-link" href="#register-a-websocket-handler" aria-label="Link to Register a WebSocket handler">#</a></h2>
+<p>Construct a handler and mount it on the platform API server&#39;s native mux, in app
+composition after constructing authentication:</p>
+<pre><code class="language-go" data-highlighted="yes">socket<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">websocket</span><span class="go-punctuation">.</span><span class="go-function">New</span><span class="go-bracket-0">(</span><span class="go-type">websocket</span><span class="go-punctuation">.</span><span class="go-type">Config</span><span class="go-bracket-1">{</span>
+    AllowedOrigins<span class="go-punctuation">:</span> <span class="go-bracket-2">[</span><span class="go-bracket-2">]</span><span class="go-builtin-type">string</span><span class="go-bracket-2">{</span><span class="go-string">&#34;https://app.example.com&#34;</span><span class="go-bracket-2">}</span><span class="go-punctuation">,</span>
+<span class="go-bracket-1">}</span><span class="go-punctuation">,</span> <span class="go-keyword">func</span><span class="go-bracket-1">(</span><span class="go-parameter">ctx</span> <span class="go-type">context</span><span class="go-punctuation">.</span><span class="go-type">Context</span><span class="go-punctuation">,</span> <span class="go-parameter">conn</span> <span class="go-operator">*</span><span class="go-type">websocket</span><span class="go-punctuation">.</span><span class="go-type">Conn</span><span class="go-bracket-1">)</span> <span class="go-builtin-type">error</span> <span class="go-bracket-1">{</span>
+    principal<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-package">auth</span><span class="go-punctuation">.</span><span class="go-function">FromContext</span><span class="go-bracket-2">(</span><span class="go-parameter">ctx</span><span class="go-bracket-2">)</span>
+    <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-2">{</span>
+        <span class="go-keyword">return</span> err
+    <span class="go-bracket-2">}</span>
+    _ <span class="go-operator">=</span> principal <span class="go-comment">// Pass trusted identity to the service handling each message.</span>
+
+    <span class="go-keyword">for</span> <span class="go-bracket-2">{</span>
+        kind<span class="go-punctuation">,</span> message<span class="go-punctuation">,</span> err <span class="go-operator">:=</span> <span class="go-parameter">conn</span><span class="go-punctuation">.</span><span class="go-function">Read</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-bracket-3">)</span>
+        <span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+            <span class="go-keyword">return</span> err
+        <span class="go-bracket-3">}</span>
+        <span class="go-comment">// Illustrative echo. Real handlers decode, authorize and call services.</span>
+        <span class="go-keyword">if</span> err <span class="go-operator">:=</span> <span class="go-parameter">conn</span><span class="go-punctuation">.</span><span class="go-function">Write</span><span class="go-bracket-3">(</span><span class="go-parameter">ctx</span><span class="go-punctuation">,</span> kind<span class="go-punctuation">,</span> message<span class="go-bracket-3">)</span><span class="go-punctuation">;</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-3">{</span>
+            <span class="go-keyword">return</span> err
+        <span class="go-bracket-3">}</span>
+    <span class="go-bracket-2">}</span>
+<span class="go-bracket-1">}</span><span class="go-bracket-0">)</span>
+<span class="go-keyword">if</span> err <span class="go-operator">!=</span> <span class="go-keyword">nil</span> <span class="go-bracket-0">{</span>
+    <span class="go-keyword">return</span> err
+<span class="go-bracket-0">}</span>
+<span class="go-package">server</span><span class="go-punctuation">.</span>Mux<span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-string">&#34;GET /ws&#34;</span><span class="go-punctuation">,</span> <span class="go-package">middleware</span><span class="go-punctuation">.</span><span class="go-function">BearerHTTP</span><span class="go-bracket-1">(</span>authentication<span class="go-bracket-1">)</span><span class="go-bracket-1">(</span>socket<span class="go-bracket-1">)</span><span class="go-bracket-0">)</span>
+</code></pre>
+<p>Import <code>context</code>, <code>internal/platform/auth</code>, <code>internal/platform/websocket</code>, and
+<code>internal/platform/api/middleware</code> under your application module path.
+Here <code>server</code> is the existing <code>*api.Server</code>, and <code>authentication</code> implements
+<code>auth.Authenticator</code>. This is an integration pattern, not a route automatically
+installed by the template. The framework does not ship an application message protocol.</p>
+<p><code>BearerHTTP</code> applies the same credential validation and error responses as Huma
+bearer middleware. A nil authenticator fails closed. Native mux routes do not
+inherit Huma group authentication or rate limiting. Apply relevant policies
+explicitly. Authentication at connection time does not authorize every message
+or automatically revalidate a session after logout; message handlers own those checks.</p>
+<p>WebSockets use the HTTP/1.1 upgrade path, even when HTTP/2 is enabled on that
+listener. Use <code>ws://</code> for local plaintext connections and <code>wss://</code> for TLS.
+Normal HTTP request deadlines are cleared by Go when the connection is hijacked;
+the socket&#39;s own limits take over.</p>
+<h3 id="browser-authentication">Browser authentication<a class="heading-link" href="#browser-authentication" aria-label="Link to Browser authentication">#</a></h3>
+<p>Browser <code>WebSocket</code> APIs cannot set an Authorization header. <code>BearerHTTP</code> works
+with clients that can set it; it does not accept credentials in query parameters.
+For browsers, supply an explicit trusted session or short-lived ticket adapter
+that authenticates before upgrade and stores the principal with <code>auth.WithPrincipal</code>.
+Ticket issuance, expiry, replay prevention and per-message authorization belong to
+the application. The framework does not silently enable cookie or query-token auth.</p>
+<h2 id="limits-and-origins">Limits and origins<a class="heading-link" href="#limits-and-origins" aria-label="Link to Limits and origins">#</a></h2>
+<p><code>websocket.Config</code> is supplied per endpoint; zero values select these defaults:</p>
 <table>
 <thead>
 <tr>
-<th>Provided by the framework</th>
-<th>Supplied by your application/integration</th>
+<th>Setting</th>
+<th>Default</th>
+<th>Behavior</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Standard HTTP handler mount and upgrade-compatible response handling</td>
-<td>WebSocket protocol implementation and handshake</td>
+<td><code>AllowedOrigins</code></td>
+<td>none added</td>
+<td>Permit same-origin and non-browser clients without Origin</td>
 </tr>
 <tr>
-<td>Request correlation and handler-lifetime logging</td>
-<td>Authentication, origin checks, and message authorization</td>
+<td><code>MaxMessageBytes</code></td>
+<td>64 KiB</td>
+<td>Bound each inbound and outbound message</td>
 </tr>
 <tr>
-<td>Tracking/closing hijacked connections during shutdown</td>
-<td>Protocol close frames, heartbeats, backpressure, and reconnection</td>
+<td><code>WriteTimeout</code></td>
+<td>10s</td>
+<td>Bound message writes</td>
 </tr>
 <tr>
-<td>Application lifecycle ownership</td>
-<td>Cross-replica broadcast, room state, history, and replay</td>
+<td><code>PingInterval</code></td>
+<td>30s</td>
+<td>Send periodic ping frames</td>
+</tr>
+<tr>
+<td><code>PingTimeout</code></td>
+<td>10s</td>
+<td>Disconnect peers that do not answer</td>
 </tr>
 </tbody>
 </table>
-<p>There is no built-in chat or realtime notification channel. Push notification
-support is a separate <a href="push.html">Expo capability</a>; it does not provide an active
-WebSocket connection or message-history protocol.</p>
-<h2 id="register-a-handler">Register a handler<a class="heading-link" href="#register-a-handler" aria-label="Link to Register a handler">#</a></h2>
-<p>Protocol upgrades are a platform transport integration, outside the typed business
-API. Install an explicitly constructed <code>http.Handler</code> from platform HTTP setup,
-where the native router is owned:</p>
-<pre><code class="language-go" data-highlighted="yes"><span class="go-package">server</span><span class="go-punctuation">.</span>Mux<span class="go-punctuation">.</span><span class="go-function">Handle</span><span class="go-bracket-0">(</span><span class="go-string">&#34;GET /ws&#34;</span><span class="go-punctuation">,</span> socketHandler<span class="go-bracket-0">)</span>
+<p>Additional origins must be exact HTTP(S) origins including any port, without
+paths or wildcards. Checks compare scheme and host; malformed, opaque and duplicate
+Origin headers are rejected. Allowed origins are copied at construction.
+Origin checking is independent of CORS and is not authentication. Behind a TLS
+terminating proxy, configure the public browser origin explicitly; the socket
+handler does not reinterpret forwarded protocol headers.</p>
+<p>Read continuously so ping, pong and close frames can be processed. One goroutine
+may read; concurrent writes are serialized and time-bounded. There is no unbounded
+outbound queue. Oversized writes return <code>websocket.ErrMessageTooLarge</code>; oversized
+incoming messages close with protocol code 1009. A session handler can explicitly
+close with, for example, <code>conn.Close(websocket.StatusPolicyViolation, &#34;Session ended.&#34;)</code>.
+Use short, static public close reasons, never provider errors or secrets.</p>
+<h2 id="session-lifetime-and-shutdown">Session lifetime and shutdown<a class="heading-link" href="#session-lifetime-and-shutdown" aria-label="Link to Session lifetime and shutdown">#</a></h2>
+<p>The callback owns its session work and must honor its context. Stop and join
+application goroutines before returning; do not retain the connection afterward.
+The framework owns and joins its heartbeat goroutine. A missing heartbeat response
+cancels the session and closes its socket.</p>
+<p>Returning nil sends a normal close; unexpected callback errors are safely logged
+and receive a generic internal-error close. The protocol library bounds close handshakes to five seconds for writing
+and five seconds for receiving the peer close. HTTP shutdown closes tracked upgraded TCP connections, including
+TLS connections, and joins handlers before dependencies are released. This forced
+transport shutdown does not promise a WebSocket going-away frame. Clients must
+handle abrupt disconnects and reconnect according to application policy.</p>
+<p>There is no automatic room registry, cross-replica broadcast, replay, presence or
+offline delivery. Expo push is a separate capability. Bound any application queues
+and define delivery guarantees before implementing a broadcast layer.</p>
+<h2 id="run-the-local-example">Run the local example<a class="heading-link" href="#run-the-local-example" aria-label="Link to Run the local example">#</a></h2>
+<p><code>examples/websocket</code> supplies an unauthenticated echo socket at <code>/ws</code> and a
+<code>/protocol</code> endpoint reporting the negotiated HTTP protocol. It always binds to
+loopback, using the configured HTTP port, and opens no database or Redis clients:</p>
+<pre><code class="language-sh">APP_ENV_FILE=&#39;&#39; go run ./examples/websocket
 </code></pre>
-<p>Here <code>server</code> is the platform&#39;s <code>*api.Server</code> and <code>socketHandler</code> is a standard
-<code>http.Handler</code> implementing the handshake and session protocol. This illustrative
-mount is not implemented by the boilerplate. It does not belong on
-<code>dependencies.Targets.HTTP</code>, which is a Huma API. Keep native adapter details in
-platform setup; modules and services retain standard contexts and business inputs.</p>
-<h2 id="keep-the-session-inside-the-handler">Keep the session inside the handler<a class="heading-link" href="#keep-the-session-inside-the-handler" aria-label="Link to Keep the session inside the handler">#</a></h2>
-<p>The handler should remain active for the session lifetime. If it starts read/write goroutines, stop and join them before returning. Returning immediately while detached goroutines use app dependencies defeats the server&#39;s handler-drain ownership.</p>
-<p>Pass <code>r.Context()</code> into application operations. A protocol read must also stop when its connection closes; context cancellation alone does not necessarily interrupt a library&#39;s blocking read.</p>
-<p>Bound incoming message size, outbound queues, and write deadlines in the chosen implementation. Decide whether a slow consumer is disconnected or messages are dropped. Authenticate and check browser origins before upgrading, then authorize individual operations as needed.</p>
-<h2 id="configure-the-listener">Configure the listener<a class="heading-link" href="#configure-the-listener" aria-label="Link to Configure the listener">#</a></h2>
-<p>WebSocket handlers share the application server&#39;s address and HTTP settings:</p>
-<pre><code class="language-dotenv">HTTP_ADDRESS=:8080
-HTTP_READ_HEADER_TIMEOUT=5s
-HTTP_SHUTDOWN_TIMEOUT=10s
-</code></pre>
-<p>HTTP limits govern the handshake and normal requests; protocol-level message limits and heartbeat behavior belong to the WebSocket implementation. Configure post-upgrade connection deadlines deliberately and verify how your library handles inherited deadlines.</p>
-<p>Reverse proxies need upgrade forwarding and suitable connection timeouts.</p>
-<h2 id="shutdown-behavior">Shutdown behavior<a class="heading-link" href="#shutdown-behavior" aria-label="Link to Shutdown behavior">#</a></h2>
-<p>When HTTP shutdown begins, the server stops admission and closes tracked upgraded connections. It then joins active handlers before their dependencies can be released.</p>
-<p>This closes the transport connection; it does not automatically send a WebSocket close frame. If the product needs protocol-level farewell messages or session draining, implement and coordinate that behavior in the application. Keep it bounded within the app&#39;s shutdown budget.</p>
-<p>Ordinary request contexts are preserved during HTTP drain, then canceled. Do not rely only on immediate context cancellation to notice WebSocket shutdown; socket closure is the direct signal at shutdown start.</p>
-<h2 id="logging-and-scaling">Logging and scaling<a class="heading-link" href="#logging-and-scaling" aria-label="Link to Logging and scaling">#</a></h2>
-<p>The built-in HTTP request log covers the handler lifetime, not individual frames. Add context logging for relevant session outcomes and errors without recording sensitive message bodies. Correlation and connection identifiers belong in logs rather than unbounded metric labels.</p>
-<p>A process-local connection registry and GoChannel bus reach only that process. With multiple replicas, add an explicit cross-process broadcast design; the current bus cannot deliver to every replica. Match routing and retention to the product rather than treating queue workers as a broadcast hub.</p>
-<p>Reconnect, replay, ordering, presence, and offline delivery remain application contracts. Define them before exposing those guarantees to clients.</p>
-<h2 id="verify-a-protocol-integration">Verify a protocol integration<a class="heading-link" href="#verify-a-protocol-integration" aria-label="Link to Verify a protocol integration">#</a></h2>
-<p>Use a real local HTTP server and a protocol client for tests that depend on
-upgrades; a response recorder cannot establish socket behavior. Exercise:</p>
-<ul>
-<li>Authentication/origin rejection before upgrade.</li>
-<li>A permitted session exchanging messages without unbounded buffers.</li>
-<li>A slow or disconnected client and a blocked protocol read.</li>
-<li>Application shutdown with an active session and joined goroutines.</li>
-<li>Reconnect behavior and any promised replay/ordering rules.</li>
-</ul>
-<p>Only advertise the semantics implemented by your chosen integration. The existing
-HTTP shutdown support is a lifecycle building block, not proof of chat delivery
-or multi-replica consistency. Continue with <a href="handlers.html">HTTP handlers</a>,
-<a href="application-lifecycle.html">application lifecycle</a>, and <a href="events.html">events</a>.</p>
+<p>For TLS, supply the certificate/key settings and enable HTTP/2 as above. The
+example retains those settings. Connect a WebSocket client to
+<code>ws://127.0.0.1:8080/ws</code>, or <code>wss://</code> with a certificate valid for the selected
+address. The public application does not mount this demonstration route.</p>
+<h2 id="verification">Verification<a class="heading-link" href="#verification" aria-label="Link to Verification">#</a></h2>
+<p>Tests use real clients and listeners for HTTP/1.1/HTTP/2 TLS negotiation, graceful
+HTTP/2 drain, ws/wss message exchange, principal propagation, origin/auth rejection,
+oversized messages, heartbeat timeout, slow readers and shutdown with active
+connections. Request-recorder-only tests cannot establish socket correctness.
+Continue with <a href="middleware.html">middleware</a>, <a href="handlers.html">HTTP handlers</a> and
+<a href="application-lifecycle.html">application lifecycle</a>.</p>
 </article>
 <nav class="page-navigation" aria-label="Previous and next pages">
 <a href="http-client.html"><small>← Previous</small>HTTP client</a>
@@ -175,7 +250,7 @@ or multi-replica consistency. Continue with <a href="handlers.html">HTTP handler
 </nav>
 <footer><a data-markdown href="markdown/websockets.md" download>Download Markdown ↓</a><a href="#content">Back to top ↑</a></footer>
 </main>
-<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#understand-the-available-boundary">Understand the available boundary</a></li><li class="toc-level-2"><a href="#register-a-handler">Register a handler</a></li><li class="toc-level-2"><a href="#keep-the-session-inside-the-handler">Keep the session inside the handler</a></li><li class="toc-level-2"><a href="#configure-the-listener">Configure the listener</a></li><li class="toc-level-2"><a href="#shutdown-behavior">Shutdown behavior</a></li><li class="toc-level-2"><a href="#logging-and-scaling">Logging and scaling</a></li><li class="toc-level-2"><a href="#verify-a-protocol-integration">Verify a protocol integration</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/websockets.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
+<aside class="page-outline" aria-label="On this page"><div class="toc-title">On this page</div><nav id="toc" aria-label="Page sections"><ol><li class="toc-level-2"><a href="#enable-https-and-http2">Enable HTTPS and HTTP/2</a></li><li class="toc-level-2"><a href="#register-a-websocket-handler">Register a WebSocket handler</a></li><li class="toc-level-3"><a href="#browser-authentication">Browser authentication</a></li><li class="toc-level-2"><a href="#limits-and-origins">Limits and origins</a></li><li class="toc-level-2"><a href="#session-lifetime-and-shutdown">Session lifetime and shutdown</a></li><li class="toc-level-2"><a href="#run-the-local-example">Run the local example</a></li><li class="toc-level-2"><a href="#verification">Verification</a></li></ol></nav><div class="outline-footer"><a class="source-link" data-markdown href="markdown/websockets.md" download>Download Markdown ↓</a><span>Labena · Go application template</span></div></aside>
 </div>
 <dialog id="navigation-dialog" aria-labelledby="navigation-title"><div class="drawer-heading"><span id="navigation-title">Documentation</span><button id="navigation-close" class="icon-button" aria-label="Close navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></dialog>
 <dialog id="search-dialog" aria-labelledby="search-title">

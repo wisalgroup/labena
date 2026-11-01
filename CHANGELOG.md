@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+## v0.4.0 — 2026-11-01
+
+- Require Go 1.27.3 and update the container build toolchain to address
+  [GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809), affecting certificate
+  verification in the prior Go 1.27.2 baseline. Rebuild deployed binaries/images.
+
+- Add native TLS and opt-in HTTP/2 alongside HTTP/1.1, with startup credential
+  validation and TLS-aware upgraded-connection shutdown.
+- Add bounded WebSocket sessions, exact origin checks, heartbeat/close handling
+  and a local echo/protocol example. Add native `middleware.BearerHTTP` sharing
+  the existing bearer policy. Browser authentication remains explicit.
+  See the upgrade guide for TLS configuration and endpoint mounting. No schema
+  or queued-payload changes; HTTP/3 and HTTP/2 extended CONNECT are not included.
+
+### Adoption and verification
+
+Source is the commit identified by the annotated `v0.4.0` tag. The required
+toolchain is Go 1.27.3; rebuild deployed binaries and images for the certificate
+verification fix. Existing plaintext HTTP/1.1 defaults are preserved. TLS,
+HTTP/2 and WebSocket routes are opt-in; follow the
+[native protocol adoption guide](docs/upgrading.md#native-http2-and-websocket-sessions).
+No schema migration, worker rollout ordering or queued-payload conversion is required.
+
+Verification on macOS ARM64 with Go 1.27.3 passed formatting, vet, race-enabled
+Go tests (including architecture checks), command/example builds, dependency tidy,
+and documentation generation/tests. Real clients verified TLS negotiation,
+HTTP/2 drain, ws/wss messages and session shutdown. Targeted govulncheck scans of
+the HTTP server and WebSocket integration reported no reachable vulnerabilities.
+PostgreSQL/Redis integration, container builds and live provider checks were not
+run; no new backend or deployment-target verification is claimed.
+
 ## v0.3.2 — 2026-11-01
 
 - Move reusable bearer, rate-limit and multipart HTTP policies into

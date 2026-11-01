@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
+<script src="search-index.js?v=a6aa63a8c330224d" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -108,6 +108,10 @@ purpose-named files such as <code>auth.go</code>, <code>cache.go</code>, <code>r
 <code>multipart.go</code>. Add shared HTTP policies there; keep module-specific business
 checks in the owning module&#39;s <code>delivery/http</code>. Use the native Huma or standard
 <code>net/http</code> middleware function signature rather than introducing another interface.</p>
+<p><code>middleware.BearerHTTP(authenticator)</code> is the standard <code>net/http</code> counterpart
+to Huma&#39;s <code>Bearer</code>, for native routes such as WebSocket handshakes. Both share
+credential validation, principal storage and rejection behavior. Native routes
+do not automatically inherit middleware from Huma groups.</p>
 <p>The API package owns server construction, trusted-proxy resolution and its private
 request pipeline. It may import <code>middleware</code>; middleware must not import its
 parent <code>api</code> package. <code>api.Authenticated</code> remains the group composition helper

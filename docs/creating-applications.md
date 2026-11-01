@@ -12,7 +12,7 @@ Install the released CLI:
 go install github.com/wisalgroup/labena/cmd/labena@latest
 ```
 
-For repeatable team setup, replace `@latest` with `@v0.3.2`.
+For repeatable team setup, replace `@latest` with `@v0.4.0`.
 Go installs the binary into `GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset.
 Put that directory on your shell's `PATH`, then check `labena --version`.
 Use the Go version declared in the release's `go.mod`.

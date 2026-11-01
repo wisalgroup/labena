@@ -147,6 +147,11 @@ borrowed resources or close app-owned clients. `Register` performs no I/O or
 background work. Executables select processes explicitly; maintenance schedules
 stay centralized in app. CLI help intentionally constructs the application.
 
+The native HTTP listener owns TLS and optional HTTP/2; app config owns environment
+translation. `platform/websocket` owns bounded socket I/O, origins and heartbeat
+lifetime. App mounts socket endpoints explicitly with native authentication;
+session callbacks honor cancellation and join work before returning.
+
 The authenticated principal, authenticator contract and context/ownership helpers
 live in `internal/platform/auth`. Reusable HTTP middleware lives in
 `internal/platform/api/middleware`; module-specific policies stay in their

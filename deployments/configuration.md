@@ -115,6 +115,9 @@ and pings configured connections; migrations only run on explicit command. See
 | `HTTP_TRUSTED_PROXIES` | unset |
 | `HTTP_DOCS_ENABLED` | `true` |
 | `HTTP_ADDRESS` | `:8080` |
+| `HTTP_TLS_CERT_FILE` | unset |
+| `HTTP_TLS_KEY_FILE` | unset |
+| `HTTP_HTTP2_ENABLED` | `false` |
 | `HTTP_READ_HEADER_TIMEOUT` | `5s` |
 | `HTTP_READ_TIMEOUT` | `15s` |
 | `HTTP_WRITE_TIMEOUT` | `15s` |
@@ -131,6 +134,12 @@ and pings configured connections; migrations only run on explicit command. See
 
 `HTTP_DOCS_ENABLED=true` serves `/docs` and `/openapi.json` from the registered
 operations. Disable it to hide both endpoints. No file generation is required.
+
+Native HTTPS requires both `HTTP_TLS_CERT_FILE` and `HTTP_TLS_KEY_FILE`.
+Set `HTTP_HTTP2_ENABLED=true` to negotiate HTTP/2 over TLS alongside HTTP/1.1.
+HTTP/2 without TLS is rejected. Credentials are loaded before the listener is
+bound; restart to load renewed files. Plain HTTP/1.1 remains the default.
+See [HTTP/2 and WebSockets](../docs/websockets.md) for setup and socket integration.
 
 There is one application listener. `HTTP_READINESS_DEPENDENCIES=true` probes the
 configured database, queue Redis and limiter Redis under one shared deadline.

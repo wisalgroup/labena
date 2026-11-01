@@ -13,6 +13,9 @@ import (
 
 // HTTPConfig configures the application HTTP listener.
 type HTTPConfig struct {
+	TLSCertFile           string        `env:"HTTP_TLS_CERT_FILE"`
+	TLSKeyFile            string        `env:"HTTP_TLS_KEY_FILE"`
+	HTTP2Enabled          bool          `env:"HTTP_HTTP2_ENABLED" envDefault:"false"`
 	DocsEnabled           bool          `env:"HTTP_DOCS_ENABLED" envDefault:"true"`
 	ReadinessDependencies bool          `env:"HTTP_READINESS_DEPENDENCIES" envDefault:"false"`
 	TrustedProxies        []string      `env:"HTTP_TRUSTED_PROXIES"`
@@ -29,7 +32,7 @@ type HTTPConfig struct {
 
 // ServerConfig returns the settings for the HTTP server.
 func (c HTTPConfig) ServerConfig() httpserver.Config {
-	return httpserver.Config{Address: c.Address, ReadHeaderTimeout: c.ReadHeaderTimeout, ReadTimeout: c.ReadTimeout, WriteTimeout: c.WriteTimeout, IdleTimeout: c.IdleTimeout, ShutdownTimeout: c.ShutdownTimeout, MaxHeaderBytes: c.MaxHeaderBytes}
+	return httpserver.Config{TLSCertFile: c.TLSCertFile, TLSKeyFile: c.TLSKeyFile, HTTP2: c.HTTP2Enabled, Address: c.Address, ReadHeaderTimeout: c.ReadHeaderTimeout, ReadTimeout: c.ReadTimeout, WriteTimeout: c.WriteTimeout, IdleTimeout: c.IdleTimeout, ShutdownTimeout: c.ShutdownTimeout, MaxHeaderBytes: c.MaxHeaderBytes}
 }
 
 func (c HTTPConfig) Validate() error {

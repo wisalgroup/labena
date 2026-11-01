@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css?v=a6e4d5379f59a604">
 <script>(()=>{const root=document.documentElement;root.classList.add('js');let theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('docs-theme');if(saved==='dark'||saved==='light')theme=saved}catch(e){}root.dataset.theme=theme})()</script>
 <script src="vendor/highlight.min.js" defer></script>
-<script src="search-index.js?v=7a3c2fed73f76776" defer></script>
+<script src="search-index.js?v=a6aa63a8c330224d" defer></script>
 <script src="visuals.js?v=bfb8ae5449260c0d" defer></script>
 <script src="app.js?v=06c8be629adb71a0" defer></script>
 </head>
@@ -167,6 +167,14 @@ bearer validation, no-store, rate limiting and multipart bounds. Modules keep
 business-specific middleware in their own <code>delivery/http</code>. The API package owns
 server construction and group composition; middleware never imports its parent
 <code>api</code> package. Register policies at their intended scope before operations.</p>
+<p>The native listener in <code>pkg/httpserver</code> owns TLS setup, HTTP/1.1 and optional
+TLS-negotiated HTTP/2, and shutdown of upgraded connections. Environment settings
+are translated by app configuration. <code>internal/platform/websocket</code> owns bounded
+socket I/O, origin checks and heartbeat lifetime; app mounts endpoints explicitly.
+Native protected routes use <code>middleware.BearerHTTP</code> or another explicit trusted
+authentication adapter. Session handlers retain business authorization and join
+their work before returning. WebSockets use HTTP/1.1 upgrades, including on TLS
+listeners that also offer HTTP/2.</p>
 <p>Identity owns sign-in, verification
 and session persistence. Its HTTP delivery also owns user-specific media,
 notification and push-subscription endpoints, translating the principal into
